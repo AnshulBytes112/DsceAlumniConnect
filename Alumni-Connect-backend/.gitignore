@@ -1,0 +1,80 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### ========== Spring Boot / Maven / Gradle ==========
+/build/
+/out/
+/logs/
+*.log
+*.tmp
+*.bak
+
+### ========== IntelliJ IDEA ==========
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### ========== Eclipse / STS ==========
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+### ========== NetBeans ==========
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### ========== VS Code ==========
+.vscode/
+
+### ========== OS Files ==========
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+__MACOSX/
+
+### ========== Environment / Config Files ==========
+.env
+*.env
+application.properties
+application.yml
+application-local.properties
+application-dev.properties
+application-test.properties
+
+### ========== MongoDB / Database Dumps ==========
+*.db
+*.sql
+dump/
+data/
+
+### ========== Docker (if used) ==========
+.docker/
+docker-compose.yml
+*.tar
+
+### ========== Node / Frontend Builds (if merged full-stack) ==========
+frontend/node_modules/
+frontend/.env
+frontend/build/
+frontend/dist/
+frontend/.next/
+
+
+# Ignore uploaded files
+uploads/
+resumes/

@@ -1,0 +1,57 @@
+name: Spring Boot CI with Maven
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Wait for MongoDB to be healthy
+        run: |
+          echo "Waiting for MongoDB to be ready..."
+          for i in {1..15}; do
+            if mongosh --eval "db.runCommand({ ping: 1 })" &>/dev/null; then
+              echo "MongoDB is ready!"
+              break
+            fi
+            echo "MongoDB not ready yet... retrying ($i/15)"
+            sleep 3
+          done
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven (no tests)
+        run: mvn -B clean package -DskipTests --file pom.xml
+
+      - name: Run tests (with MongoDB)
+        run: mvn -B test --file pom.xml
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: springboot-backend
+          path: target/*.jar
