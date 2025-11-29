@@ -37,9 +37,9 @@ public class AuthController {
     private JwtUtils jwtUtil;
 
     @PostMapping(value = "signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> signup (@RequestPart("data") String signUpRequestJson,
-                                     @RequestPart("profile") MultipartFile profilePicture,
-    @RequestPart("resume") MultipartFile resume) {
+    public ResponseEntity<?> signup (@RequestPart(value = "data") String signUpRequestJson,
+                                     @RequestPart(value = "profile",required = false) MultipartFile profilePicture,
+    @RequestPart(value = "resume",required = false) MultipartFile resume) {
         try {
             SignUpRequest signUpRequest = objectMapper.readValue(signUpRequestJson, SignUpRequest.class);
             log.info("Signup request received for email: {}", signUpRequest.getEmail());
