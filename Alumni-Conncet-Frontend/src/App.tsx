@@ -7,6 +7,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute';
 const Home = lazy(() => import('./pages/Home'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const ProfileSetup = lazy(() => import('./pages/ProfileSetup'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'));
@@ -29,9 +30,10 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
-            
+
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
+              <Route path="/profile-setup" element={<ProfileSetup />} />
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
           </Routes>

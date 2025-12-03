@@ -51,9 +51,11 @@ public class SpringSecurity {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/resume/parse").permitAll() // Resume parser endpoint
                         .requestMatchers("/chat.html").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/resume/**").hasRole("ADMIN")
+                        .requestMatchers("/api/profile/**").authenticated() // Profile endpoints require authentication
                         .requestMatchers("/users/*/resume").authenticated()
                         .anyRequest().permitAll()
                 );

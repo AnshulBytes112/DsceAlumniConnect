@@ -45,9 +45,11 @@ export default function Login() {
       login(response);
       toast({
         title: 'Login successful',
-        description: `Welcome back, ${response.firstname}!`,
+        description: `Welcome back, ${response.firstName}!`,
       });
-      navigate('/dashboard');
+
+      if (!response.profileComplete) { navigate('/profile-setup'); }
+      else { navigate('/dashboard'); }
     } catch (error) {
       toast({
         title: 'Login failed',
@@ -88,9 +90,9 @@ export default function Login() {
                   <FormItem>
                     <FormLabel className="text-brand-accent-light/80">Email Address</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="john@example.com" 
-                        {...field} 
+                      <Input
+                        placeholder="john@example.com"
+                        {...field}
                         className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
                       />
                     </FormControl>
@@ -106,10 +108,10 @@ export default function Login() {
                   <FormItem>
                     <FormLabel className="text-brand-accent-light/80">Password</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="••••••••" 
-                        {...field} 
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
                         className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
                       />
                     </FormControl>
@@ -155,7 +157,12 @@ export default function Login() {
                 </div>
               </div>
 
-              <GoogleSignInButton />
+              <GoogleSignInButton
+                onSuccess={(response) => {
+                  if (!response.profileComplete) { navigate('/profile-setup'); }
+                  else { navigate('/dashboard'); }
+                }}
+              />
             </form>
           </Form>
 
