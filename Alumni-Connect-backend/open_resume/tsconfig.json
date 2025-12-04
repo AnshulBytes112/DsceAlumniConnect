@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "es2018",
+        "module": "commonjs",
+        "lib": [
+            "es2018",
+            "dom"
+        ],
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "baseUrl": ".",
+        "paths": {
+            "lib/parse-resume-from-pdf/*": [
+                "parse-resume-from-pdf/*"
+            ],
+            "lib/redux/*": [
+                "lib/redux/*"
+            ]
+        }
+    },
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

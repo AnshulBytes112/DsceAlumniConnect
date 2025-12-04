@@ -74,6 +74,8 @@ frontend/build/
 frontend/dist/
 frontend/.next/
 
+# Ignore open_resume node_modules
+open_resume/node_modules/
 
 # Ignore uploaded files
 uploads/
