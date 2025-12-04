@@ -1,5 +1,3 @@
-import { mockCredentials } from '@/data/mockData';
-
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8080/api'; // Uses Vite env var or fallback
 
 export interface SignUpRequest {
@@ -7,12 +5,6 @@ export interface SignUpRequest {
     lastName: string;
     email: string;
     password: string;
-    confirmPassword: string;
-    graduationYear: number;
-    department: string;
-    contactNumber: string;
-    resume?: File;
-    profilePicture?: File;
 }
 
 export interface LoginRequest {
@@ -21,16 +13,52 @@ export interface LoginRequest {
 }
 
 export interface GoogleSignInRequest {
-    idToken: string;
+    accessToken: string;
 }
 
-export interface AuthResponse {
+export interface UserProfile {
     id: string;
     email: string;
     profilePicture: string | null;
+    resumeUrl: string | null;
+    firstName: string;
+    lastName: string;
+    headline?: string;
+    profileComplete: boolean;
+    graduationYear?: number;
+    department?: string;
+    contactNumber?: string;
+    bio?: string;
+    location?: string;
+    linkedinProfile?: string;
+    website?: string;
+    workExperiences?: Array<{
+        company?: string;
+        jobTitle?: string;
+        date?: string;
+        descriptions?: string[];
+    }>;
+    educations?: Array<{
+        school?: string;
+        degree?: string;
+        date?: string;
+        gpa?: string;
+        descriptions?: string[];
+    }>;
+    projects?: Array<{
+        project?: string;
+        date?: string;
+        descriptions?: string[];
+    }>;
+    skills?: string[];
+    featuredSkills?: Array<{
+        skill?: string;
+        rating?: number;
+    }>;
+}
+
+export interface AuthResponse extends UserProfile {
     jwtToken: string;
-    lastname: string;
-    firstname: string;
 }
 
 export interface ErrorResponse {
@@ -75,36 +103,11 @@ class ApiClient {
     }
 
     async signup(data: SignUpRequest): Promise<AuthResponse> {
-        const formData = new FormData();
-        
-        // Create the data object without files
-        const signupDataObj = {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
-            password: data.password,
-            confirmPassword: data.confirmPassword,
-            graduationYear: data.graduationYear,
-            department: data.department,
-            contactNumber: data.contactNumber,
-        };
-        
-        // Append data as JSON string in "data" part
-        formData.append('data', JSON.stringify(signupDataObj));
-        
-// Only append if file exists
-if (data.profilePicture instanceof File) {
-    formData.append("profile", data.profilePicture);
-}
-if (data.resume instanceof File) {
-    formData.append("resume", data.resume);
-}
-
         try {
             const response = await fetch(`${this.baseUrl}/auth/signup`, {
                 method: 'POST',
-                headers: this.getHeadersForFormData(false),
-                body: formData,
+                headers: this.getHeaders(false),
+                body: JSON.stringify(data),
             });
 
             if (!response.ok) {
@@ -128,13 +131,6 @@ if (data.resume instanceof File) {
     }
 
     async login(data: LoginRequest): Promise<AuthResponse> {
-        // Mock Bypass
-        if (data.email.trim() === mockCredentials.email && data.password.trim() === mockCredentials.password) {
-            return new Promise((resolve) => {
-                setTimeout(() => resolve(mockCredentials.user), 500);
-            });
-        }
-
         const response = await fetch(`${this.baseUrl}/auth/login`, {
             method: 'POST',
             headers: this.getHeaders(),
@@ -159,6 +155,179 @@ if (data.resume instanceof File) {
         if (!response.ok) {
             const error: ErrorResponse = await response.json();
             throw new Error(error.message || 'Google sign-in failed');
+        }
+
+        return response.json();
+    }
+
+    async setupProfile(data: {
+        profileData?: any;
+        profilePicture?: File;
+        resume?: File;
+    }): Promise<any> {
+        const formData = new FormData();
+
+        if (data.profileData) {
+            formData.append('data', JSON.stringify(data.profileData));
+        }
+        if (data.profilePicture instanceof File) {
+            formData.append('profile', data.profilePicture);
+        }
+        if (data.resume instanceof File) {
+            formData.append('resume', data.resume);
+        }
+
+        const response = await fetch(`${this.baseUrl}/profile/setup`, {
+            method: 'POST',
+            headers: this.getHeadersForFormData(true),
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Profile setup failed');
+        }
+
+        return response.json();
+    }
+
+    async getProfile(): Promise<UserProfile> {
+        const response = await fetch(`${this.baseUrl}/profile`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get profile');
+        }
+
+        return response.json();
+    }
+
+    async getDashboardStats(): Promise<{
+        jobsApplied: number;
+        events: number;
+        mentorships: number;
+    }> {
+        const response = await fetch(`${this.baseUrl}/dashboard/stats`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get dashboard stats');
+        }
+
+        return response.json();
+    }
+
+    async getAnnouncements(): Promise<Array<{
+        id: number;
+        title: string;
+        description: string;
+        time: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/announcements`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get announcements');
+        }
+
+        return response.json();
+    }
+
+    async getJobApplications(): Promise<Array<{
+        company: string;
+        role: string;
+        status: 'Applied' | 'Interview' | 'Rejected';
+        date: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/job-applications`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get job applications');
+        }
+
+        return response.json();
+    }
+
+    async getUpcomingEvents(): Promise<Array<{
+        day: string;
+        month: string;
+        title: string;
+        time: string;
+        location: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/events`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get upcoming events');
+        }
+
+        return response.json();
+    }
+
+    async getProjectFundings(): Promise<Array<{
+        title: string;
+        amount: string;
+        status: 'Approved' | 'Pending' | 'In Review';
+        date: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/fundings`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get project fundings');
+        }
+
+        return response.json();
+    }
+
+    async updateProfile(data: any): Promise<any> {
+        const response = await fetch(`${this.baseUrl}/profile`, {
+            method: 'PUT',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to update profile');
+        }
+
+        return response.json();
+    }
+
+    async uploadResume(resume: File, replaceExisting: boolean = false): Promise<any> {
+        const formData = new FormData();
+        formData.append('file', resume);
+
+        const response = await fetch(`${this.baseUrl}/profile/resume?replaceExisting=${replaceExisting}`, {
+            method: 'POST',
+            headers: this.getHeadersForFormData(true),
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to upload resume');
         }
 
         return response.json();

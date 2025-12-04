@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,14 +24,14 @@ public class User {
 
     private String lastName;
 
-   @Indexed(unique = true)
-   @NotBlank
+    @Indexed(unique = true)
+    @NotBlank
     private String email;
 
-   @NotBlank
+    @NotBlank
     private String password;
 
-    private Role role;  // USER or ADMIN
+    private Role role; // USER or ADMIN
 
     private Integer graduationYear;
     private String department;
@@ -42,6 +43,57 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String resumeUrl;
+    private Boolean profileComplete = false;
+    private String phone;
+    private String location;
+    private String website;
+    private List<WorkExperience> workExperiences;
+    private List<Education> educations;
+    private List<Project> projects;
+    private List<String> skills;
+    private List<FeaturedSkill> featuredSkills;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WorkExperience {
+        private String company;
+        private String jobTitle;
+        private String date;
+        private List<String> descriptions;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Education {
+        private String school;
+        private String degree;
+        private String date;
+        private String gpa;
+        private List<String> descriptions;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Project {
+        private String project;
+        private String date;
+        private List<String> descriptions;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FeaturedSkill {
+        private String skill;
+        private Integer rating;
+    }
 
     public User(String firstName, String lastName, String email, String password, Role role) {
         this.firstName = firstName;
@@ -50,14 +102,17 @@ public class User {
         this.password = password;
         this.role = role;
     }
-    public User(String firstName, String lastName, String email, String password, Role role, AuthProvider authProvider) {
+
+    public User(String firstName, String lastName, String email, String password, Role role,
+            AuthProvider authProvider) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
-        this.role =role;
+        this.role = role;
         this.authProvider = authProvider;
     }
+
     public enum AuthProvider {
         LOCAL,
         GOOGLE,
@@ -67,6 +122,5 @@ public class User {
         USER,
         ADMIN
     }
-
 
 }

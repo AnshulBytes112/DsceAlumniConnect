@@ -34,9 +34,9 @@ const PillNav = ({
   activeHref,
   className = '',
   ease = 'power3.easeOut',
-  baseColor = '#fff',
-  pillColor = '#060010',
-  hoveredPillTextColor = '#060010',
+  baseColor = '#003366',
+  pillColor = '#FFD700',
+  hoveredPillTextColor = '#003366',
   pillTextColor,
   onMobileMenuClick,
   initialLoadAnimation = true
@@ -430,25 +430,25 @@ const PillNav = ({
 
       <div
         ref={mobileMenuRef}
-        className="md:hidden absolute top-[3em] left-4 right-4 rounded-[27px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-[998] origin-top"
+        className="md:hidden absolute top-[3em] left-4 right-4 rounded-[27px] shadow-[0_8px_32px_rgba(0,51,102,0.15)] z-[998] origin-top border border-[#003366]/10"
         style={{
           ...cssVars,
-          background: 'var(--base, #f0f0f0)'
+          background: 'var(--base, #003366)'
         }}
       >
         <ul className="list-none m-0 p-[3px] flex flex-col gap-[3px]">
           {items.map(item => {
             const defaultStyle: CSSProperties = {
-              background: 'var(--pill-bg, #fff)',
-              color: 'var(--pill-text, #fff)'
+              background: 'var(--pill-bg, #FFD700)',
+              color: 'var(--pill-text, #003366)'
             };
             const hoverIn = (e: React.MouseEvent<HTMLAnchorElement>) => {
-              e.currentTarget.style.background = 'var(--base)';
-              e.currentTarget.style.color = 'var(--hover-text, #fff)';
+              e.currentTarget.style.background = 'var(--base, #003366)';
+              e.currentTarget.style.color = 'var(--hover-text, #FFD700)';
             };
             const hoverOut = (e: React.MouseEvent<HTMLAnchorElement>) => {
-              e.currentTarget.style.background = 'var(--pill-bg, #fff)';
-              e.currentTarget.style.color = 'var(--pill-text, #fff)';
+              e.currentTarget.style.background = 'var(--pill-bg, #FFD700)';
+              e.currentTarget.style.color = 'var(--pill-text, #003366)';
             };
 
             const linkClasses =
