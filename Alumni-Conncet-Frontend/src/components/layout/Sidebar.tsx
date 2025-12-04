@@ -1,13 +1,30 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import PillNav from '@/components/ui/PillNav';
+import Navbar from '@/components/ui/Navbar';
 import { dashboardUser } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { apiClient, type UserProfile } from '@/lib/api';
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
   const { logout } = useAuth();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await apiClient.getProfile();
+        setUserProfile(profile);
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const userAvatar = userProfile?.profilePicture || dashboardUser.avatar;
 
   const handleLogout = () => {
     logout();
@@ -15,30 +32,24 @@ export function Sidebar() {
   };
 
   const navItems = [
+    { label: 'Home', href: '/' },
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Profile', href: '/dashboard/profile' },
+    { label: 'Alumni', href: '/alumni' },
     { label: 'Announcements', href: '/dashboard/announcements' },
     { label: 'Settings', href: '/dashboard/settings' },
-    { label: 'Logout', href: '#logout', onClick: handleLogout, hoverColor: '#ef4444' },
+    { label: 'Logout', href: '#logout', onClick: handleLogout, hoverColor: '#dc2626' },
   ];
 
   return (
-    <div className="fixed top-0 left-5 w-full z-50 pointer-events-none ">
-      <div className="pointer-events-auto">
-        <PillNav
-          logo="https://cdn-icons-png.flaticon.com/512/2997/2997295.png" // Placeholder logo or use local asset
-          logoAlt="DSCE Alumni"
-          avatar={dashboardUser.avatar}
-          items={navItems}
-          activeHref={pathname}
-          baseColor="var(--color-brand-accent)"
-          pillColor="var(--color-secondary)"
-          pillTextColor="var(--color-foreground)"
-          hoveredPillTextColor="var(--color-foreground)"
-          className="p-4"
-          onMobileMenuClick={() => {}}
-        />
-      </div>
+    <div className="fixed top-0 left-0 w-full z-50">
+      <Navbar
+        logo="https://cdn-icons-png.flaticon.com/512/2997/2997295.png" // Placeholder logo or use local asset
+        logoAlt="DSCE Alumni"
+        avatar={userAvatar}
+        items={navItems}
+        activeHref={pathname}
+      />
     </div>
   );
 }

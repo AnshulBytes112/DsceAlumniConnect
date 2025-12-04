@@ -16,15 +16,49 @@ export interface GoogleSignInRequest {
     accessToken: string;
 }
 
-export interface AuthResponse {
+export interface UserProfile {
     id: string;
     email: string;
     profilePicture: string | null;
     resumeUrl: string | null;
-    jwtToken: string;
     firstName: string;
     lastName: string;
+    headline?: string;
     profileComplete: boolean;
+    graduationYear?: number;
+    department?: string;
+    contactNumber?: string;
+    bio?: string;
+    location?: string;
+    linkedinProfile?: string;
+    website?: string;
+    workExperiences?: Array<{
+        company?: string;
+        jobTitle?: string;
+        date?: string;
+        descriptions?: string[];
+    }>;
+    educations?: Array<{
+        school?: string;
+        degree?: string;
+        date?: string;
+        gpa?: string;
+        descriptions?: string[];
+    }>;
+    projects?: Array<{
+        project?: string;
+        date?: string;
+        descriptions?: string[];
+    }>;
+    skills?: string[];
+    featuredSkills?: Array<{
+        skill?: string;
+        rating?: number;
+    }>;
+}
+
+export interface AuthResponse extends UserProfile {
+    jwtToken: string;
 }
 
 export interface ErrorResponse {
@@ -157,7 +191,7 @@ class ApiClient {
         return response.json();
     }
 
-    async getProfile(): Promise<any> {
+    async getProfile(): Promise<UserProfile> {
         const response = await fetch(`${this.baseUrl}/profile`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -166,6 +200,101 @@ class ApiClient {
         if (!response.ok) {
             const error: ErrorResponse = await response.json();
             throw new Error(error.message || 'Failed to get profile');
+        }
+
+        return response.json();
+    }
+
+    async getDashboardStats(): Promise<{
+        jobsApplied: number;
+        events: number;
+        mentorships: number;
+    }> {
+        const response = await fetch(`${this.baseUrl}/dashboard/stats`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get dashboard stats');
+        }
+
+        return response.json();
+    }
+
+    async getAnnouncements(): Promise<Array<{
+        id: number;
+        title: string;
+        description: string;
+        time: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/announcements`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get announcements');
+        }
+
+        return response.json();
+    }
+
+    async getJobApplications(): Promise<Array<{
+        company: string;
+        role: string;
+        status: 'Applied' | 'Interview' | 'Rejected';
+        date: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/job-applications`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get job applications');
+        }
+
+        return response.json();
+    }
+
+    async getUpcomingEvents(): Promise<Array<{
+        day: string;
+        month: string;
+        title: string;
+        time: string;
+        location: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/events`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get upcoming events');
+        }
+
+        return response.json();
+    }
+
+    async getProjectFundings(): Promise<Array<{
+        title: string;
+        amount: string;
+        status: 'Approved' | 'Pending' | 'In Review';
+        date: string;
+    }>> {
+        const response = await fetch(`${this.baseUrl}/dashboard/fundings`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to get project fundings');
         }
 
         return response.json();

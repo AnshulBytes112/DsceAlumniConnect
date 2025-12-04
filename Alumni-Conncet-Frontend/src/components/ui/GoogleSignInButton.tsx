@@ -69,7 +69,7 @@ export function GoogleSignInButton({
     <Button
       type="button"
       variant="outline"
-      className={`w-full border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white ${className}`}
+      className={`w-full border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50 ${className}`}
       onClick={() => handleGoogleSignIn()}
     >
       <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
