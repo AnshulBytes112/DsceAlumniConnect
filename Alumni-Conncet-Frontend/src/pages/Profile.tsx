@@ -87,7 +87,7 @@ export default function Profile() {
                 </div>
                  <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="h-4 w-4 mr-3 text-dsce-blue" />
-                  <span>Bangalore, India</span>
+                  <span>{user?.location || 'Location not set'}</span>
                 </div>
               </div>
 
@@ -109,10 +109,54 @@ export default function Profile() {
                     <div>
                         <div className="flex justify-between text-sm mb-2">
                             <span className="font-medium text-gray-700">Profile Completion</span>
-                            <span className="text-dsce-blue font-bold">85%</span>
+                            <span className="text-dsce-blue font-bold">
+                                {(() => {
+                                    if (!user) return 0;
+                                    let score = 0;
+                                    const totalWeight = 100;
+                                    
+                                    // Basic Info (40%)
+                                    if (user.firstName) score += 10;
+                                    if (user.lastName) score += 10;
+                                    if (user.headline) score += 10;
+                                    if (user.location) score += 10;
+                                    
+                                    // Assets (20%)
+                                    if (user.profilePicture) score += 10;
+                                    if (user.resumeUrl) score += 10;
+                                    
+                                    // Details (40%)
+                                    if (user.educations && user.educations.length > 0) score += 15;
+                                    if (user.workExperiences && user.workExperiences.length > 0) score += 15;
+                                    if (user.skills && user.skills.length > 0) score += 10;
+                                    
+                                    return Math.min(score, 100);
+                                })()}%
+                            </span>
                         </div>
                         <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-dsce-blue to-dsce-light-blue w-[85%] rounded-full"></div>
+                            <div 
+                                className="h-full bg-gradient-to-r from-dsce-blue to-dsce-light-blue rounded-full transition-all duration-1000 ease-out"
+                                style={{ 
+                                    width: `${(() => {
+                                        if (!user) return 0;
+                                        let score = 0;
+                                        // Basic Info
+                                        if (user.firstName) score += 10;
+                                        if (user.lastName) score += 10;
+                                        if (user.headline) score += 10;
+                                        if (user.location) score += 10;
+                                        // Assets
+                                        if (user.profilePicture) score += 10;
+                                        if (user.resumeUrl) score += 10;
+                                        // Details
+                                        if (user.educations && user.educations.length > 0) score += 15;
+                                        if (user.workExperiences && user.workExperiences.length > 0) score += 15;
+                                        if (user.skills && user.skills.length > 0) score += 10;
+                                        return Math.min(score, 100);
+                                    })()}%` 
+                                }}
+                            ></div>
                         </div>
                         <p className="text-xs text-gray-500 mt-2">Complete your profile to get better recommendations.</p>
                         <Button 
@@ -135,11 +179,17 @@ export default function Profile() {
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        <div>
-                            <p className="font-semibold text-gray-800">Dayananda Sagar College of Engineering</p>
-                            <p className="text-sm text-gray-600">Bachelor of Engineering - BE</p>
-                            <p className="text-xs text-gray-400">2018 - 2022</p>
-                        </div>
+                        {user?.educations && user.educations.length > 0 ? (
+                            user.educations.map((edu, index) => (
+                                <div key={index}>
+                                    <p className="font-semibold text-gray-800">{edu.school}</p>
+                                    <p className="text-sm text-gray-600">{edu.degree}</p>
+                                    <p className="text-xs text-gray-400">{edu.date}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500 italic">No education details added.</p>
+                        )}
                     </div>
                 </div>
 
@@ -151,11 +201,17 @@ export default function Profile() {
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        <div>
-                            <p className="font-semibold text-gray-800">Software Engineer</p>
-                            <p className="text-sm text-gray-600">Tech Company Inc.</p>
-                            <p className="text-xs text-gray-400">2022 - Present</p>
-                        </div>
+                        {user?.workExperiences && user.workExperiences.length > 0 ? (
+                            user.workExperiences.map((exp, index) => (
+                                <div key={index}>
+                                    <p className="font-semibold text-gray-800">{exp.jobTitle}</p>
+                                    <p className="text-sm text-gray-600">{exp.company}</p>
+                                    <p className="text-xs text-gray-400">{exp.date}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500 italic">No experience details added.</p>
+                        )}
                     </div>
                 </div>
              </div>

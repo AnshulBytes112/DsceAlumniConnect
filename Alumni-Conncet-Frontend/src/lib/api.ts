@@ -68,6 +68,23 @@ export interface ErrorResponse {
     errors?: any;
 }
 
+export interface EventDTO {
+    id: string;
+    day: string;
+    month: string;
+    title: string;
+    time: string;
+    location: string;
+    userRsvpStatus?: 'GOING' | 'MAYBE' | 'NOT_GOING' | null;
+}
+
+export interface AnnouncementDTO {
+    id: number;
+    title: string;
+    description: string;
+    time: string;
+}
+
 class ApiClient {
     private baseUrl: string;
 
@@ -102,6 +119,48 @@ class ApiClient {
 
         return headers;
     }
+
+    private async get<T>(endpoint: string): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+        if (!response.ok) {
+            // Handle 404 gracefully for lists
+            if (response.status === 404) return [] as any;
+            throw new Error(`Failed to fetch ${endpoint}`);
+        }
+        return response.json();
+    }
+
+    private async post<T>(endpoint: string, body: any): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'POST',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error(`Failed to post to ${endpoint}`);
+        return response.json();
+    }
+
+    async getAllEvents(): Promise<EventDTO[]> {
+        return this.get<EventDTO[]>('/events');
+    }
+
+    async createEvent(event: Partial<EventDTO>): Promise<EventDTO> {
+        return this.post<EventDTO>('/events', event);
+    }
+
+    async rsvpEvent(eventId: string, status: string): Promise<void> {
+        await fetch(`${this.baseUrl}/events/${eventId}/rsvp`, {
+            method: 'POST',
+            headers: this.getHeaders(true),
+            body: JSON.stringify({ status }),
+        }).then(response => {
+            if (!response.ok) throw new Error('Failed to RSVP');
+        });
+    }
+
 
     async signup(data: SignUpRequest): Promise<AuthResponse> {
         try {
@@ -263,6 +322,7 @@ class ApiClient {
     }
 
     async getUpcomingEvents(): Promise<Array<{
+        id: string;
         day: string;
         month: string;
         title: string;

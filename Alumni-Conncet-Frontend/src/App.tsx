@@ -15,6 +15,9 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Alumni = lazy(() => import('./pages/Alumni'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'));
+const Events = lazy(() => import('./pages/Events'));
+const Announcements = lazy(() => import('./pages/Announcements'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -51,8 +54,9 @@ function App() {
                 <Route path="/dashboard/profile/edit-profile" element={<EditProfile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/dashboard/profile" element={<Profile />} />
-                <Route path="/dashboard/announcements" element={<Dashboard />} />
-                <Route path="/dashboard/settings" element={<Dashboard />} />
+                <Route path="/dashboard/events" element={<Events />} />
+                <Route path="/dashboard/announcements" element={<Announcements />} />
+                <Route path="/dashboard/settings" element={<Settings />} />
               </Route>
               
               {/* Public fallback for unauthenticated users */}

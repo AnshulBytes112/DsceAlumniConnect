@@ -7,7 +7,7 @@ export const menuItems = [
     { label: 'Legacy', link: '#legacy', ariaLabel: 'View Legacy', icon: createElement(History, { className: 'w-5 h-5' }) },
     { label: 'Fundraising', link: '#fundraising', ariaLabel: 'View Fundraising', icon: createElement(HeartHandshake, { className: 'w-5 h-5' }) },
     { label: 'News', link: '#news', ariaLabel: 'View News', icon: createElement(Newspaper, { className: 'w-5 h-5' }) },
-    { label: 'Events', link: '#events', ariaLabel: 'View Events', icon: createElement(Calendar, { className: 'w-5 h-5' }) },
+    { label: 'Events', link: '/dashboard/events', ariaLabel: 'View Events', icon: createElement(Calendar, { className: 'w-5 h-5' }) },
     { label: 'Quick Links', link: '#quick-links', ariaLabel: 'Quick Links', icon: createElement(Link, { className: 'w-5 h-5' }) },
     { label: 'Login / Join', link: '/login', ariaLabel: 'Login or Join', icon: createElement(LogIn, { className: 'w-5 h-5' }) },
 ];

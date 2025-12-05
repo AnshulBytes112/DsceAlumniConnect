@@ -47,7 +47,6 @@ public class SpringSecurity {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/resume/parse").permitAll() // Resume parser endpoint
                         .requestMatchers("/chat.html").permitAll()
@@ -55,7 +54,7 @@ public class SpringSecurity {
                         .requestMatchers("/api/admin/resume/**").hasRole("ADMIN")
                         .requestMatchers("/api/profile/**").authenticated() // Profile endpoints require authentication
                         .requestMatchers("/users/*/resume").authenticated()
-                        .anyRequest().permitAll());
+                        .anyRequest().authenticated());
 
         http.addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar } from 'lucide-react';
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
 import { MobileNavbar } from './MobileNavbar';
 
@@ -20,6 +20,7 @@ export default function GlobalNavbar() {
     { title: 'Profile', icon: User, href: '/dashboard/profile' },
     { title: 'Alumni', icon: Users, href: '/alumni' },
     { title: 'Announcements', icon: Bell, href: '/dashboard/announcements' },
+    { title: 'Events', icon: Calendar, href: '/dashboard/events' },
     { title: 'Settings', icon: Settings, href: '/dashboard/settings' },
     { type: 'separator' } as const,
     { title: 'Logout', icon: LogOut, onClick: handleLogout },

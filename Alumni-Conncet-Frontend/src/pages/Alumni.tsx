@@ -2,11 +2,8 @@ import { Helmet } from 'react-helmet-async';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
-import { Search, Users, Calendar, MapPin, Award, GraduationCap } from 'lucide-react';
-import { motion } from 'framer-motion';
-// import Navbar from '@/components/layout/Navbar';
-
-// Mock alumni data with more details
+import { Search, Users, Calendar, MapPin, Award, GraduationCap, Filter, X, Linkedin, Mail, Briefcase, Building2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { mockAlumni } from '@/data/mockData';
 
 export default function Alumni() {
@@ -40,326 +37,321 @@ export default function Alumni() {
     return acc;
   }, {} as Record<number, typeof mockAlumni>);
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedYear('all');
+    setSelectedDepartment('all');
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
+  const hasActiveFilters = searchTerm !== '' || selectedYear !== 'all' || selectedDepartment !== 'all';
 
   return (
-    <>
-      {/* <Navbar /> */}
-      <div className="min-h-screen bg-dsce-bg-light" style={{backgroundColor: 'var(--color-dsce-bg-light)', minHeight: '100vh'}}>
-        <Helmet>
-          <title>Alumni Directory - DSCE Alumni Connect</title>
-          <style>{`
-            body { 
-              background-color: var(--color-dsce-bg-light) !important; 
-              background: var(--color-dsce-bg-light) !important;
-              --background: var(--color-dsce-bg-light) !important;
-              --color-background: var(--color-dsce-bg-light) !important;
-            }
-            #root { 
-              background-color: var(--color-dsce-bg-light) !important; 
-              background: var(--color-dsce-bg-light) !important;
-            }
-          `}</style>
-        </Helmet>
-        
-        <MotionWrapper className="p-6 pt-24 max-w-7xl mx-auto">
-          {/* Header Section */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <div className="flex items-center justify-center mb-4">
-              <GraduationCap className="h-12 w-12 text-dsce-blue mr-3" />
-              <h1 className="text-4xl md:text-5xl font-bold text-dsce-blue">Alumni Directory</h1>
-            </div>
-            <p className="text-xl text-dsce-text-dark mb-6">Connect with 50,000+ DSCE alumni worldwide</p>
-            
-            {/* Filters Section */}
-            <div className="max-w-2xl mx-auto space-y-4">
-              {/* Search Section */}
-              <div className="mb-8">
-              <div className="relative max-w-2xl mx-auto">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-dsce-blue" />
-                <input
-                  type="text"
-                  placeholder="Search by name, company, position..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-dsce-blue/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue/50 text-gray-800 placeholder-gray-500"
-                  style={{color: 'var(--color-dsce-text-dark)'}}
-                />
-              </div>
-            </div>
-            </div>
-            
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white rounded-xl p-4 border border-dsce-blue/10 shadow-sm">
-                <div className="text-2xl font-bold text-dsce-blue">50,000+</div>
-                <div className="text-sm text-dsce-text-dark">Total Alumni</div>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-dsce-blue/10 shadow-sm">
-                <div className="text-2xl font-bold text-dsce-blue">120+</div>
-                <div className="text-sm text-dsce-text-dark">Countries</div>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-dsce-blue/10 shadow-sm">
-                <div className="text-2xl font-bold text-dsce-blue">500+</div>
-                <div className="text-sm text-dsce-text-dark">Companies</div>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-dsce-blue/10 shadow-sm">
-                <div className="text-2xl font-bold text-dsce-blue">25+</div>
-                <div className="text-sm text-dsce-text-dark">Industries</div>
-              </div>
-            </div>
-          </motion.div>
+    <div className="min-h-screen bg-dsce-bg-light">
+      <Helmet>
+        <title>Alumni Directory - DSCE Alumni Connect</title>
+      </Helmet>
+      
+      {/* Hero Header */}
+      <div className="relative bg-gradient-to-br from-dsce-blue via-[#002244] to-dsce-blue pt-32 pb-20 px-4 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full mix-blend-overlay filter blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-dsce-gold rounded-full mix-blend-overlay filter blur-3xl transform translate-x-1/2 translate-y-1/2"></div>
+        </div>
 
-          {/* Filters Section */}
+        <div className="relative max-w-7xl mx-auto text-center z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white rounded-xl p-6 border border-dsce-blue/10 shadow-sm mb-8"
+            transition={{ duration: 0.6 }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Year Filter */}
-              <div>
-                <label className="block text-sm font-medium text-dsce-blue mb-2">Graduation Year</label>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="w-full px-4 py-2 border border-dsce-blue/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue/50 text-gray-800"
-                  style={{color: 'var(--color-dsce-text-dark)'}}
-                >
-                  <option value="all">All Years</option>
-                {years.map(year => (
-                  <option key={year} value={year}>Batch of {year}</option>
-                ))}
-              </select>
+            <div className="inline-flex items-center justify-center p-3 bg-white/10 backdrop-blur-sm rounded-2xl mb-6 border border-white/20 shadow-xl">
+              <GraduationCap className="h-8 w-8 text-dsce-gold" />
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+              Alumni <span className="text-dsce-gold">Directory</span>
+            </h1>
+            <p className="text-xl text-gray-200 max-w-2xl mx-auto font-light leading-relaxed">
+              Connect with over 50,000+ distinguished alumni from Dayananda Sagar College of Engineering making an impact worldwide.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      <MotionWrapper className="max-w-7xl mx-auto px-4 -mt-10 relative z-20 pb-20">
+        {/* Search and Filter Bar */}
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-2xl shadow-xl border border-dsce-blue/5 p-4 mb-12"
+        >
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="relative flex-1 w-full">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search alumni by name, company, or role..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20 focus:border-dsce-blue transition-all text-gray-800 placeholder-gray-400"
+                    />
+                </div>
+                
+                <div className="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                        className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20 text-gray-700 min-w-[140px] cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
+                        <option value="all">All Batches</option>
+                        {years.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20 text-gray-700 min-w-[160px] cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
+                        <option value="all">All Departments</option>
+                        {departments.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                    </select>
+
+                    <div className="flex bg-gray-50 rounded-xl p-1 border border-gray-200">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-dsce-blue' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <Users className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-dsce-blue' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <Filter className="h-5 w-5" />
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            {/* Department Filter */}
-            <div>
-              <select
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full px-4 py-2 border border-dsce-blue/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue/50"
-                style={{color: 'var(--color-dsce-text-dark)'}}
-              >
-                <option value="all">All Departments</option>
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* View Mode Toggle */}
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="flex-1"
-              >
-                Grid
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="flex-1"
-              >
-                List
-              </Button>
-            </div>
-            </div>
-         
+            {/* Active Filters Tags */}
+            <AnimatePresence>
+                {hasActiveFilters && (
+                    <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100 overflow-hidden"
+                    >
+                        <span className="text-sm text-gray-500 mr-2">Active Filters:</span>
+                        {searchTerm && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-dsce-blue/10 text-dsce-blue">
+                                Search: {searchTerm}
+                                <button onClick={() => setSearchTerm('')} className="ml-2 hover:text-dsce-blue/70"><X className="h-3 w-3" /></button>
+                            </span>
+                        )}
+                        {selectedYear !== 'all' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-dsce-blue/10 text-dsce-blue">
+                                Batch: {selectedYear}
+                                <button onClick={() => setSelectedYear('all')} className="ml-2 hover:text-dsce-blue/70"><X className="h-3 w-3" /></button>
+                            </span>
+                        )}
+                        {selectedDepartment !== 'all' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-dsce-blue/10 text-dsce-blue">
+                                Dept: {selectedDepartment}
+                                <button onClick={() => setSelectedDepartment('all')} className="ml-2 hover:text-dsce-blue/70"><X className="h-3 w-3" /></button>
+                            </span>
+                        )}
+                        <button 
+                            onClick={clearFilters}
+                            className="text-xs text-red-500 hover:text-red-600 font-medium ml-auto"
+                        >
+                            Clear All
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
 
         {/* Results Count */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mb-6"
-        >
-          <p className="text-dsce-text-dark">
-            Found <span className="font-semibold text-dsce-blue">{filteredAlumni.length}</span> alumni
-          </p>
-        </motion.div>
+        <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-dsce-text-dark">
+                {searchTerm || selectedYear !== 'all' || selectedDepartment !== 'all' ? 'Search Results' : 'All Alumni'}
+                <span className="ml-3 text-sm font-normal text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
+                    {filteredAlumni.length} found
+                </span>
+            </h2>
+        </div>
 
-        {/* Alumni by Year */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-12"
-        >
-          {Object.entries(alumniByYear)
-            .sort(([yearA], [yearB]) => parseInt(yearB) - parseInt(yearA))
-            .map(([year, yearAlumni]) => (
-              <motion.div key={year} variants={itemVariants}>
-                <div className="flex items-center mb-6">
-                  <Calendar className="mr-3 h-6 w-6 text-dsce-blue" />
-                  <h2 className="text-3xl font-bold text-dsce-blue">Batch of {year}</h2>
-                  <span className="ml-4 px-4 py-2 bg-dsce-gold text-dsce-blue rounded-full text-sm font-semibold">
-                    {yearAlumni.length} Alumni
-                  </span>
-                </div>
-                
-                <div className={viewMode === 'grid' ? 
-                  "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : 
-                  "space-y-4"
-                }>
-                  {yearAlumni.map((alum) => (
-                    <motion.div
-                      key={alum.id}
-                      variants={itemVariants}
-                      whileHover={{ y: -5 }}
-                      className={viewMode === 'grid' ? 
-                        "bg-white border border-dsce-blue/10 rounded-xl p-6 hover:shadow-xl transition-all duration-300" :
-                        "bg-white border border-dsce-blue/10 rounded-xl p-6 hover:shadow-lg transition-all duration-300 flex items-center gap-6"
-                      }
+        {/* Content Area */}
+        {filteredAlumni.length > 0 ? (
+            <div className="space-y-12">
+                {Object.entries(alumniByYear)
+                    .sort(([yearA], [yearB]) => parseInt(yearB) - parseInt(yearA))
+                    .map(([year, yearAlumni]) => (
+                    <motion.div 
+                        key={year}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5 }}
                     >
-                      {viewMode === 'grid' ? (
-                        <>
-                          {/* Avatar */}
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <h3 className="text-xl font-semibold text-dsce-blue">{alum.name}</h3>
-                              <p className="text-sm text-dsce-text-dark">{alum.department}</p>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="h-px flex-1 bg-gradient-to-r from-dsce-blue/20 to-transparent"></div>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-dsce-blue/10 shadow-sm">
+                                <Calendar className="h-4 w-4 text-dsce-gold" />
+                                <span className="font-bold text-dsce-blue">Class of {year}</span>
                             </div>
-                            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center">
-                              <Users className="h-7 w-7 text-white" />
-                            </div>
-                          </div>
-                          
-                          {/* Position */}
-                          <div className="mb-4">
-                            <p className="text-sm font-medium text-dsce-blue">{alum.position}</p>
-                            <p className="text-sm text-dsce-text-dark">{alum.company}</p>
-                          </div>
-                          
-                          {/* Location */}
-                          <div className="flex items-center text-sm text-dsce-text-dark mb-4">
-                            <MapPin className="mr-2 h-4 w-4 text-dsce-blue" />
-                            {alum.location}
-                          </div>
-                          
-                          {/* Achievements */}
-                          <div className="mb-4">
-                            <div className="flex items-center mb-2">
-                              <Award className="mr-2 h-4 w-4 text-dsce-gold" />
-                              <span className="text-sm font-medium text-dsce-blue">Achievements</span>
-                            </div>
-                            <ul className="text-xs text-dsce-text-dark space-y-1">
-                              {alum.achievements.slice(0, 2).map((achievement, i) => (
-                                <li key={i} className="flex items-start">
-                                  <span className="text-dsce-gold mr-2">•</span>
-                                  {achievement}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          
-                          {/* Actions */}
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex-1 border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue hover:text-white">
-                              View Profile
-                            </Button>
-                            <Button variant="outline" size="sm" className="border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue hover:text-white">
-                              Connect
-                            </Button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {/* List View */}
-                          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center flex-shrink-0">
-                            <Users className="h-8 w-8 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h3 className="text-xl font-semibold text-dsce-blue">{alum.name}</h3>
-                                <p className="text-sm text-dsce-text-dark">{alum.department} • Class of {alum.graduationYear}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm font-medium text-dsce-blue">{alum.position}</p>
-                                <p className="text-sm text-dsce-text-dark">{alum.company}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-dsce-text-dark mb-2">
-                              <div className="flex items-center">
-                                <MapPin className="mr-1 h-3 w-3 text-dsce-blue" />
-                                {alum.location}
-                              </div>
-                              <div className="flex items-center">
-                                <Award className="mr-1 h-3 w-3 text-dsce-gold" />
-                                {alum.achievements.length} Achievements
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm" className="border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue hover:text-white">
-                                View Profile
-                              </Button>
-                              <Button variant="outline" size="sm" className="border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue hover:text-white">
-                                Connect
-                              </Button>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-        </motion.div>
+                            <div className="h-px flex-1 bg-gradient-to-l from-dsce-blue/20 to-transparent"></div>
+                        </div>
+                        
+                        <div className={viewMode === 'grid' ? 
+                            "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : 
+                            "space-y-4"
+                        }>
+                            {yearAlumni.map((alum) => (
+                                <motion.div
+                                    key={alum.id}
+                                    whileHover={{ y: -5 }}
+                                    className={`group bg-white rounded-2xl border border-dsce-blue/5 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden ${
+                                        viewMode === 'list' ? 'flex items-center p-4 gap-6' : 'p-6'
+                                    }`}
+                                >
+                                    {viewMode === 'grid' ? (
+                                        <>
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="relative">
+                                                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
+                                                        {alum.image ? (
+                                                            <img src={alum.image} alt={alum.name} className="h-full w-full object-cover rounded-2xl" />
+                                                        ) : (
+                                                            <span className="text-2xl font-bold">{alum.name.charAt(0)}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="absolute -bottom-2 -right-2 bg-white p-1 rounded-full shadow-md">
+                                                        <div className="bg-green-500 h-3 w-3 rounded-full border-2 border-white"></div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button className="p-2 text-gray-400 hover:text-dsce-blue hover:bg-dsce-blue/5 rounded-full transition-colors">
+                                                        <Linkedin className="h-5 w-5" />
+                                                    </button>
+                                                    <button className="p-2 text-gray-400 hover:text-dsce-blue hover:bg-dsce-blue/5 rounded-full transition-colors">
+                                                        <Mail className="h-5 w-5" />
+                                                    </button>
+                                                </div>
+                                            </div>
 
-        {/* No Results */}
-        {filteredAlumni.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <Users className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-dsce-text-dark mb-2">No alumni found</h3>
-            <p className="text-dsce-text-dark mb-4">Try adjusting your search or filters</p>
-            <Button variant="outline" onClick={() => {
-              setSearchTerm('');
-              setSelectedYear('all');
-              setSelectedDepartment('all');
-              setViewMode('grid');
-            }}>
-              Clear Filters
-            </Button>
-          </motion.div>
+                                            <div className="mb-4">
+                                                <h3 className="text-xl font-bold text-dsce-text-dark group-hover:text-dsce-blue transition-colors mb-1">{alum.name}</h3>
+                                                <p className="text-sm text-dsce-blue font-medium mb-3">{alum.department}</p>
+                                                
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center text-gray-600 text-sm">
+                                                        <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
+                                                        {alum.position}
+                                                    </div>
+                                                    <div className="flex items-center text-gray-600 text-sm">
+                                                        <Building2 className="h-4 w-4 mr-2 text-gray-400" />
+                                                        {alum.company}
+                                                    </div>
+                                                    <div className="flex items-center text-gray-600 text-sm">
+                                                        <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                                                        {alum.location}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4 border-t border-gray-100 mt-4">
+                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                    {alum.achievements.slice(0, 2).map((achievement, i) => (
+                                                        <span key={i} className="inline-flex items-center px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
+                                                            <Award className="h-3 w-3 mr-1" />
+                                                            {achievement}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <Button variant="outline" className="w-full border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue/5">
+                                                        Profile
+                                                    </Button>
+                                                    <Button className="w-full bg-dsce-blue text-white hover:bg-dsce-blue/90">
+                                                        Connect
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        // List View
+                                        <>
+                                            <div className="h-16 w-16 flex-shrink-0 rounded-2xl bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center text-white shadow-md">
+                                                {alum.image ? (
+                                                    <img src={alum.image} alt={alum.name} className="h-full w-full object-cover rounded-2xl" />
+                                                ) : (
+                                                    <span className="text-2xl font-bold">{alum.name.charAt(0)}</span>
+                                                )}
+                                            </div>
+                                            
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <h3 className="text-lg font-bold text-dsce-text-dark truncate">{alum.name}</h3>
+                                                    <span className="px-2 py-0.5 rounded-full bg-dsce-blue/10 text-dsce-blue text-xs font-medium">
+                                                        {alum.department}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-600 flex items-center gap-2">
+                                                    <span className="font-medium">{alum.position}</span>
+                                                    <span className="text-gray-300">•</span>
+                                                    <span>{alum.company}</span>
+                                                </p>
+                                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                                    <span className="flex items-center"><MapPin className="h-3 w-3 mr-1" /> {alum.location}</span>
+                                                    <span className="flex items-center"><Award className="h-3 w-3 mr-1 text-dsce-gold" /> {alum.achievements.length} Achievements</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
+                                                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-dsce-blue">
+                                                    <Mail className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="outline" size="sm" className="hidden md:flex">
+                                                    View Profile
+                                                </Button>
+                                                <Button size="sm" className="bg-dsce-blue text-white hover:bg-dsce-blue/90">
+                                                    Connect
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+        ) : (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200"
+            >
+                <div className="bg-gray-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Search className="h-10 w-10 text-gray-300" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No alumni found</h3>
+                <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                    We couldn't find any alumni matching your search criteria. Try adjusting your filters or search terms.
+                </p>
+                <Button onClick={clearFilters} variant="outline" className="border-dsce-blue text-dsce-blue hover:bg-dsce-blue/5">
+                    Clear All Filters
+                </Button>
+            </motion.div>
         )}
       </MotionWrapper>
     </div>
-    </>
   );
 }
