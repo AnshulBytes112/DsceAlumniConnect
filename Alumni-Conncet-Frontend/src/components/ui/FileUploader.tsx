@@ -15,14 +15,27 @@ interface FileUploaderProps {
   onChange?: (file: File | null) => void;
   error?: string;
   className?: string;
+  maxSize?: number; // in MB
+  required?: boolean;
 }
 
 const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
-  ({ label, accept, onChange, error, className, ...props }, ref) => {
+  ({ label, accept, onChange, error, className, maxSize = 5, required = false, ...props }, ref) => {
     const [fileName, setFileName] = useState<string | null>(null);
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] || null;
+      
+      if (file) {
+        // Check file size
+        const fileSizeMB = file.size / (1024 * 1024);
+        if (fileSizeMB > maxSize) {
+          setFileName(null);
+          onChange?.(null);
+          return;
+        }
+      }
+      
       setFileName(file ? file.name : null);
       onChange?.(file);
     };
@@ -40,6 +53,7 @@ const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
         {label && (
           <label className="text-sm font-medium text-brand-accent-light/80">
             {label}
+            {required && <span className="text-red-400 ml-1">*</span>}
           </label>
         )}
         <div className="relative">
@@ -57,7 +71,7 @@ const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
                   <span className="font-semibold text-brand-accent">Click to upload</span> or drag and drop
                 </p>
                 <p className="text-xs text-brand-accent-light/60">
-                  PDF, DOC (MAX. 5MB)
+                  {accept === '.pdf' ? 'PDF only' : 'JPG, PNG, GIF'} (MAX. {maxSize}MB)
                 </p>
               </div>
               <input

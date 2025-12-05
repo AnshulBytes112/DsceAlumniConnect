@@ -1,9 +1,10 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -13,5 +14,17 @@ export default function ProtectedRoute() {
     );
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  // If profile is not complete and user is not on profile setup page, redirect to profile setup
+  if (user && !user.profileComplete && location.pathname !== '/profile-setup' && location.pathname !== '/dashboard' && location.pathname !== '/dashboard/profile') {
+    // Allow access to profile-setup and profile, but redirect dashboard to profile-setup
+    if (location.pathname === '/dashboard') {
+      return <Navigate to="/profile-setup" replace />;
+    }
+  }
+
+  return <Outlet />;
 }

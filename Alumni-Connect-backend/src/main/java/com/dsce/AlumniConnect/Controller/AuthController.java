@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,14 +35,11 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtil;
 
-    @PostMapping(value = "signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> signup (@RequestPart("data") String signUpRequestJson,
-                                     @RequestPart("profile") MultipartFile profilePicture,
-    @RequestPart("resume") MultipartFile resume) {
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
         try {
-            SignUpRequest signUpRequest = objectMapper.readValue(signUpRequestJson, SignUpRequest.class);
             log.info("Signup request received for email: {}", signUpRequest.getEmail());
-            AuthResponse response = authService.signup(signUpRequest,resume,profilePicture);
+            AuthResponse response = authService.signup(signUpRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             log.error("Signup failed: {}", e.getMessage());
@@ -64,8 +60,17 @@ public class AuthController {
                     .body(new ErrorResponse(e.getMessage()));
         }
     }
+
     @PostMapping("/google")
-    private ResponseEntity<?> googleLogin(@RequestBody GoogleSignUpRequest googleSignUpRequest){
-        return ResponseEntity.ok(authService.googleLogin(googleSignUpRequest));
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleSignUpRequest googleSignUpRequest) {
+        try {
+            log.info("Google login request received");
+            AuthResponse response = authService.googleLogin(googleSignUpRequest);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Google login failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(e.getMessage()));
+        }
     }
 }

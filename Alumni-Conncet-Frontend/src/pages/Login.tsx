@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
+import Navbar from '@/components/layout/Navbar';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -45,9 +46,11 @@ export default function Login() {
       login(response);
       toast({
         title: 'Login successful',
-        description: `Welcome back, ${response.firstname}!`,
+        description: `Welcome back, ${response.firstName}!`,
       });
-      navigate('/dashboard');
+
+      if (!response.profileComplete) { navigate('/profile-setup'); }
+      else { navigate('/dashboard'); }
     } catch (error) {
       toast({
         title: 'Login failed',
@@ -60,25 +63,27 @@ export default function Login() {
   };
 
   return (
-    <MotionWrapper className="min-h-screen flex items-center justify-center bg-brand-bg p-4">
+    <>
+      <Navbar />
+      <MotionWrapper className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F8F8F8] via-[#FFF9E6] to-[#F8F8F8] p-4 pt-24">
       <Helmet>
         <title>Login - DSCE Alumni Connect</title>
         <meta name="description" content="Sign in to your DSCE Alumni Connect account to access your dashboard and network." />
       </Helmet>
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-brand-accent mb-6">
-            <GraduationCap className="h-10 w-10 text-brand-bg" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-[#003366] mb-6 shadow-lg">
+            <GraduationCap className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white">
+          <h2 className="text-3xl font-bold tracking-tight text-[#003366]">
             Welcome Back
           </h2>
-          <p className="mt-2 text-brand-light">
+          <p className="mt-2 text-[#333333]">
             Sign in to your Alumni Connect account
           </p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm shadow-2xl">
+        <div className="rounded-xl border border-[#003366]/10 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -86,12 +91,12 @@ export default function Login() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-brand-accent-light/80">Email Address</FormLabel>
+                    <FormLabel className="text-[#333333]">Email Address</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="john@example.com" 
-                        {...field} 
-                        className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                      <Input
+                        placeholder="john@example.com"
+                        {...field}
+                        className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -104,13 +109,13 @@ export default function Login() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-brand-accent-light/80">Password</FormLabel>
+                    <FormLabel className="text-[#333333]">Password</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="••••••••" 
-                        {...field} 
-                        className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                        className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -121,7 +126,7 @@ export default function Login() {
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
-                  className="text-xs font-medium text-brand-accent hover:text-brand-hover-1 transition-colors"
+                  className="text-xs font-medium text-[#003366] hover:text-[#00AEEF] transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -129,7 +134,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] font-semibold"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -146,30 +151,36 @@ export default function Login() {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
+                  <span className="w-full border-t border-[#003366]/10" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-brand-bg px-2 text-brand-light/60">
+                  <span className="bg-white px-2 text-gray-500">
                     Or continue with
                   </span>
                 </div>
               </div>
 
-              <GoogleSignInButton />
+              <GoogleSignInButton
+                onSuccess={(response) => {
+                  if (!response.profileComplete) { navigate('/profile-setup'); }
+                  else { navigate('/dashboard'); }
+                }}
+              />
             </form>
           </Form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-brand-light">Don't have an account? </span>
+            <span className="text-gray-600">Don't have an account? </span>
             <Link
               to="/register"
-              className="font-semibold text-brand-accent hover:text-green-400 transition-colors"
+              className="font-semibold text-[#003366] hover:text-[#00AEEF] transition-colors"
             >
               Create account
             </Link>
           </div>
         </div>
       </div>
-    </MotionWrapper>
+      </MotionWrapper>
+    </>
   );
 }

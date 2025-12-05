@@ -2,7 +2,6 @@ package com.dsce.AlumniConnect.DTO;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,29 +10,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignUpRequest {
-    @NotBlank
+    @NotBlank(message = "First name is required")
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "Last name is required")
     private String lastName;
 
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Password is required")
     private String password;
-
-    @NotBlank
-    private String confirmPassword;
-    @NotNull(message = "Graduation year is required")
-    private Integer graduationYear;
-
-    @NotBlank
-    private String department;
-    @NotBlank
-    private String contactNumber;
-
-    private String profilePictureUrl;
-    private String resumeUrl;
 }

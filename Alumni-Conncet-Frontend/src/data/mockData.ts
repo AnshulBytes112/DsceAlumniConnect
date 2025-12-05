@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import { Users, BookOpen, Calendar, Briefcase, Home, LayoutDashboard, History, HeartHandshake, Newspaper, Link, LogIn } from 'lucide-react';
+import { Users, BookOpen, Calendar, Briefcase, Home, LayoutDashboard, History, HeartHandshake, Newspaper, Link, LogIn, Trophy, Star, Award, Heart } from 'lucide-react';
 
 export const menuItems = [
     { label: 'Home', link: '/', ariaLabel: 'Go to Home', icon: createElement(Home, { className: 'w-5 h-5' }) },
@@ -104,3 +104,170 @@ export const mockCredentials = {
         jwtToken: 'mock-jwt-token',
     }
 };
+
+export const mockAlumni = [
+    {
+        id: 1,
+        name: 'Rahul Kumar',
+        graduationYear: 2020,
+        department: 'Computer Science',
+        location: 'Bangalore',
+        company: 'Google',
+        position: 'Senior Software Engineer',
+        achievements: ['Google Excellence Award 2023', 'Published 3 Research Papers'],
+        email: 'rahul.kumar@example.com',
+        linkedin: '#',
+        image: null
+    },
+    {
+        id: 2,
+        name: 'Priya Sharma',
+        graduationYear: 2019,
+        department: 'Electronics',
+        location: 'Mumbai',
+        company: 'Microsoft',
+        position: 'Product Manager',
+        achievements: ['Microsoft MVP 2022', 'Led Azure Migration Project'],
+        email: 'priya.sharma@example.com',
+        linkedin: '#',
+        image: null
+    },
+    {
+        id: 3,
+        name: 'Amit Patel',
+        graduationYear: 2021,
+        department: 'Mechanical',
+        location: 'Pune',
+        company: 'Tesla',
+        position: 'Design Engineer',
+        achievements: ['Tesla Innovation Award', '2 Patents Filed'],
+        email: 'amit.patel@example.com',
+        linkedin: '#',
+        image: null
+    },
+    {
+        id: 4,
+        name: 'Sneha Reddy',
+        graduationYear: 2018,
+        department: 'Information Science',
+        location: 'Hyderabad',
+        company: 'Amazon',
+        position: 'Senior Data Scientist',
+        achievements: ['AWS Certified ML Specialist', 'Published Author'],
+        email: 'sneha.reddy@example.com',
+        linkedin: '#',
+        image: null
+    },
+    {
+        id: 5,
+        name: 'Vikram Singh',
+        graduationYear: 2022,
+        department: 'Civil',
+        location: 'Delhi',
+        company: 'L&T',
+        position: 'Project Manager',
+        achievements: ['Young Engineer Award 2023', 'Led Metro Project'],
+        email: 'vikram.singh@example.com',
+        linkedin: '#',
+        image: null
+    },
+    {
+        id: 6,
+        name: 'Neha Gupta',
+        graduationYear: 2017,
+        department: 'Computer Science',
+        location: 'San Francisco',
+        company: 'Meta',
+        position: 'Engineering Manager',
+        achievements: ['Meta Leadership Award', 'Women in Tech Speaker'],
+        email: 'neha.gupta@example.com',
+        linkedin: '#',
+        image: null
+    }
+];
+
+export const landingTimelineEvents = [
+    { year: "1979", title: "Foundation", desc: "DSCE established with vision of excellence in engineering education", side: "left" },
+    { year: "1985", title: "First Graduation", desc: "First batch of engineers graduate, marking the beginning of our legacy", side: "right" },
+    { year: "1995", title: "NBA Accreditation", desc: "First NBA accreditation, recognizing our quality standards", side: "left" },
+    { year: "2005", title: "Research Excellence", desc: "Establishment of multiple research centers and labs", side: "right" },
+    { year: "2015", title: "Autonomous Status", desc: "Granted autonomous status for curriculum innovation", side: "left" },
+    { year: "2025", title: "Global Network", desc: "50,000+ alumni making impact across 35+ countries", side: "right" }
+];
+
+export const landingTestimonials = [
+    {
+        quote: "DSCE provided me not just with technical knowledge, but with the confidence to dream big and achieve even bigger. The foundation I got here took me to NASA.",
+        name: "Priya Sharma",
+        batch: "2010 ECE",
+        role: "NASA Research Scientist",
+        rating: 5
+    },
+    {
+        quote: "The network I built at DSCE has been invaluable. From batchmates to seniors, everyone helped me grow my startup from idea to IPO.",
+        name: "Amit Patel",
+        batch: "2008 MECH",
+        role: "Founder, GreenTech",
+        rating: 5
+    },
+    {
+        quote: "DSCE taught me to think differently, to challenge conventions. That mindset helped me lead innovation at one of the world's biggest tech companies.",
+        name: "Sarah Johnson",
+        batch: "2012 ISE",
+        role: "VP, Google",
+        rating: 5
+    }
+];
+
+export const landingNotableAchievers = [
+    {
+        name: "Rajesh Kumar",
+        batch: "2005 CSE",
+        achievement: "CEO at TechCorp",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+        icon: Trophy
+    },
+    {
+        name: "Priya Sharma",
+        batch: "2010 ECE",
+        achievement: "NASA Research Scientist",
+        image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
+        icon: Star
+    },
+    {
+        name: "Amit Patel",
+        batch: "2008 MECH",
+        achievement: "Founder of GreenTech",
+        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+        icon: Award
+    },
+    {
+        name: "Sarah Johnson",
+        batch: "2012 ISE",
+        achievement: "VP at Google",
+        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
+        icon: Heart
+    }
+];
+
+export const campusMemories = [
+    "https://images.unsplash.com/photo-1562774053-701939374585?w=500&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=500&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1581078426770-6d336e5de7bf?w=500&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1569068348-f0b2e3a6482a?w=500&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1554469384-e58e5b4ce0e8?w=500&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&h=400&fit=crop"
+];
+
+export const landingFeatures = [
+    { icon: Users, title: 'Networking', desc: 'Connect with 50,000+ alumni worldwide, build meaningful relationships, and expand your professional network.' },
+    { icon: BookOpen, title: 'Mentorship', desc: 'Share your experience with current students and guide the next generation of DSCE engineers.' },
+    { icon: Briefcase, title: 'Careers', desc: 'Access exclusive job opportunities, career guidance, and professional development resources.' },
+];
+
+export const alumniActivities = [
+    { icon: Calendar, title: 'Annual Alumni Meet', desc: 'Join us for the biggest alumni gathering of the year. Reconnect with batchmates, faculty, and relive cherished memories.', time: 'Every December - DSCE Campus' },
+    { icon: Users, title: 'Mentorship Program', desc: 'Share your expertise with current students and help shape the next generation of DSCE engineers.', time: 'Year-round Program - Virtual & In-person' },
+];

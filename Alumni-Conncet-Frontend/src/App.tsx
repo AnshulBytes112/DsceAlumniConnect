@@ -4,10 +4,14 @@ import { HelmetProvider } from 'react-helmet-async';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
 // Lazy load components
-const Home = lazy(() => import('./pages/Home'));
+const Landing = lazy(() => import('./pages/Landing'));
+const HomeAuthenticated = lazy(() => import('./pages/HomeAuthenticated'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const ProfileSetup = lazy(() => import('./pages/ProfileSetup'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Alumni = lazy(() => import('./pages/Alumni'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'));
 
@@ -18,21 +22,39 @@ const LoadingFallback = () => (
   </div>
 );
 
+import MainLayout from './components/layout/MainLayout';
+
+// ... imports
+
 function App() {
   return (
     <HelmetProvider>
       <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
-            
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Landing />} />
+              <Route path="/landing" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-otp" element={<VerifyOtp />} />
+
+              {/* Public Routes */}
+              <Route path="/alumni" element={<Alumni />} />
+              
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/home" element={<HomeAuthenticated />} />
+                <Route path="/profile-setup" element={<ProfileSetup />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/profile" element={<Profile />} />
+                <Route path="/dashboard/announcements" element={<Dashboard />} />
+                <Route path="/dashboard/settings" element={<Dashboard />} />
+              </Route>
+              
+              {/* Public fallback for unauthenticated users */}
+              <Route path="*" element={<Landing />} />
             </Route>
           </Routes>
         </Suspense>

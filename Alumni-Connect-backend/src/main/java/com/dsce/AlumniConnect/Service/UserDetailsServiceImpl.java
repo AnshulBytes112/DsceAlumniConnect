@@ -24,10 +24,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        if (user.getPassword() == null) {
-            throw new UsernameNotFoundException("User registered with Google. No password stored.");
+        if (user.getPassword() == null && user.getAuthProvider() != User.AuthProvider.GOOGLE) {
+            throw new UsernameNotFoundException("User registered with external provider. No password stored.");
         }
-        String rolewithprefix = "ROLE_" + user.getRole().name();
 
         return new CustomUserDetails(user);
     }
