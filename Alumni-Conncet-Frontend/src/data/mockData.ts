@@ -1,13 +1,15 @@
-import { Users, BookOpen, Calendar, Briefcase } from 'lucide-react';
+import { createElement } from 'react';
+import { Users, BookOpen, Calendar, Briefcase, Home, LayoutDashboard, History, HeartHandshake, Newspaper, Link, LogIn } from 'lucide-react';
 
 export const menuItems = [
-    { label: 'Home', link: '/', ariaLabel: 'Go to Home' },
-    { label: 'Legacy', link: '#legacy', ariaLabel: 'View Legacy' },
-    { label: 'Fundraising', link: '#fundraising', ariaLabel: 'View Fundraising' },
-    { label: 'News', link: '#news', ariaLabel: 'View News' },
-    { label: 'Events', link: '#events', ariaLabel: 'View Events' },
-    { label: 'Login / Join', link: '/login', ariaLabel: 'Login or Join' },
-    { label: 'Quick Links', link: '#quick-links', ariaLabel: 'Quick Links' },
+    { label: 'Home', link: '/', ariaLabel: 'Go to Home', icon: createElement(Home, { className: 'w-5 h-5' }) },
+    { label: 'Dashboard', link: '/dashboard', ariaLabel: 'Go to Dashboard', icon: createElement(LayoutDashboard, { className: 'w-5 h-5' }) },
+    { label: 'Legacy', link: '#legacy', ariaLabel: 'View Legacy', icon: createElement(History, { className: 'w-5 h-5' }) },
+    { label: 'Fundraising', link: '#fundraising', ariaLabel: 'View Fundraising', icon: createElement(HeartHandshake, { className: 'w-5 h-5' }) },
+    { label: 'News', link: '#news', ariaLabel: 'View News', icon: createElement(Newspaper, { className: 'w-5 h-5' }) },
+    { label: 'Events', link: '#events', ariaLabel: 'View Events', icon: createElement(Calendar, { className: 'w-5 h-5' }) },
+    { label: 'Quick Links', link: '#quick-links', ariaLabel: 'Quick Links', icon: createElement(Link, { className: 'w-5 h-5' }) },
+    { label: 'Login / Join', link: '/login', ariaLabel: 'Login or Join', icon: createElement(LogIn, { className: 'w-5 h-5' }) },
 ];
 
 export const fundraisingProjects = [

@@ -36,7 +36,6 @@ export default function Home() {
       </Helmet>
       <StaggeredMenu 
         items={[
-          { label: 'Dashboard', link: '/dashboard', ariaLabel: 'Go to Dashboard' },
           ...menuItems
         ]} 
         isFixed={true} 
@@ -44,7 +43,9 @@ export default function Home() {
         colors={["var(--color-brand-accent)", "var(--color-secondary)"]}
         accentColor="var(--color-brand-accent)"
         menuButtonColor="var(--color-brand-text)"
+        openMenuButtonColor='var(--color-brand-text)'
         logoUrl="" 
+        currentPage="Home"
       />
 
       {/* Navbar - Simplified */}

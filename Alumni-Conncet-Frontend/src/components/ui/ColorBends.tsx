@@ -275,12 +275,23 @@ export default function ColorBends({
     material.uniforms.uParallax.value = parallax;
     material.uniforms.uNoise.value = noise;
 
-    const toVec3 = (hex: string) => {
-      const h = hex.replace('#', '').trim();
+    const resolveColor = (color: string) => {
+      if (color.startsWith('var(')) {
+        const varName = color.match(/var\(([^)]+)\)/)?.[1];
+        if (varName) {
+          const resolved = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+          return resolved || color;
+        }
+      }
+      return color;
+    };
+
+    const toVec3 = (colorStr: string) => {
+      const hex = resolveColor(colorStr).replace('#', '').trim();
       const v =
-        h.length === 3
-          ? [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)]
-          : [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+        hex.length === 3
+          ? [parseInt(hex[0] + hex[0], 16), parseInt(hex[1] + hex[1], 16), parseInt(hex[2] + hex[2], 16)]
+          : [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
       return new THREE.Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
     };
 
