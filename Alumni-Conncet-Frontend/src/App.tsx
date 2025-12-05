@@ -9,6 +9,7 @@ const HomeAuthenticated = lazy(() => import('./pages/HomeAuthenticated'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const ProfileSetup = lazy(() => import('./pages/ProfileSetup'));
+const EditProfile = lazy(() => import('./pages/EditProfile'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Alumni = lazy(() => import('./pages/Alumni'));
@@ -47,6 +48,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/home" element={<HomeAuthenticated />} />
                 <Route path="/profile-setup" element={<ProfileSetup />} />
+                <Route path="/dashboard/profile/edit-profile" element={<EditProfile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/dashboard/profile" element={<Profile />} />
                 <Route path="/dashboard/announcements" element={<Dashboard />} />

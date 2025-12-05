@@ -21,9 +21,11 @@ export function GoogleSignInButton({
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-  const handleGoogleSignIn = useGoogleLogin({
+  const loginFn = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
+      // ... existing success logic
       try {
         // console.log('Google login success, token:', tokenResponse);
         // Send access token to backend
@@ -62,8 +64,28 @@ export function GoogleSignInButton({
           });
         }
       }
+    },
+    onError: (errorResponse) => {
+       console.error('Google login error:', errorResponse);
+       toast({
+         title: 'Google Sign In failed',
+         description: 'Could not connect to Google.',
+         variant: 'destructive',
+       });
     }
   });
+
+  const handleGoogleSignIn = () => {
+    if (!clientId || clientId === 'mock_client_id') {
+      toast({
+        title: 'Configuration Missing',
+        description: 'Google Client ID is missing. Sign-in is disabled.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    loginFn();
+  };
 
   return (
     <Button

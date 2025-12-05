@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster'
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'mock_client_id';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

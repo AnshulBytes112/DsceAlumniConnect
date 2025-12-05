@@ -268,6 +268,38 @@ export const landingFeatures = [
 ];
 
 export const alumniActivities = [
-    { icon: Calendar, title: 'Annual Alumni Meet', desc: 'Join us for the biggest alumni gathering of the year. Reconnect with batchmates, faculty, and relive cherished memories.', time: 'Every December - DSCE Campus' },
     { icon: Users, title: 'Mentorship Program', desc: 'Share your expertise with current students and help shape the next generation of DSCE engineers.', time: 'Year-round Program - Virtual & In-person' },
+];
+
+export const dashboardPosts = [
+    {
+        id: 1,
+        author: 'Priya Sharma',
+        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+        role: 'Director, Google AI',
+        content: 'Excited to announce that our team at Google is hiring for AI research roles! DSCE alumni, please reach out if you are interested.',
+        time: '2 hours ago',
+        likes: 45,
+        comments: 12
+    },
+    {
+        id: 2,
+        author: 'Amit Patel',
+        avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+        role: 'Founder, GreenTech',
+        content: 'Just wrapped up a great session on sustainable energy at the campus. The students asked some brilliant questions!',
+        time: '5 hours ago',
+        likes: 32,
+        comments: 8
+    },
+    {
+        id: 3,
+        author: 'Sarah Johnson',
+        avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
+        role: 'VP, Vimeo',
+        content: 'Looking for a mentor in the video streaming space? I have a few slots open for this month. DM me!',
+        time: '1 day ago',
+        likes: 28,
+        comments: 5
+    }
 ];

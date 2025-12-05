@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { Search, Users, Calendar, MapPin, Award, GraduationCap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Navbar from '@/components/layout/Navbar';
+// import Navbar from '@/components/layout/Navbar';
 
 // Mock alumni data with more details
 import { mockAlumni } from '@/data/mockData';

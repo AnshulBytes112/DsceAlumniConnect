@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8080/api'; // Uses Vite env var or fallback
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || '/api'; // Uses Vite env var or fallback to relative path for proxy
 
 export interface SignUpRequest {
     firstName: string;
@@ -23,6 +23,7 @@ export interface UserProfile {
     resumeUrl: string | null;
     firstName: string;
     lastName: string;
+    role?: string;
     headline?: string;
     profileComplete: boolean;
     graduationYear?: number;

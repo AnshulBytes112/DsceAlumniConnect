@@ -1,6 +1,6 @@
 ﻿import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, Briefcase } from 'lucide-react';
+import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiClient, type UserProfile } from '@/lib/api';
 
@@ -40,12 +40,22 @@ interface ProjectFunding {
   date: string;
 }
 import { 
-  dashboardUser 
+  dashboardUser,
+  dashboardStats as mockStats,
+  dashboardAnnouncements,
+  dashboardJobApplications,
+  upcomingEvents,
+  dashboardProjectFundings,
+  mockCredentials,
+  dashboardPosts
 } from '@/data/mockData';
 
 import MotionWrapper from '@/components/ui/MotionWrapper';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<{
@@ -64,6 +74,46 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      // Check if logged in as mock user
+      if (user?.email === mockCredentials.email) {
+        console.log('Mock user detected, using mock data');
+        // Simulate network delay for realism
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        setDashboardData({
+          stats: {
+            jobsApplied: parseInt(mockStats.find(s => s.label === 'Jobs Applied')?.value || '0'),
+            events: parseInt(mockStats.find(s => s.label === 'Events')?.value || '0'),
+            mentorships: parseInt(mockStats.find(s => s.label === 'Mentorships')?.value || '0')
+          },
+          announcements: dashboardAnnouncements,
+          jobApplications: dashboardJobApplications as JobApplication[],
+          events: upcomingEvents,
+          fundings: dashboardProjectFundings as ProjectFunding[]
+        });
+        
+        // Set mock profile if needed, or just rely on AuthContext user
+        // But Dashboard uses userProfile state for display, so let's set it
+        // We can cast dashboardUser to UserProfile or just use what we have
+        // Actually, let's just use the user from AuthContext if available, or mock profile
+        setUserProfile({
+            ...user,
+            firstName: 'Test',
+            lastName: 'User',
+            headline: 'Mock User Role',
+            // Add other required fields with dummy data if needed by UserProfile interface
+            id: 'mock-id',
+            email: mockCredentials.email,
+            profileComplete: true,
+            profilePicture: null,
+            resumeUrl: null
+        } as UserProfile);
+
+        setLoading(false);
+        return;
+      }
+
+      // Real user - fetch from API
       try {
         // Fetch all data in parallel
         const [
@@ -92,13 +142,14 @@ export default function Dashboard() {
         });
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
+        // No fallback to mock data for real users
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user]);
 
   // Use real user data or fallback to mock data
   const currentUser = userProfile ? {
@@ -172,10 +223,11 @@ export default function Dashboard() {
                   <div className="text-xs text-gray-600">Events</div>
                 </div>
               </div>
-              
+              <Link to="/dashboard/profile">
               <Button className="w-full rounded-full bg-dsce-gold text-dsce-blue hover:bg-dsce-gold-hover transition-all font-semibold">
                 View Profile
               </Button>
+              </Link>
             </div>
 
             {/* Active Applications */}
@@ -221,39 +273,44 @@ export default function Dashboard() {
 
           {/* Middle Column - Stats & Announcements (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            {/* Gradient Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {dashboardData.stats ? [
-                { label: 'Jobs Applied', value: dashboardData.stats.jobsApplied.toString(), icon: Briefcase },
-                { label: 'Events', value: dashboardData.stats.events.toString(), icon: Calendar }
-              ].map((stat, i) => {
-                 const Icon = stat.icon;
-                 const gradients = [
-                   "from-dsce-blue to-dsce-light-blue",
-                   "from-dsce-blue to-dsce-gold"
-                 ];
-                 return (
-                   <div key={i} className={`rounded-3xl p-6 bg-gradient-to-br ${gradients[i]} text-white relative overflow-hidden group shadow-lg hover:shadow-xl transition-all duration-300`}>
-                      <div className="absolute top-4 right-4 bg-white/20 p-2 rounded-full backdrop-blur-sm">
-                        <Icon className="h-5 w-5 text-white/90" />
+            {/* Latest Posts Section */}
+            <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold text-dsce-text-dark">Latest Posts</h3>
+                <button className="text-sm text-dsce-blue hover:text-dsce-light-blue transition-colors font-medium">
+                  See all
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {dashboardPosts.slice(0, 2).map((post) => (
+                  <div key={post.id} className="pb-6 border-b border-dsce-blue/10 last:border-0 last:pb-0">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <img src={post.avatar} alt={post.author} className="h-10 w-10 rounded-full object-cover border border-gray-200" />
+                      <div>
+                        <h4 className="text-sm font-bold text-dsce-text-dark">{post.author}</h4>
+                        <p className="text-xs text-gray-500">{post.role}</p>
                       </div>
-                      <div className="mt-8">
-                        <div className="text-4xl font-bold mb-1">{stat.value}</div>
-                        <div className="text-sm font-medium opacity-90">{stat.label}</div>
-                      </div>
-                      <div className="mt-4 h-1 w-full bg-black/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-white/40 w-[70%] rounded-full"></div>
-                      </div>
-                   </div>
-                 );
-              }) : (
-                // Loading skeleton for stats
-                [1, 2].map((i) => (
-                  <div key={i} className="rounded-3xl p-6 bg-dsce-blue/10 animate-pulse">
-                    <div className="h-32"></div>
+                      <span className="text-[10px] text-gray-400 ml-auto">{post.time}</span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                      {post.content}
+                    </p>
+                    
+                    <div className="flex items-center space-x-4">
+                      <button className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors group">
+                        <Heart className="h-4 w-4 group-hover:fill-current" />
+                        <span className="text-xs">{post.likes}</span>
+                      </button>
+                      <button className="flex items-center space-x-1 text-gray-500 hover:text-dsce-blue transition-colors">
+                        <MessageCircle className="h-4 w-4" />
+                        <span className="text-xs">{post.comments}</span>
+                      </button>
+                    </div>
                   </div>
-                ))
-              )}
+                ))}
+              </div>
             </div>
 
             {/* Announcements */}
