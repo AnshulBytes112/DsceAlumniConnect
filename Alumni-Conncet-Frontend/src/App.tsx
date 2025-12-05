@@ -22,32 +22,40 @@ const LoadingFallback = () => (
   </div>
 );
 
+import MainLayout from './components/layout/MainLayout';
+
+// ... imports
+
 function App() {
   return (
     <HelmetProvider>
       <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/landing" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Landing />} />
+              <Route path="/landing" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-otp" element={<VerifyOtp />} />
 
-            {/* Public Routes */}
-            <Route path="/alumni" element={<Alumni />} />
-            
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/home" element={<HomeAuthenticated />} />
-              <Route path="/profile-setup" element={<ProfileSetup />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/profile" element={<Profile />} />
+              {/* Public Routes */}
+              <Route path="/alumni" element={<Alumni />} />
+              
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/home" element={<HomeAuthenticated />} />
+                <Route path="/profile-setup" element={<ProfileSetup />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/profile" element={<Profile />} />
+                <Route path="/dashboard/announcements" element={<Dashboard />} />
+                <Route path="/dashboard/settings" element={<Dashboard />} />
+              </Route>
+              
+              {/* Public fallback for unauthenticated users */}
+              <Route path="*" element={<Landing />} />
             </Route>
-            
-            {/* Public fallback for unauthenticated users */}
-            <Route path="*" element={<Landing />} />
           </Routes>
         </Suspense>
       </Router>
