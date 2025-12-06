@@ -1,4 +1,12 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8080/api'; // Uses Vite env var or fallback
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || '/api'; // Uses Vite env var or fallback to relative path for proxy
+import {
+    dashboardAnnouncements,
+    dashboardJobApplications,
+    upcomingEvents,
+    dashboardProjectFundings,
+    mockCredentials,
+    dashboardStats
+} from '../data/mockData';
 
 export interface SignUpRequest {
     firstName: string;
@@ -23,6 +31,7 @@ export interface UserProfile {
     resumeUrl: string | null;
     firstName: string;
     lastName: string;
+    role?: string;
     headline?: string;
     profileComplete: boolean;
     graduationYear?: number;
@@ -67,6 +76,23 @@ export interface ErrorResponse {
     errors?: any;
 }
 
+export interface EventDTO {
+    id: string;
+    day: string;
+    month: string;
+    title: string;
+    time: string;
+    location: string;
+    userRsvpStatus?: 'GOING' | 'MAYBE' | 'NOT_GOING' | null;
+}
+
+export interface AnnouncementDTO {
+    id: number;
+    title: string;
+    description: string;
+    time: string;
+}
+
 class ApiClient {
     private baseUrl: string;
 
@@ -101,6 +127,63 @@ class ApiClient {
 
         return headers;
     }
+
+    private isMockUser(): boolean {
+        return localStorage.getItem('jwtToken') === mockCredentials.user.jwtToken;
+    }
+
+    private async get<T>(endpoint: string): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+        if (!response.ok) {
+            // Handle 404 gracefully for lists
+            if (response.status === 404) return [] as any;
+            throw new Error(`Failed to fetch ${endpoint}`);
+        }
+        return response.json();
+    }
+
+    private async post<T>(endpoint: string, body: any): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'POST',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error(`Failed to post to ${endpoint}`);
+        return response.json();
+    }
+
+    async getAllEvents(): Promise<EventDTO[]> {
+        if (this.isMockUser()) {
+            return upcomingEvents.map(e => ({
+                id: e.id,
+                day: e.day,
+                month: e.month,
+                title: e.title,
+                time: e.time,
+                location: e.location,
+                userRsvpStatus: null
+            }));
+        }
+        return this.get<EventDTO[]>('/events');
+    }
+
+    async createEvent(event: Partial<EventDTO>): Promise<EventDTO> {
+        return this.post<EventDTO>('/events', event);
+    }
+
+    async rsvpEvent(eventId: string, status: string): Promise<void> {
+        await fetch(`${this.baseUrl}/events/${eventId}/rsvp`, {
+            method: 'POST',
+            headers: this.getHeaders(true),
+            body: JSON.stringify({ status }),
+        }).then(response => {
+            if (!response.ok) throw new Error('Failed to RSVP');
+        });
+    }
+
 
     async signup(data: SignUpRequest): Promise<AuthResponse> {
         try {
@@ -192,6 +275,24 @@ class ApiClient {
     }
 
     async getProfile(): Promise<UserProfile> {
+        if (this.isMockUser()) {
+            return {
+                id: mockCredentials.user.id,
+                email: mockCredentials.user.email,
+                firstName: mockCredentials.user.firstname,
+                lastName: mockCredentials.user.lastname,
+                profilePicture: mockCredentials.user.profilePicture,
+                resumeUrl: null,
+                profileComplete: true, // Mock user is complete
+                role: 'Student',
+                headline: 'Student at DSCE',
+                // Add dummy data for other fields to make profile page look populated
+                skills: ['React', 'TypeScript', 'Node.js'],
+                workExperiences: [],
+                educations: [],
+                projects: []
+            };
+        }
         const response = await fetch(`${this.baseUrl}/profile`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -210,6 +311,16 @@ class ApiClient {
         events: number;
         mentorships: number;
     }> {
+        if (this.isMockUser()) {
+            const jobs = dashboardStats.find(s => s.label === 'Jobs Applied')?.value || '0';
+            const events = dashboardStats.find(s => s.label === 'Events')?.value || '0';
+            const mentorships = dashboardStats.find(s => s.label === 'Mentorships')?.value || '0';
+            return {
+                jobsApplied: parseInt(jobs),
+                events: parseInt(events),
+                mentorships: parseInt(mentorships)
+            };
+        }
         const response = await fetch(`${this.baseUrl}/dashboard/stats`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -229,6 +340,11 @@ class ApiClient {
         description: string;
         time: string;
     }>> {
+        if (this.isMockUser()) {
+            // dashboardAnnouncements from mockData matches the structure perfectly
+            return dashboardAnnouncements;
+        }
+
         const response = await fetch(`${this.baseUrl}/dashboard/announcements`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -248,6 +364,14 @@ class ApiClient {
         status: 'Applied' | 'Interview' | 'Rejected';
         date: string;
     }>> {
+        if (this.isMockUser()) {
+            // Need to cast the status string string to the union type
+            return dashboardJobApplications.map(j => ({
+                ...j,
+                status: j.status as 'Applied' | 'Interview' | 'Rejected'
+            }));
+        }
+
         const response = await fetch(`${this.baseUrl}/dashboard/job-applications`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -262,12 +386,17 @@ class ApiClient {
     }
 
     async getUpcomingEvents(): Promise<Array<{
+        id: string;
         day: string;
         month: string;
         title: string;
         time: string;
         location: string;
     }>> {
+        if (this.isMockUser()) {
+            return upcomingEvents;
+        }
+
         const response = await fetch(`${this.baseUrl}/dashboard/events`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -287,6 +416,10 @@ class ApiClient {
         status: 'Approved' | 'Pending' | 'In Review';
         date: string;
     }>> {
+        if (this.isMockUser()) {
+            return dashboardProjectFundings as any;
+        }
+
         const response = await fetch(`${this.baseUrl}/dashboard/fundings`, {
             method: 'GET',
             headers: this.getHeaders(true),

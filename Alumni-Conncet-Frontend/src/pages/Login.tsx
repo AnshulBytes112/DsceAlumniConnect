@@ -13,7 +13,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
-import Navbar from '@/components/layout/Navbar';
+
+import { mockCredentials } from '@/data/mockData';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -38,6 +39,37 @@ export default function Login() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
+    
+    // Check for mock credentials
+    if (data.email === mockCredentials.email && data.password === mockCredentials.password) {
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        const mockAuthResponse = {
+            ...mockCredentials.user,
+            firstName: mockCredentials.user.firstname, // Map to correct property name
+            lastName: mockCredentials.user.lastname,
+            profileComplete: true, // Mock user is always complete
+            // Add other required fields from UserProfile/AuthResponse if missing
+            role: 'Student',
+            headline: 'Student at DSCE',
+            skills: [],
+            featuredSkills: [],
+            workExperiences: [],
+            educations: [],
+            projects: []
+        };
+        
+        login(mockAuthResponse as any); // Cast to any or AuthResponse to avoid strict type checks on missing optional fields
+        toast({
+            title: 'Login successful (Mock)',
+            description: `Welcome back, ${mockAuthResponse.firstName}!`,
+        });
+        navigate('/dashboard');
+        setIsLoading(false);
+        return;
+    }
+
     try {
       const response = await apiClient.login({
         email: data.email,
@@ -64,7 +96,6 @@ export default function Login() {
 
   return (
     <>
-      <Navbar />
       <MotionWrapper className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F8F8F8] via-[#FFF9E6] to-[#F8F8F8] p-4 pt-24">
       <Helmet>
         <title>Login - DSCE Alumni Connect</title>
@@ -159,7 +190,6 @@ export default function Login() {
                   </span>
                 </div>
               </div>
-
               <GoogleSignInButton
                 onSuccess={(response) => {
                   if (!response.profileComplete) { navigate('/profile-setup'); }

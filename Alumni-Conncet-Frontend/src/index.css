@@ -30,6 +30,15 @@
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
+
+  /* DSCE Brand Colors */
+  --color-dsce-blue: #003366;
+  --color-dsce-gold: #FFD700;
+  --color-dsce-gold-hover: #FFC700;
+  --color-dsce-light-blue: #00AEEF;
+  --color-dsce-bg-light: #F8F8F8;
+  --color-dsce-bg-cream: #FFF9E6;
+  --color-dsce-text-dark: #333333;
 }
 
 :root {

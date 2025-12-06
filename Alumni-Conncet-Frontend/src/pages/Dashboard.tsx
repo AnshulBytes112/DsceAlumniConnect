@@ -1,7 +1,7 @@
-﻿import { Sidebar } from '@/components/layout/Sidebar';
-import { Helmet } from 'react-helmet-async';
+﻿import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, Briefcase, BookOpen } from 'lucide-react';
+import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, X, HelpCircle, Plus } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { apiClient, type UserProfile } from '@/lib/api';
 
@@ -27,11 +27,13 @@ interface JobApplication {
 }
 
 interface Event {
+  id: string;
   day: string;
   month: string;
   title: string;
   time: string;
   location: string;
+  userRsvpStatus?: string;
 }
 
 interface ProjectFunding {
@@ -41,14 +43,30 @@ interface ProjectFunding {
   date: string;
 }
 import { 
-  dashboardUser 
+  dashboardUser,
+  dashboardStats as mockStats,
+  dashboardAnnouncements,
+  dashboardJobApplications,
+  upcomingEvents,
+  dashboardProjectFundings,
+  mockCredentials,
+  dashboardPosts
 } from '@/data/mockData';
 
 import MotionWrapper from '@/components/ui/MotionWrapper';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeEventId, setActiveEventId] = useState<string | null>(null);
+  const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
+  const [newPostContent, setNewPostContent] = useState('');
+  const { toast } = useToast();
   const [dashboardData, setDashboardData] = useState<{
     stats: DashboardStats | null;
     announcements: Announcement[];
@@ -63,77 +81,137 @@ export default function Dashboard() {
     fundings: []
   });
 
+  const fetchDashboardData = async () => {
+    // Check if logged in as mock user
+    if (user?.email === mockCredentials.email) {
+      console.log('Mock user detected, using mock data');
+      // Simulate network delay for realism
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setDashboardData({
+        stats: {
+          jobsApplied: parseInt(mockStats.find(s => s.label === 'Jobs Applied')?.value || '0'),
+          events: parseInt(mockStats.find(s => s.label === 'Events')?.value || '0'),
+          mentorships: parseInt(mockStats.find(s => s.label === 'Mentorships')?.value || '0')
+        },
+        announcements: dashboardAnnouncements,
+        jobApplications: dashboardJobApplications as JobApplication[],
+        events: upcomingEvents.map((e, i) => ({ ...e, id: `mock-${i}` })), // Add mock IDs
+        fundings: dashboardProjectFundings as ProjectFunding[]
+      });
+      
+      setUserProfile({
+          ...user,
+          firstName: 'Test',
+          lastName: 'User',
+          headline: 'Mock User Role',
+          id: 'mock-id',
+          email: mockCredentials.email,
+          profileComplete: true,
+          profilePicture: null,
+          resumeUrl: null
+      } as UserProfile);
+
+      setLoading(false);
+      return;
+    }
+
+    // Real user - fetch from API
+    try {
+      // Fetch all data in parallel
+      const [
+        profile,
+        stats,
+        announcements,
+        jobApplications,
+        events,
+        fundings
+      ] = await Promise.all([
+        apiClient.getProfile(),
+        apiClient.getDashboardStats(),
+        apiClient.getAnnouncements(),
+        apiClient.getJobApplications(),
+        apiClient.getUpcomingEvents(),
+        apiClient.getProjectFundings()
+      ]);
+
+      setUserProfile(profile);
+      setDashboardData({
+        stats,
+        announcements,
+        jobApplications,
+        events,
+        fundings
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        // Fetch all data in parallel
-        const [
-          profile,
-          stats,
-          announcements,
-          jobApplications,
-          events,
-          fundings
-        ] = await Promise.all([
-          apiClient.getProfile(),
-          apiClient.getDashboardStats(),
-          apiClient.getAnnouncements(),
-          apiClient.getJobApplications(),
-          apiClient.getUpcomingEvents(),
-          apiClient.getProjectFundings()
-        ]);
-
-        setUserProfile(profile);
-        setDashboardData({
-          stats,
-          announcements,
-          jobApplications,
-          events,
-          fundings
-        });
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
-  }, []);
+  }, [user]);
+
+  const handleRsvp = async (eventId: string, status: string) => {
+    try {
+      await apiClient.rsvpEvent(eventId, status);
+      toast({ title: "RSVP Updated", description: `You are now ${status.toLowerCase().replace('_', ' ')}.` });
+      setActiveEventId(null);
+      
+      setDashboardData(prev => ({
+        ...prev,
+        events: prev.events.map(event => 
+          event.id === eventId 
+            ? { ...event, userRsvpStatus: status } 
+            : event
+        )
+      }));
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update RSVP.", variant: "destructive" });
+    }
+  };
 
   // Use real user data or fallback to mock data
+  const isMockUser = user?.email === mockCredentials.email;
+  
   const currentUser = userProfile ? {
     name: `${userProfile.firstName} ${userProfile.lastName}`,
     role: userProfile.headline || 'Alumni',
     initials: `${userProfile.firstName?.[0] || ''}${userProfile.lastName?.[0] || ''}`.toUpperCase(),
     avatar: userProfile.profilePicture
-  } : dashboardUser;
+  } : isMockUser ? dashboardUser : {
+    name: user ? `${user.firstName} ${user.lastName}` : 'User',
+    role: user?.headline || 'Alumni Member',
+    initials: user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() : 'U',
+    avatar: user?.profilePicture
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F8F8F8] via-[#FFF9E6] to-[#F8F8F8] text-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8F8F8] via-[#FFF9E6] to-[#F8F8F8] text-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800">
       <Helmet>
         <title>Dashboard - DSCE Alumni Connect</title>
       </Helmet>
-      <Sidebar />
       
       <MotionWrapper className="p-6 pt-24 max-w-[1600px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-[#003366]">Welcome back, {currentUser.name.split(' ')[0]}</h1>
-            <p className="text-[#333333]">Here's what's happening with your network today.</p>
+            <h1 className="text-3xl font-bold text-dsce-blue">Welcome back, {currentUser.name.split(' ')[0]}</h1>
+            <p className="text-dsce-text-dark">Here's what's happening with your network today.</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="relative">
-               <Bell className="h-6 w-6 text-gray-600 hover:text-[#003366] cursor-pointer transition-colors" />
-               <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#F8F8F8]"></span>
+               <Bell className="h-6 w-6 text-gray-600 hover:text-dsce-blue cursor-pointer transition-colors" />
+               <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-dsce-bg-light"></span>
             </div>
           </div>
         </header>
@@ -142,14 +220,14 @@ export default function Dashboard() {
           {/* Left Column - Profile & Active Applications (3 cols) */}
           <div className="lg:col-span-3 space-y-6">
             {/* Profile Card */}
-            <div className="bg-gradient-to-br from-[#003366]/5 to-[#00AEEF]/5 border border-[#003366]/10 rounded-3xl p-6 text-center relative overflow-hidden group shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-4 right-4 text-gray-600 hover:text-[#003366] cursor-pointer">
+            <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 text-center relative overflow-hidden group shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-4 right-4 text-gray-600 hover:text-dsce-blue cursor-pointer">
                 <MoreHorizontal className="h-5 w-5" />
               </div>
               <div className="relative mx-auto mb-4 h-24 w-24">
-                <div className="absolute inset-0 bg-[#003366]/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                <div className="relative h-full w-full rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] p-[2px]">
-                  <div className="h-full w-full rounded-full bg-white flex items-center justify-center text-2xl font-bold text-[#003366]">
+                <div className="absolute inset-0 bg-dsce-blue/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                <div className="relative h-full w-full rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue p-[2px]">
+                  <div className="h-full w-full rounded-full bg-white flex items-center justify-center text-2xl font-bold text-dsce-blue">
                     {currentUser.initials}
                   </div>
                 </div>
@@ -157,123 +235,148 @@ export default function Dashboard() {
                    <div className="h-2 w-2 bg-white rounded-full"></div>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-[#333333]">{currentUser.name}</h3>
+              <h3 className="text-xl font-bold text-dsce-text-dark">{currentUser.name}</h3>
               <p className="text-sm text-gray-600 mb-6">{currentUser.role}</p>
               
-              <div className="grid grid-cols-3 gap-2 mb-6 border-t border-[#003366]/10 pt-6">
+              <div className="grid grid-cols-3 gap-2 mb-6 border-t border-dsce-blue/10 pt-6">
                 <div className="text-center">
-                  <div className="text-lg font-bold text-[#003366]">12</div>
+                  <div className="text-lg font-bold text-dsce-blue">{dashboardData.stats?.jobsApplied ?? '-'}</div>
                   <div className="text-xs text-gray-600">Applied</div>
                 </div>
-                <div className="text-center border-l border-[#003366]/10">
-                  <div className="text-lg font-bold text-[#003366]">56</div>
+                <div className="text-center border-l border-dsce-blue/10">
+                  <div className="text-lg font-bold text-dsce-blue">-</div>
                   <div className="text-xs text-gray-600">Views</div>
                 </div>
-                <div className="text-center border-l border-[#003366]/10">
-                  <div className="text-lg font-bold text-[#003366]">12</div>
+                <div className="text-center border-l border-dsce-blue/10">
+                  <div className="text-lg font-bold text-dsce-blue">{dashboardData.stats?.events ?? '-'}</div>
                   <div className="text-xs text-gray-600">Events</div>
                 </div>
               </div>
-              
-              <Button className="w-full rounded-full bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] transition-all font-semibold">
+              <Link to="/dashboard/profile">
+              <Button className="w-full rounded-full bg-dsce-gold text-dsce-blue hover:bg-dsce-gold-hover transition-all font-semibold">
                 View Profile
               </Button>
+              </Link>
             </div>
 
             {/* Active Applications */}
-            <div className="bg-gradient-to-br from-[#003366]/5 to-[#00AEEF]/5 border border-[#003366]/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
                <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-[#333333]">Active Applications</h3>
-                <div className="flex -space-x-2">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="h-8 w-8 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-xs text-white">
-                      {String.fromCharCode(64+i)}
-                    </div>
-                  ))}
-                  <div className="h-8 w-8 rounded-full bg-[#003366] border-2 border-white flex items-center justify-center text-xs font-bold text-white">
-                    +2
-                  </div>
-                </div>
+                <h3 className="font-bold text-dsce-text-dark">Active Applications</h3>
+                 <div className="flex -space-x-2">
+                   {/* Dynamic avatars or nothing if empty */}
+                 </div>
               </div>
               
               <div className="space-y-4">
-                {dashboardData.jobApplications.map((job, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-[#003366]/10 hover:border-[#00AEEF]/50 transition-colors group shadow-sm hover:shadow-md">
+                {dashboardData.jobApplications.length > 0 ? (
+                  dashboardData.jobApplications.map((job, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-dsce-blue/10 hover:border-dsce-light-blue/50 transition-colors group shadow-sm hover:shadow-md">
                     <div className="flex items-center space-x-4">
-                      <div className="h-10 w-10 rounded-xl bg-[#003366]/10 flex items-center justify-center text-lg font-bold text-[#003366]">
+                      <div className="h-10 w-10 rounded-xl bg-dsce-blue/10 flex items-center justify-center text-lg font-bold text-dsce-blue">
                         {job.company[0]}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-[#333333]">{job.role}</h4>
+                        <h4 className="font-semibold text-dsce-text-dark">{job.role}</h4>
                         <p className="text-xs text-gray-600">{job.company}</p>
                       </div>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      job.status === 'Interview' ? 'bg-[#FFD700]/20 text-[#003366]' :
-                      job.status === 'Applied' ? 'bg-[#00AEEF]/20 text-[#003366]' :
+                      job.status === 'Interview' ? 'bg-dsce-gold/20 text-dsce-blue' :
+                      job.status === 'Applied' ? 'bg-dsce-light-blue/20 text-dsce-blue' :
                       'bg-red-500/20 text-red-700'
                     }`}>
                       {job.status}
                     </div>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No active applications.
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Middle Column - Stats & Announcements (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            {/* Gradient Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {dashboardData.stats ? [
-                { label: 'Jobs Applied', value: dashboardData.stats.jobsApplied.toString(), icon: Briefcase },
-                { label: 'Events', value: dashboardData.stats.events.toString(), icon: Calendar }
-              ].map((stat, i) => {
-                 const Icon = stat.icon;
-                 const gradients = [
-                   "from-[#003366] to-[#00AEEF]",
-                   "from-[#003366] to-[#FFD700]"
-                 ];
-                 return (
-                   <div key={i} className={`rounded-3xl p-6 bg-gradient-to-br ${gradients[i]} text-white relative overflow-hidden group shadow-lg hover:shadow-xl transition-all duration-300`}>
-                      <div className="absolute top-4 right-4 bg-white/20 p-2 rounded-full backdrop-blur-sm">
-                        <Icon className="h-5 w-5 text-white/90" />
+            {/* Latest Posts Section */}
+            <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold text-dsce-text-dark">Latest Posts</h3>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setIsNewPostModalOpen(true)}
+                    className="flex items-center text-sm bg-dsce-blue/10 hover:bg-dsce-blue/20 text-dsce-blue px-3 py-1.5 rounded-full transition-colors font-medium"
+                  >
+                    <Plus className="w-3 h-3 mr-1.5" /> New Post
+                  </button>
+                  <button className="text-sm text-dsce-blue hover:text-dsce-light-blue transition-colors font-medium">
+                    See all
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                {(isMockUser ? dashboardPosts : []).length > 0 ? (
+                  (isMockUser ? dashboardPosts : []).slice(0, 2).map((post) => (
+                  <div key={post.id} className="pb-6 border-b border-dsce-blue/10 last:border-0 last:pb-0">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <img src={post.avatar} alt={post.author} className="h-10 w-10 rounded-full object-cover border border-gray-200" />
+                      <div>
+                        <h4 className="text-sm font-bold text-dsce-text-dark">{post.author}</h4>
+                        <p className="text-xs text-gray-500">{post.role}</p>
                       </div>
-                      <div className="mt-8">
-                        <div className="text-4xl font-bold mb-1">{stat.value}</div>
-                        <div className="text-sm font-medium opacity-90">{stat.label}</div>
-                      </div>
-                      <div className="mt-4 h-1 w-full bg-black/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-white/40 w-[70%] rounded-full"></div>
-                      </div>
-                   </div>
-                 );
-              }) : (
-                // Loading skeleton for stats
-                [1, 2].map((i) => (
-                  <div key={i} className="rounded-3xl p-6 bg-[#003366]/10 animate-pulse">
-                    <div className="h-32"></div>
+                      <span className="text-[10px] text-gray-400 ml-auto">{post.time}</span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                      {post.content}
+                    </p>
+                    
+                    <div className="flex items-center space-x-4">
+                      <button className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors group">
+                        <Heart className="h-4 w-4 group-hover:fill-current" />
+                        <span className="text-xs">{post.likes}</span>
+                      </button>
+                      <button className="flex items-center space-x-1 text-gray-500 hover:text-dsce-blue transition-colors">
+                        <MessageCircle className="h-4 w-4" />
+                        <span className="text-xs">{post.comments}</span>
+                      </button>
+                    </div>
                   </div>
                 ))
-              )}
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No posts to display.
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Announcements */}
-            <div className="bg-gradient-to-br from-[#003366]/5 to-[#00AEEF]/5 border border-[#003366]/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-[#333333]">Announcements</h3>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-[#003366]/10">
-                  <MoreHorizontal className="h-4 w-4 text-gray-600" />
-                </Button>
+                <h3 className="font-bold text-dsce-text-dark">Announcements</h3>
+                <Link to="/dashboard/announcements" className="text-sm text-dsce-blue hover:text-dsce-light-blue transition-colors font-medium">
+                  See all
+                </Link>
               </div>
               <div className="space-y-6">
-                {dashboardData.announcements.map((item) => (
-                  <div key={item.id} className="relative pl-4 border-l-2 border-[#003366]/10 hover:border-[#00AEEF] transition-colors">
-                    <h4 className="text-sm font-semibold text-[#333333]">{item.title}</h4>
+                {dashboardData.announcements.length > 0 ? (
+                  dashboardData.announcements.map((item) => (
+                  <div key={item.id} className="relative pl-4 border-l-2 border-dsce-blue/10 hover:border-dsce-light-blue transition-colors">
+                    <h4 className="text-sm font-semibold text-dsce-text-dark">{item.title}</h4>
                     <p className="text-xs text-gray-600 mt-1 line-clamp-2">{item.description}</p>
-                    <span className="text-[10px] text-[#003366] mt-2 block">{item.time}</span>
+                    <span className="text-[10px] text-dsce-blue mt-2 block">{item.time}</span>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No announcements.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -281,77 +384,185 @@ export default function Dashboard() {
           {/* Right Column - Events & Fundings (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
             {/* Upcoming Events */}
-            <div className="bg-gradient-to-br from-[#003366]/5 to-[#00AEEF]/5 border border-[#003366]/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-[#333333]">Upcoming Events</h3>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-[#003366]/10">
-                  <Calendar className="h-4 w-4 text-gray-600" />
-                </Button>
+                <h3 className="font-bold text-dsce-text-dark">Upcoming Events</h3>
+                <Link to="/dashboard/events">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-dsce-blue/10">
+                    <Calendar className="h-4 w-4 text-gray-600" />
+                  </Button>
+                </Link>
               </div>
               <div className="space-y-6">
-                {dashboardData.events.slice(0, 3).map((event, i) => (
-                  <div key={i} className="flex items-start group">
+                {dashboardData.events.length > 0 ? (
+                  dashboardData.events.slice(0, 3).map((event, i) => (
+                  <div key={i} className="flex items-start group relative">
                     <div className="w-14 text-center mr-4 pt-1">
                       <div className="text-xs text-gray-600 uppercase">{event.month}</div>
-                      <div className="text-lg font-bold text-[#003366]">{event.day}</div>
+                      <div className="text-lg font-bold text-dsce-blue">{event.day}</div>
                     </div>
-                    <div className="flex-1 pb-6 border-b border-[#003366]/10 last:border-0 last:pb-0">
-                      <h4 className="font-semibold text-[#333333] group-hover:text-[#00AEEF] transition-colors">{event.title}</h4>
-                      <div className="flex items-center text-xs text-gray-600 mt-1">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {event.time.split(' - ')[0]}
+                    <div className="flex-1 pb-6 border-b border-dsce-blue/10 last:border-0 last:pb-0">
+                      <h4 className="font-semibold text-dsce-text-dark group-hover:text-dsce-light-blue transition-colors">{event.title}</h4>
+                      <div className="flex items-center mt-1 space-x-2">
+                        <div className="flex items-center text-xs text-gray-600">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {event.time.split(' - ')[0]}
+                        </div>
+                        {event.userRsvpStatus && (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            event.userRsvpStatus === 'GOING' ? 'bg-green-100 text-green-700' :
+                            event.userRsvpStatus === 'MAYBE' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {event.userRsvpStatus.replace('_', ' ')}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity -ml-4">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <div className="self-center -ml-4 relative">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setActiveEventId(activeEventId === event.id ? null : event.id)}
+                      >
                         <MoreHorizontal className="h-4 w-4 text-gray-600" />
                       </Button>
+                      
+                      <AnimatePresence>
+                        {activeEventId === event.id && (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="absolute right-0 top-8 z-50 w-40 bg-white rounded-xl shadow-xl border border-dsce-blue/10 p-2"
+                          >
+                            <div className="text-xs font-semibold text-gray-500 px-2 py-1 mb-1">Update RSVP</div>
+                            <button 
+                              onClick={() => handleRsvp(event.id, 'GOING')}
+                              className="w-full text-left px-2 py-1.5 text-sm hover:bg-green-50 text-gray-700 hover:text-green-700 rounded-lg flex items-center"
+                            >
+                              <Check className="w-3 h-3 mr-2" /> Going
+                            </button>
+                            <button 
+                              onClick={() => handleRsvp(event.id, 'MAYBE')}
+                              className="w-full text-left px-2 py-1.5 text-sm hover:bg-yellow-50 text-gray-700 hover:text-yellow-700 rounded-lg flex items-center"
+                            >
+                              <HelpCircle className="w-3 h-3 mr-2" /> Maybe
+                            </button>
+                            <button 
+                              onClick={() => handleRsvp(event.id, 'NOT_GOING')}
+                              className="w-full text-left px-2 py-1.5 text-sm hover:bg-red-50 text-gray-700 hover:text-red-700 rounded-lg flex items-center"
+                            >
+                              <X className="w-3 h-3 mr-2" /> Not Going
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No upcoming events.
+                  </div>
+                )}
               </div>
-              <div className="mt-6 pt-4 border-t border-[#003366]/10 text-center">
-                <button className="text-sm text-[#003366] hover:text-[#00AEEF] transition-colors flex items-center justify-center w-full">
+              <div className="mt-6 pt-4 border-t border-dsce-blue/10 text-center">
+                <Link to="/dashboard/events" className="text-sm text-dsce-blue hover:text-dsce-light-blue transition-colors flex items-center justify-center w-full">
                   See all events <MoreHorizontal className="h-4 w-4 ml-1" />
-                </button>
+                </Link>
               </div>
             </div>
 
             {/* Project Fundings */}
-            <div className="bg-gradient-to-br from-[#003366]/5 to-[#00AEEF]/5 border border-[#003366]/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-[#333333]">Project Fundings</h3>
+                <h3 className="font-bold text-dsce-text-dark">Project Fundings</h3>
               </div>
               <div className="space-y-5">
-                {dashboardData.fundings.map((project, i) => (
+                {dashboardData.fundings.length > 0 ? (
+                  dashboardData.fundings.map((project, i) => (
                   <div key={i}>
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="font-medium text-[#333333]">{project.title}</span>
+                      <span className="font-medium text-dsce-text-dark">{project.title}</span>
                       <span className="text-gray-600">{project.amount}</span>
                     </div>
-                    <div className="h-2 w-full bg-[#003366]/10 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-dsce-blue/10 rounded-full overflow-hidden">
                       <div 
                         className={`h-full rounded-full ${
                           project.status === 'Approved' ? 'bg-green-500 w-full' :
-                          project.status === 'Pending' ? 'bg-[#FFD700] w-[60%]' :
-                          'bg-[#00AEEF] w-[40%]'
+                          project.status === 'Pending' ? 'bg-dsce-gold w-[60%]' :
+                          'bg-dsce-light-blue w-[40%]'
                         }`}
                       ></div>
                     </div>
                     <div className="text-right mt-1">
                        <span className={`text-[10px] uppercase font-bold ${
                           project.status === 'Approved' ? 'text-green-600' :
-                          project.status === 'Pending' ? 'text-[#003366]' :
-                          'text-[#003366]'
+                          project.status === 'Pending' ? 'text-dsce-blue' :
+                          'text-dsce-blue'
                        }`}>{project.status}</span>
                     </div>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No project fundings.
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </MotionWrapper>
+
+
+      {/* New Post Modal */}
+      <AnimatePresence>
+        {isNewPostModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl border border-dsce-blue/10"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-dsce-text-dark">Create Post</h2>
+                <button onClick={() => setIsNewPostModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                toast({ title: "Post Created", description: "Your post has been shared successfully!" });
+                setIsNewPostModalOpen(false);
+                setNewPostContent('');
+              }} className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-gray-700">What's on your mind?</Label>
+                  <textarea 
+                    value={newPostContent} 
+                    onChange={e => setNewPostContent(e.target.value)}
+                    placeholder="Share your thoughts, achievements, or questions..."
+                    className="w-full min-h-[150px] p-4 rounded-xl border border-gray-200 focus:border-dsce-blue focus:ring-2 focus:ring-dsce-blue/20 resize-none outline-none transition-all"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-3">
+                  <Button type="button" variant="ghost" onClick={() => setIsNewPostModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" className="bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-xl px-6 shadow-lg hover:shadow-xl transition-all">
+                    Post
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

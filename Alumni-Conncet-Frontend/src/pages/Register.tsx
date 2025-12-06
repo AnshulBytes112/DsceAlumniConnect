@@ -13,7 +13,6 @@ import { apiClient, type SignUpRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
-import Navbar from '@/components/layout/Navbar';
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
@@ -76,7 +75,6 @@ export default function Register() {
 
   return (
     <>
-      <Navbar />
       <MotionWrapper className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F8F8F8] via-[#FFF9E6] to-[#F8F8F8] p-4 pt-24">
         <Helmet>
           <title>Join Us - DSCE Alumni Connect</title>
