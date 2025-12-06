@@ -26,9 +26,9 @@ export const latestNews = [
 ];
 
 export const upcomingEvents = [
-    { day: '12', month: 'DEC', title: 'Annual Alumni Reunion', time: '10:00 AM - 5:00 PM', location: 'Main Auditorium' },
-    { day: '05', month: 'JAN', title: 'Tech Talk: Future of AI', time: '2:00 PM - 4:00 PM', location: 'Seminar Hall 1' },
-    { day: '20', month: 'JAN', title: 'Startup Mentorship Session', time: '11:00 AM - 1:00 PM', location: 'Incubation Center' },
+    { id: '1', day: '12', month: 'DEC', title: 'Annual Alumni Reunion', time: '10:00 AM - 5:00 PM', location: 'Main Auditorium' },
+    { id: '2', day: '05', month: 'JAN', title: 'Tech Talk: Future of AI', time: '2:00 PM - 4:00 PM', location: 'Seminar Hall 1' },
+    { id: '3', day: '20', month: 'JAN', title: 'Startup Mentorship Session', time: '11:00 AM - 1:00 PM', location: 'Incubation Center' },
 ];
 
 export const features = [
