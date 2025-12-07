@@ -13,6 +13,8 @@ const EditProfile = lazy(() => import('./pages/EditProfile'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Alumni = lazy(() => import('./pages/Alumni'));
+const JobOpportunities = lazy(() => import('./pages/JobOpportunities'));
+const Gallery = lazy(() => import('./pages/Gallery'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'));
 const Events = lazy(() => import('./pages/Events'));
@@ -53,6 +55,8 @@ function App() {
                 <Route path="/profile-setup" element={<ProfileSetup />} />
                 <Route path="/dashboard/profile/edit-profile" element={<EditProfile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/job-opportunities" element={<JobOpportunities />} />
+                <Route path="/gallery" element={<Gallery />} />
                 <Route path="/dashboard/profile" element={<Profile />} />
                 <Route path="/dashboard/events" element={<Events />} />
                 <Route path="/dashboard/announcements" element={<Announcements />} />

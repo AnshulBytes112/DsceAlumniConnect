@@ -35,6 +35,16 @@ export default function Navbar() {
                   Alumni
                 </Button>
               </Link>
+              <Link to="/job-opportunities">
+                <Button variant="ghost" className="text-white hover:text-[#FFD700] text-sm">
+                  Job Opportunities
+                </Button>
+              </Link>
+               <Link to="/gallery">
+                <Button variant="ghost" className="text-white hover:text-[#FFD700] text-sm">
+                  Job Opportunities
+                </Button>
+              </Link>
               <Button 
                 variant="ghost" 
                 onClick={logout}
@@ -54,6 +64,11 @@ export default function Navbar() {
             <Link to="/alumni">
               <Button variant="ghost" className="text-white hover:text-[#FFD700] text-sm">
                 Alumni
+              </Button>
+            </Link>
+            <Link to="/job-opportunities">
+              <Button variant="ghost" className="text-white hover:text-[#FFD700] text-sm">
+                Job Opportunities
               </Button>
             </Link>
             <Link to="/register">
