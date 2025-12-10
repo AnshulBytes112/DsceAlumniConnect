@@ -26,9 +26,57 @@ export const latestNews = [
 ];
 
 export const upcomingEvents = [
-    { id: '1', day: '12', month: 'DEC', title: 'Annual Alumni Reunion', time: '10:00 AM - 5:00 PM', location: 'Main Auditorium' },
-    { id: '2', day: '05', month: 'JAN', title: 'Tech Talk: Future of AI', time: '2:00 PM - 4:00 PM', location: 'Seminar Hall 1' },
-    { id: '3', day: '20', month: 'JAN', title: 'Startup Mentorship Session', time: '11:00 AM - 1:00 PM', location: 'Incubation Center' },
+    { 
+        id: '1', 
+        day: '12', 
+        month: 'DEC', 
+        title: 'Annual Alumni Reunion', 
+        time: '10:00 AM - 5:00 PM',
+        starttime: '10:00',
+        endtime: '17:00',
+        location: 'Main Auditorium',
+        description: 'Join us for the biggest alumni gathering of the year with networking, dinner, and entertainment.',
+        category: 'social',
+        maxParticipants: 200,
+        registrationDeadline: '2025-12-10',
+        virtualLink: '',
+        organizerName: 'DSCE Alumni Association',
+        organizerContact: 'alumni@dsce.edu'
+    },
+    { 
+        id: '2', 
+        day: '05', 
+        month: 'JAN', 
+        title: 'Tech Talk: Future of AI', 
+        time: '2:00 PM - 4:00 PM',
+        starttime: '14:00',
+        endtime: '16:00',
+        location: 'Seminar Hall 1',
+        description: 'An insightful talk on the latest developments in Artificial Intelligence and its impact on industry.',
+        category: 'seminar',
+        maxParticipants: 100,
+        registrationDeadline: '2025-01-03',
+        virtualLink: 'https://zoom.us/j/ai-talk',
+        organizerName: 'Computer Science Department',
+        organizerContact: 'cs@dsce.edu'
+    },
+    { 
+        id: '3', 
+        day: '20', 
+        month: 'JAN', 
+        title: 'Startup Mentorship Session', 
+        time: '11:00 AM - 1:00 PM',
+        starttime: '11:00',
+        endtime: '13:00',
+        location: 'Incubation Center',
+        description: 'Connect with successful entrepreneurs and get guidance on your startup journey.',
+        category: 'career',
+        maxParticipants: 50,
+        registrationDeadline: '2025-01-18',
+        virtualLink: '',
+        organizerName: 'Entrepreneurship Cell',
+        organizerContact: 'ecell@dsce.edu'
+    },
 ];
 
 export const features = [
@@ -38,7 +86,7 @@ export const features = [
 ];
 
 export const notableAlumni = [
-    { name: 'Satya Nadella', batch: '1988', role: 'CEO, Microsoft', image: 'https://pbs.twimg.com/profile_images/1221837516816306177/_Ld4un5A_400x400.jpg' },
+    { name: 'Archana BS', batch: '1998', role: 'Asst. Commissioner of Police, Central Reserve Police Force (C.R.P.F), Govt. of India', image: 'https://pbs.twimg.com/profile_images/1221837516816306177/_Ld4un5A_400x400.jpg' },
     { name: 'K. S. Ivan', batch: '1995', role: 'Founder, TechCorp', image: 'https://randomuser.me/api/portraits/men/32.jpg' },
     { name: 'Priya Sharma', batch: '2005', role: 'Director, Google AI', image: 'https://randomuser.me/api/portraits/women/44.jpg' },
     { name: 'Rahul Dravid', batch: '1990', role: 'Head Coach, Indian Cricket Team', image: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Rahul_Dravid_in_2023.jpg' },
@@ -108,55 +156,55 @@ export const mockCredentials = {
 export const mockAlumni = [
     {
         id: 1,
-        name: 'Rahul Kumar',
-        graduationYear: 2020,
+        name: 'Archana BS',
+        graduationYear: 2004,
         department: 'Computer Science',
-        location: 'Bangalore',
-        company: 'Google',
-        position: 'Senior Software Engineer',
-        achievements: ['Google Excellence Award 2023', 'Published 3 Research Papers'],
-        email: 'rahul.kumar@example.com',
+        location: 'New Delhi',
+        company: 'Central Reserve Police Force (C.R.P.F)',
+        position: 'Asst. Commissioner of Police',
+        achievements: ['First IPS Officer from DSCE Batch 2004', 'National Police Medal for Excellence'],
+        email: 'archana.bs@crpf.gov.in',
         linkedin: '#',
-        image: null
+        image: '/alumni1(archana bs).jpg'
     },
     {
         id: 2,
-        name: 'Priya Sharma',
-        graduationYear: 2019,
-        department: 'Electronics',
-        location: 'Mumbai',
-        company: 'Microsoft',
-        position: 'Product Manager',
-        achievements: ['Microsoft MVP 2022', 'Led Azure Migration Project'],
-        email: 'priya.sharma@example.com',
+        name: 'Avinash Chukka',
+        graduationYear: 2008,
+        department: 'Computer Science',
+        location: 'United States',
+        company: 'Cardlytics',
+        position: 'Vice President of Products',
+        achievements: ['Led Product Strategy for Fortune 500 Clients', 'Pioneered Data Analytics Platform'],
+        email: 'avinash.chukka@cardlytics.com',
         linkedin: '#',
-        image: null
+        image: '/alumni2(avinashchukka).jpg'
     },
     {
         id: 3,
-        name: 'Amit Patel',
-        graduationYear: 2021,
-        department: 'Mechanical',
-        location: 'Pune',
-        company: 'Tesla',
-        position: 'Design Engineer',
-        achievements: ['Tesla Innovation Award', '2 Patents Filed'],
-        email: 'amit.patel@example.com',
+        name: 'Ashutosh Pandey',
+        graduationYear: 2019,
+        department: 'Computer Science',
+        location: 'Bangalore',
+        company: 'AMD',
+        position: 'Compiler Engineer',
+        achievements: ['GSoC Contributor', 'LinkedIn Top Voice', 'SIH 2019 Winner', 'LLVM BLR Contributor'],
+        email: 'ashutosh.pandey@amd.com',
         linkedin: '#',
-        image: null
+        image: '/alumni3(ashutosh-pandey).jpg'
     },
     {
         id: 4,
-        name: 'Sneha Reddy',
-        graduationYear: 2018,
-        department: 'Information Science',
-        location: 'Hyderabad',
-        company: 'Amazon',
-        position: 'Senior Data Scientist',
-        achievements: ['AWS Certified ML Specialist', 'Published Author'],
-        email: 'sneha.reddy@example.com',
+        name: 'Nosthush Kenjige',
+        graduationYear: 2015,
+        department: 'Mechanical',
+        location: 'United States',
+        company: 'USA Cricket',
+        position: 'Professional Cricket Player',
+        achievements: ['Team USA Cricket Player', 'International Cricket Debut 2021'],
+        email: 'nosthush.kenjige@usacricket.org',
         linkedin: '#',
-        image: null
+        image: '/alumni4(nosthush kenjige).webp'
     },
     {
         id: 5,
@@ -277,29 +325,89 @@ export const dashboardPosts = [
         author: 'Priya Sharma',
         avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
         role: 'Director, Google AI',
-        content: 'Excited to announce that our team at Google is hiring for AI research roles! DSCE alumni, please reach out if you are interested.',
+        content: 'Excited to announce that our team at Google is hiring for AI research roles! DSCE alumni, please reach out if you are interested. #AI #Hiring #Google',
         time: '2 hours ago',
         likes: 45,
-        comments: 12
+        comments: 12,
+        shares: 5,
+        hashtags: ['AI', 'Hiring', 'Google'],
+        mentions: [],
+        media: [
+            {
+                type: 'image',
+                url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726a?w=600&h=400&fit=crop',
+                alt: 'Google AI Research Lab'
+            }
+        ],
+        initialComments: [
+            {
+                id: 'c1',
+                author: 'Amit Patel',
+                avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+                role: 'Founder, GreenTech',
+                content: 'This is amazing! I have a few friends who would be perfect for this role.',
+                time: '1 hour ago',
+                likes: 3
+            },
+            {
+                id: 'c2',
+                author: 'Sarah Johnson',
+                avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
+                role: 'VP, Vimeo',
+                content: 'Congratulations on the new role expansion! The future of AI looks bright.',
+                time: '30 mins ago',
+                likes: 7
+            }
+        ]
     },
     {
         id: 2,
         author: 'Amit Patel',
         avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
         role: 'Founder, GreenTech',
-        content: 'Just wrapped up a great session on sustainable energy at the campus. The students asked some brilliant questions!',
+        content: 'Just wrapped up a great session on sustainable energy at the campus. The students asked some brilliant questions! @DSCE_EnergyClub #Sustainability #GreenTech',
         time: '5 hours ago',
         likes: 32,
-        comments: 8
+        comments: 8,
+        shares: 3,
+        hashtags: ['Sustainability', 'GreenTech'],
+        mentions: ['DSCE_EnergyClub'],
+        media: [
+            {
+                type: 'image',
+                url: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=600&h=400&fit=crop',
+                alt: 'Sustainable Energy Session'
+            },
+            {
+                type: 'image',
+                url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop',
+                alt: 'Students Discussion'
+            }
+        ],
+        initialComments: [
+            {
+                id: 'c3',
+                author: 'Prof. Kumar',
+                avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
+                role: 'Professor, DSCE',
+                content: 'Thank you for inspiring our students! Your insights were invaluable.',
+                time: '4 hours ago',
+                likes: 12
+            }
+        ]
     },
     {
         id: 3,
         author: 'Sarah Johnson',
         avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
         role: 'VP, Vimeo',
-        content: 'Looking for a mentor in the video streaming space? I have a few slots open for this month. DM me!',
+        content: 'Looking for a mentor in the video streaming space? I have a few slots open for this month. DM me! #Mentorship #CareerGrowth',
         time: '1 day ago',
         likes: 28,
-        comments: 5
+        comments: 5,
+        shares: 2,
+        hashtags: ['Mentorship', 'CareerGrowth'],
+        mentions: [],
+        initialComments: []
     }
 ];

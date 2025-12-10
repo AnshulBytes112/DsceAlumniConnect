@@ -5,16 +5,26 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { Edit, Mail, User, Bell, Shield, MapPin } from 'lucide-react';
+import { apiClient, type UserProfile } from '@/lib/api';
 
 export default function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    // Simulate loading for smooth transition
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
+    const fetchProfile = async () => {
+      try {
+        const profile = await apiClient.getProfile();
+        setProfileData(profile);
+      } catch (error) {
+        console.error('Failed to fetch profile data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
   }, []);
 
   if (loading) {
@@ -113,7 +123,6 @@ export default function Profile() {
                                 {(() => {
                                     if (!user) return 0;
                                     let score = 0;
-                                    const totalWeight = 100;
                                     
                                     // Basic Info (40%)
                                     if (user.firstName) score += 10;
@@ -174,13 +183,18 @@ export default function Profile() {
                 <div className="bg-white border border-dsce-blue/10 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-bold text-dsce-text-dark">Education</h3>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-dsce-blue/10">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 rounded-full hover:bg-dsce-blue/10"
+                            onClick={() => navigate('/dashboard/profile/edit-profile')}
+                        >
                             <Edit className="h-4 w-4 text-gray-400" />
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        {user?.educations && user.educations.length > 0 ? (
-                            user.educations.map((edu, index) => (
+                        {profileData?.educations && profileData.educations.length > 0 ? (
+                            profileData.educations.map((edu, index) => (
                                 <div key={index}>
                                     <p className="font-semibold text-gray-800">{edu.school}</p>
                                     <p className="text-sm text-gray-600">{edu.degree}</p>
@@ -196,13 +210,18 @@ export default function Profile() {
                 <div className="bg-white border border-dsce-blue/10 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-bold text-dsce-text-dark">Experience</h3>
-                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-dsce-blue/10">
+                         <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 rounded-full hover:bg-dsce-blue/10"
+                            onClick={() => navigate('/dashboard/profile/edit-profile')}
+                        >
                             <Edit className="h-4 w-4 text-gray-400" />
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        {user?.workExperiences && user.workExperiences.length > 0 ? (
-                            user.workExperiences.map((exp, index) => (
+                        {profileData?.workExperiences && profileData.workExperiences.length > 0 ? (
+                            profileData.workExperiences.map((exp, index) => (
                                 <div key={index}>
                                     <p className="font-semibold text-gray-800">{exp.jobTitle}</p>
                                     <p className="text-sm text-gray-600">{exp.company}</p>

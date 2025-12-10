@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 
@@ -9,9 +8,11 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4 bg-[#003366] shadow-lg">
       <Link to="/" className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFD700]">
-          <GraduationCap className="h-5 w-5 text-[#003366]" />
-        </div>
+        <img 
+          src="https://www.eduopinions.com/wp-content/uploads/2021/12/dayananda-sagar-college-of-engineering-1-350x334.jpg"
+          alt="DSCE Logo"
+          className="h-8 w-auto rounded-lg"
+        />
         <span className="text-lg font-bold tracking-tight text-white">DSCE Alumni</span>
       </Link>
       

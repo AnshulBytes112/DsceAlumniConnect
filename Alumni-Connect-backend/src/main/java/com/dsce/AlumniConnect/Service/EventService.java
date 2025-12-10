@@ -53,9 +53,26 @@ public class EventService {
         event.setTitle(eventDTO.getTitle());
         event.setDay(eventDTO.getDay());
         event.setMonth(eventDTO.getMonth());
+        event.setStarttime(eventDTO.getStarttime());
+        event.setEndtime(eventDTO.getEndtime());
         event.setTime(eventDTO.getTime());
+        event.setDescription(eventDTO.getDescription());
+        event.setCategory(eventDTO.getCategory());
+        event.setMaxParticipants(eventDTO.getMaxParticipants());
+        event.setRegistrationDeadline(eventDTO.getRegistrationDeadline());
+        event.setVirtualLink(eventDTO.getVirtualLink());
+        event.setOrganizerName(eventDTO.getOrganizerName());
+        event.setOrganizerContact(eventDTO.getOrganizerContact());
         event.setLocation(eventDTO.getLocation());
+
         event.setEventDate(LocalDateTime.now()); // Simplified date handling
+        
+        // Set time field for frontend display
+        if (eventDTO.getStarttime() != null && eventDTO.getEndtime() != null) {
+            event.setTime(eventDTO.getStarttime() + " - " + eventDTO.getEndtime());
+        } else if (eventDTO.getTime() != null) {
+            event.setTime(eventDTO.getTime());
+        }
 
         Event savedEvent = eventRepository.save(event);
         return mapToDTO(savedEvent);
@@ -87,7 +104,16 @@ public class EventService {
         dto.setTitle(event.getTitle());
         dto.setDay(event.getDay());
         dto.setMonth(event.getMonth());
-        dto.setTime(event.getTime());
+        dto.setStarttime(event.getStarttime());
+        dto.setEndtime(event.getEndtime());
+        dto.setTime(event.getTime()); // Add this line
+        dto.setDescription(event.getDescription());
+        dto.setCategory(event.getCategory());
+        dto.setMaxParticipants(event.getMaxParticipants());
+        dto.setRegistrationDeadline(event.getRegistrationDeadline());
+        dto.setVirtualLink(event.getVirtualLink());
+        dto.setOrganizerName(event.getOrganizerName());
+        dto.setOrganizerContact(event.getOrganizerContact());
         dto.setLocation(event.getLocation());
         return dto;
     }

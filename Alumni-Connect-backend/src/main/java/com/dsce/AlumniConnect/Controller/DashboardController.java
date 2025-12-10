@@ -7,10 +7,10 @@ import com.dsce.AlumniConnect.Service.ProfileService;
 import com.dsce.AlumniConnect.Service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,6 +69,20 @@ public class DashboardController {
             return ResponseEntity.ok(List.of());
         }
     }
+    @GetMapping("/get-fundings")
+    public ResponseEntity<List<FundingDTO>> getUserFundings() {
+        try {
+            User currentUser = profileService.getCurrentUserProfile();
+            List<ProjectFunding> fundings = projectFundingRepository.findAll();
+            List<FundingDTO> dtos = fundings.stream()
+                    .map(f -> new FundingDTO(f.getTitle(), f.getAmount(), f.getStatus(), f.getDate()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            log.error("Error fetching user fundings", e);
+            return ResponseEntity.ok(List.of());
+        }
+    }
 
     @GetMapping("/events")
     public ResponseEntity<List<EventDTO>> getEvents() {
@@ -87,6 +101,30 @@ public class DashboardController {
         } catch (Exception e) {
             log.error("Error fetching fundings", e);
             return ResponseEntity.ok(List.of());
+        }
+    }
+
+
+    @PostMapping("/fundings")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<FundingDTO> createFunding(@RequestBody ProjectFunding funding) {
+        try {
+
+            User currentUser = profileService.getCurrentUserProfile();
+            funding.setUser(currentUser);
+            funding.setUserId(currentUser.getId());
+
+            ProjectFunding savedFunding = projectFundingRepository.save(funding);
+            FundingDTO dto = new FundingDTO(
+                    savedFunding.getTitle(),
+                    savedFunding.getAmount(),
+                    savedFunding.getStatus(),
+                    savedFunding.getDate()
+            );
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            log.error("Error creating funding", e);
+            return ResponseEntity.badRequest().build();
         }
     }
 }

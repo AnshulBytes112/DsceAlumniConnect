@@ -15,12 +15,21 @@ import java.time.LocalDateTime;
 public class Event {
     @Id
     private String id;
-
+    private String time;
     private String title;
     private String day;
     private String month;
-    private String time;
+    private String starttime;
+    private String endtime;
     private String location;
-
+    private String description;
+    private String category;
+    private String maxParticipants;
+    private String registrationDeadline;
+    private String virtualLink;
+    private String organizerName;
+    private String organizerContact;
+    private String createDate;
+    private String updateDate;
     private LocalDateTime eventDate;
 }

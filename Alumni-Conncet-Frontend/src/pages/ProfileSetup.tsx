@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { GraduationCap, Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code } from 'lucide-react';
+import { GraduationCap, Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code, Award } from 'lucide-react';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,12 @@ const projectSchema = z.object({
   project: z.string().optional(),
   date: z.string().optional(),
   descriptions: z.array(z.string()).optional(),
+});
+
+const achievementSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  date: z.string().optional(),
 });
 
 const featuredSkillSchema = z.object({
@@ -82,6 +88,7 @@ const profileSetupSchema = z.object({
   workExperiences: z.array(workExperienceSchema).optional(),
   educations: z.array(educationSchema).optional(),
   projects: z.array(projectSchema).optional(),
+  achievements: z.array(achievementSchema).optional(),
   skills: z.array(z.string()).optional(),
   featuredSkills: z.array(featuredSkillSchema).optional(),
   profilePicture: z.any().optional(),
@@ -116,6 +123,7 @@ export default function ProfileSetup() {
       workExperiences: [],
       educations: [],
       projects: [],
+      achievements: [],
       skills: [],
       featuredSkills: [],
     },
@@ -150,6 +158,7 @@ export default function ProfileSetup() {
             workExperiences: profile.workExperiences || [],
             educations: profile.educations || [],
             projects: profile.projects || [],
+            achievements: profile.achievements || [],
             skills: profile.skills || [],
             featuredSkills: profile.featuredSkills || [],
           });
@@ -251,6 +260,14 @@ export default function ProfileSetup() {
             rating: fs.rating || 1,
           }));
         }
+        if (updatedProfile.achievements && updatedProfile.achievements.length > 0) {
+          console.log('Setting achievements:', updatedProfile.achievements);
+          formData.achievements = updatedProfile.achievements.map((ach: any) => ({
+            title: ach.title || ach.name || '',
+            description: ach.description || '',
+            date: ach.date || ach.year || '',
+          }));
+        }
 
         // Update form with all data at once using reset to trigger re-render
         form.reset(formData);
@@ -326,6 +343,7 @@ export default function ProfileSetup() {
       if (data.workExperiences && data.workExperiences.length > 0) profileData.workExperiences = data.workExperiences;
       if (data.educations && data.educations.length > 0) profileData.educations = data.educations;
       if (data.projects && data.projects.length > 0) profileData.projects = data.projects;
+      if (data.achievements && data.achievements.length > 0) profileData.achievements = data.achievements;
       if (data.skills && data.skills.length > 0) profileData.skills = data.skills;
       if (data.featuredSkills && data.featuredSkills.length > 0) profileData.featuredSkills = data.featuredSkills;
 
@@ -751,6 +769,98 @@ export default function ProfileSetup() {
                           ))}
                           {(!field.value || field.value.length === 0) && (
                             <p className="text-sm text-gray-600 text-center py-4">No work experience added yet. Upload resume to auto-fill or add manually.</p>
+                          )}
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Achievements Section */}
+              <div className="border-b border-[#003366]/10 pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-[#333333] flex items-center">
+                    <Award className="mr-2 h-5 w-5 text-[#003366]" />
+                    Achievements
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const current = form.getValues('achievements') || [];
+                      form.setValue('achievements', [...current, { title: '', description: '', date: '' }]);
+                    }}
+                    className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add
+                  </Button>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="achievements"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="space-y-4">
+                          {(field.value || []).map((achievement, index) => (
+                            <div key={index} className="p-4 border border-[#003366]/10 rounded-lg bg-[#F8F8F8]">
+                              <div className="flex justify-between items-start mb-3">
+                                <h4 className="text-[#333333] font-medium">Achievement {index + 1}</h4>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const current = form.getValues('achievements') || [];
+                                    form.setValue('achievements', current.filter((_, i) => i !== index));
+                                  }}
+                                  className="text-red-400 hover:text-red-300"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="space-y-3">
+                                <Input
+                                  placeholder="Achievement Title (e.g., Best Project Award)"
+                                  value={achievement.title || ''}
+                                  onChange={(e) => {
+                                    const current = form.getValues('achievements') || [];
+                                    current[index].title = e.target.value;
+                                    form.setValue('achievements', [...current]);
+                                  }}
+                                  className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
+                                />
+                                <Input
+                                  placeholder="Date (e.g., 2023, May 2023)"
+                                  value={achievement.date || ''}
+                                  onChange={(e) => {
+                                    const current = form.getValues('achievements') || [];
+                                    current[index].date = e.target.value;
+                                    form.setValue('achievements', [...current]);
+                                  }}
+                                  className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
+                                />
+                                <div>
+                                  <label className="text-sm text-gray-600 mb-1 block">Description</label>
+                                  <textarea
+                                    placeholder="Describe your achievement and its significance..."
+                                    value={achievement.description || ''}
+                                    onChange={(e) => {
+                                      const current = form.getValues('achievements') || [];
+                                      current[index].description = e.target.value;
+                                      form.setValue('achievements', [...current]);
+                                    }}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {(!field.value || field.value.length === 0) && (
+                            <p className="text-sm text-gray-600 text-center py-4">No achievements added yet. Add your awards, recognitions, and accomplishments.</p>
                           )}
                         </div>
                       </FormControl>

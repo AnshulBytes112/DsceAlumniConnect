@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Clock, Plus, Check, X, HelpCircle, Loader2, MoreHorizontal } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
+import { Calendar, Plus, Clock, MapPin, Users, Loader2, MoreHorizontal, X, Check, HelpCircle, FileText, Globe, Tag } from 'lucide-react';
+import MotionWrapper from '@/components/ui/MotionWrapper';
 import { apiClient, type EventDTO } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
-import { Helmet } from 'react-helmet-async';
+import { useToast } from '@/components/ui/use-toast';
 
 const Events = () => {
   const [events, setEvents] = useState<EventDTO[]>([]);
@@ -19,8 +21,16 @@ const Events = () => {
     title: '',
     day: '',
     month: '',
-    time: '',
-    location: ''
+    startTime: '',
+    endTime: '',
+    location: '',
+    description: '',
+    category: 'networking',
+    maxAttendees: '',
+    registrationDeadline: '',
+    virtualLink: '',
+    organizerName: '',
+    organizerContact: ''
   });
 
   const fetchEvents = async () => {
@@ -46,10 +56,42 @@ const Events = () => {
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.createEvent(newEvent);
+      // Create enhanced event object for API
+      const eventData = {
+        title: newEvent.title,
+        day: newEvent.day,
+        month: newEvent.month,
+        starttime: newEvent.startTime,
+        endtime: newEvent.endTime,
+        time: `${newEvent.startTime} - ${newEvent.endTime}`,
+        location: newEvent.location,
+        description: newEvent.description,
+        category: newEvent.category,
+        maxParticipants: newEvent.maxAttendees ? parseInt(newEvent.maxAttendees) : undefined,
+        registrationDeadline: newEvent.registrationDeadline || undefined,
+        virtualLink: newEvent.virtualLink || undefined,
+        organizerName: newEvent.organizerName || undefined,
+        organizerContact: newEvent.organizerContact || undefined
+      };
+      
+      await apiClient.createEvent(eventData);
       toast({ title: "Success", description: "Event created successfully!" });
       setIsAddModalOpen(false);
-      setNewEvent({ title: '', day: '', month: '', time: '', location: '' });
+      setNewEvent({
+        title: '',
+        day: '',
+        month: '',
+        startTime: '',
+        endTime: '',
+        location: '',
+        description: '',
+        category: 'networking',
+        maxAttendees: '',
+        registrationDeadline: '',
+        virtualLink: '',
+        organizerName: '',
+        organizerContact: ''
+      });
       fetchEvents();
     } catch (error) {
       toast({ title: "Error", description: "Failed to create event.", variant: "destructive" });
@@ -167,7 +209,7 @@ const Events = () => {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl border border-dsce-blue/10"
+                className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl border border-dsce-blue/10 max-h-[90vh] overflow-y-auto"
               >
                 <div className="flex justify-between items-center mb-8">
                   <div>
@@ -178,60 +220,201 @@ const Events = () => {
                     <X className="w-6 h-6" />
                   </button>
                 </div>
-                <form onSubmit={handleCreateEvent} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">Event Title</Label>
-                    <Input 
-                      value={newEvent.title} 
-                      onChange={e => setNewEvent({...newEvent, title: e.target.value})}
-                      placeholder="e.g. Annual Alumni Gala 2025"
-                      className="rounded-xl border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-5">
+                <form onSubmit={handleCreateEvent} className="space-y-6">
+                  {/* Basic Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-dsce-text-dark flex items-center">
+                      <FileText className="w-5 h-5 mr-2 text-dsce-blue" />
+                      Basic Information
+                    </h3>
+                    
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold text-gray-700">Day</Label>
+                      <Label className="text-sm font-semibold text-gray-700">Event Title *</Label>
                       <Input 
-                        value={newEvent.day} 
-                        onChange={e => setNewEvent({...newEvent, day: e.target.value})}
-                        placeholder="e.g. 15"
-                        className="rounded-xl border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20"
+                        value={newEvent.title} 
+                        onChange={e => setNewEvent({...newEvent, title: e.target.value})}
+                        placeholder="e.g. Annual Alumni Gala 2025"
+                        className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
                         required
                       />
                     </div>
+
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold text-gray-700">Month</Label>
+                      <Label className="text-sm font-semibold text-gray-700">Description</Label>
+                      <textarea
+                        value={newEvent.description}
+                        onChange={e => setNewEvent({...newEvent, description: e.target.value})}
+                        placeholder="Provide details about the event, agenda, speakers, etc."
+                        className="w-full rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 p-3 h-24 resize-none text-black bg-white placeholder:text-gray-500"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Category</Label>
+                        <select
+                          value={newEvent.category}
+                          onChange={e => setNewEvent({...newEvent, category: e.target.value})}
+                          className="w-full rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 p-3 text-black bg-white"
+                        >
+                          <option value="networking">Networking</option>
+                          <option value="workshop">Workshop</option>
+                          <option value="seminar">Seminar</option>
+                          <option value="social">Social</option>
+                          <option value="career">Career</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Max Attendees</Label>
+                        <Input 
+                          type="number"
+                          value={newEvent.maxAttendees} 
+                          onChange={e => setNewEvent({...newEvent, maxAttendees: e.target.value})}
+                          placeholder="e.g. 100"
+                          className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                          min="1"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Registration Deadline</Label>
+                        <Input 
+                          type="date"
+                          value={newEvent.registrationDeadline} 
+                          onChange={e => setNewEvent({...newEvent, registrationDeadline: e.target.value})}
+                          className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Date & Time */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-dsce-text-dark flex items-center">
+                      <Clock className="w-5 h-5 mr-2 text-dsce-blue" />
+                      Date & Time
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Day *</Label>
+                        <Input 
+                          value={newEvent.day} 
+                          onChange={e => setNewEvent({...newEvent, day: e.target.value})}
+                          placeholder="e.g. 15"
+                          className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Month *</Label>
+                        <select
+                          value={newEvent.month}
+                          onChange={e => setNewEvent({...newEvent, month: e.target.value})}
+                          className="h-12 w-full rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 p-3 text-black bg-white"
+                          required
+                        >
+                          <option value="">Select Month</option>
+                          <option value="JAN">January</option>
+                          <option value="FEB">February</option>
+                          <option value="MAR">March</option>
+                          <option value="APR">April</option>
+                          <option value="MAY">May</option>
+                          <option value="JUN">June</option>
+                          <option value="JUL">July</option>
+                          <option value="AUG">August</option>
+                          <option value="SEP">September</option>
+                          <option value="OCT">October</option>
+                          <option value="NOV">November</option>
+                          <option value="DEC">December</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Start Time *</Label>
+                        <Input 
+                          type="time"
+                          value={newEvent.startTime} 
+                          onChange={e => setNewEvent({...newEvent, startTime: e.target.value})}
+                          className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">End Time *</Label>
+                        <Input 
+                          type="time"
+                          value={newEvent.endTime} 
+                          onChange={e => setNewEvent({...newEvent, endTime: e.target.value})}
+                          className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-dsce-text-dark flex items-center">
+                      <MapPin className="w-5 h-5 mr-2 text-dsce-blue" />
+                      Location
+                    </h3>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">Physical Location *</Label>
                       <Input 
-                        value={newEvent.month} 
-                        onChange={e => setNewEvent({...newEvent, month: e.target.value})}
-                        placeholder="e.g. DEC"
-                        className="rounded-xl border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20"
+                        value={newEvent.location} 
+                        onChange={e => setNewEvent({...newEvent, location: e.target.value})}
+                        placeholder="e.g. Main Auditorium, DSCE"
+                        className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
                         required
                       />
                     </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">Virtual Meeting Link</Label>
+                      <Input 
+                        value={newEvent.virtualLink} 
+                        onChange={e => setNewEvent({...newEvent, virtualLink: e.target.value})}
+                        placeholder="e.g. https://zoom.us/j/123456789"
+                        className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">Time</Label>
-                    <Input 
-                      value={newEvent.time} 
-                      onChange={e => setNewEvent({...newEvent, time: e.target.value})}
-                      placeholder="e.g. 10:00 AM - 2:00 PM"
-                      className="rounded-xl border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20"
-                      required
-                    />
+
+                  {/* Organizer Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-dsce-text-dark flex items-center">
+                      <Users className="w-5 h-5 mr-2 text-dsce-blue" />
+                      Organizer Information
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Organizer Name</Label>
+                        <Input 
+                          value={newEvent.organizerName} 
+                          onChange={e => setNewEvent({...newEvent, organizerName: e.target.value})}
+                          placeholder="e.g. DSCE Alumni Association"
+                          className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Contact Email/Phone</Label>
+                        <Input 
+                          value={newEvent.organizerContact} 
+                          onChange={e => setNewEvent({...newEvent, organizerContact: e.target.value})}
+                          placeholder="e.g. alumni@dsce.edu"
+                          className="h-12 rounded-xl border-2 border-black focus:border-dsce-blue focus:ring-dsce-blue/20 text-black placeholder:text-gray-500 bg-white"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">Location</Label>
-                    <Input 
-                      value={newEvent.location} 
-                      onChange={e => setNewEvent({...newEvent, location: e.target.value})}
-                      placeholder="e.g. Main Auditorium, DSCE"
-                      className="rounded-xl border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20"
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-xl py-6 mt-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
+
+                  <Button type="submit" className="w-full bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-xl py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
                     Create Event
                   </Button>
                 </form>

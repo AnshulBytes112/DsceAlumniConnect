@@ -51,9 +51,10 @@ public class SpringSecurity {
                         .requestMatchers("/api/resume/parse").permitAll() // Resume parser endpoint
                         .requestMatchers("/chat.html").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/admin/resume/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/resume/**","/dashboard/fundings").hasRole("ADMIN")
                         .requestMatchers("/api/profile/**").authenticated() // Profile endpoints require authentication
                         .requestMatchers("/users/*/resume").authenticated()
+                        .requestMatchers("/alumni/**","/profiles/**").permitAll()
                         .anyRequest().authenticated());
 
         http.addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class);

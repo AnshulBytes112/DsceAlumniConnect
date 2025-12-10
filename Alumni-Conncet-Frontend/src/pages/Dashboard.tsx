@@ -1,9 +1,20 @@
 ﻿import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, X, HelpCircle, Plus } from 'lucide-react';
-import { Label } from '@/components/ui/label';
+import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiClient, type UserProfile } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  dashboardUser,
+  dashboardStats as mockStats,
+  dashboardAnnouncements,
+  dashboardJobApplications,
+  upcomingEvents,
+  dashboardProjectFundings,
+  mockCredentials,
+  dashboardPosts
+} from '@/data/mockData';
+import PostModal from '@/components/posts/PostModal';
 
 // Define types for dashboard data
 interface DashboardStats {
@@ -33,7 +44,7 @@ interface Event {
   title: string;
   time: string;
   location: string;
-  userRsvpStatus?: string;
+  userRsvpStatus?: string | null;
 }
 
 interface ProjectFunding {
@@ -42,25 +53,16 @@ interface ProjectFunding {
   status: 'Approved' | 'Pending' | 'In Review';
   date: string;
 }
-import { 
-  dashboardUser,
-  dashboardStats as mockStats,
-  dashboardAnnouncements,
-  dashboardJobApplications,
-  upcomingEvents,
-  dashboardProjectFundings,
-  mockCredentials,
-  dashboardPosts
-} from '@/data/mockData';
 
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Dashboard() {
+  console.log('Dashboard component mounting...');
   const { user } = useAuth();
+  console.log('User from auth:', user);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
@@ -81,7 +83,10 @@ export default function Dashboard() {
     fundings: []
   });
 
+  const [dataUpdateKey, setDataUpdateKey] = useState(0); // Force re-render
+
   const fetchDashboardData = async () => {
+    console.log('Fetching dashboard data... Loading state:', loading);
     // Check if logged in as mock user
     if (user?.email === mockCredentials.email) {
       console.log('Mock user detected, using mock data');
@@ -96,7 +101,7 @@ export default function Dashboard() {
         },
         announcements: dashboardAnnouncements,
         jobApplications: dashboardJobApplications as JobApplication[],
-        events: upcomingEvents.map((e, i) => ({ ...e, id: `mock-${i}` })), // Add mock IDs
+        events: upcomingEvents.map((e, i) => ({ ...e, id: `mock-${i}` })),
         fundings: dashboardProjectFundings as ProjectFunding[]
       });
       
@@ -116,33 +121,31 @@ export default function Dashboard() {
       return;
     }
 
-    // Real user - fetch from API
+    // Real user - fetch from API using simple approach like Events page
     try {
-      // Fetch all data in parallel
-      const [
-        profile,
-        stats,
-        announcements,
-        jobApplications,
-        events,
-        fundings
-      ] = await Promise.all([
-        apiClient.getProfile(),
-        apiClient.getDashboardStats(),
-        apiClient.getAnnouncements(),
-        apiClient.getJobApplications(),
-        apiClient.getUpcomingEvents(),
-        apiClient.getProjectFundings()
+      console.log('Real user detected, fetching events and announcements...');
+      
+      // Fetch events and announcements (both working)
+      const [events, announcements] = await Promise.all([
+        apiClient.getAllEvents(),
+        apiClient.getAnnouncements()
       ]);
-
-      setUserProfile(profile);
-      setDashboardData({
-        stats,
-        announcements,
-        jobApplications,
-        events,
-        fundings
-      });
+      
+      console.log('Events fetched successfully:', events);
+      console.log('Announcements fetched successfully:', announcements);
+      
+      // Set events and announcements in dashboard data
+      setDashboardData(prev => ({
+        ...prev,
+        events: events,
+        announcements: announcements
+      }));
+      
+      console.log('Dashboard events and announcements updated');
+      
+      // Force re-render
+      setDataUpdateKey(prev => prev + 1);
+      
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -152,6 +155,39 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+  }, [user]);
+
+  // Monitor dashboardData changes
+  useEffect(() => {
+    console.log('dashboardData state changed:', dashboardData);
+    console.log('dashboardData.events:', dashboardData.events);
+  }, [dashboardData]);
+
+  // Refresh data when page becomes visible (navigation back from other pages)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log('Visibility changed, document.hidden:', document.hidden);
+      if (!document.hidden && user) {
+        console.log('Page is visible, refreshing dashboard data...');
+        fetchDashboardData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user]);
+
+  // Also refresh when window gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Window gained focus, refreshing dashboard data...');
+      if (user) {
+        fetchDashboardData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [user]);
 
   const handleRsvp = async (eventId: string, status: string) => {
@@ -180,12 +216,12 @@ export default function Dashboard() {
     name: `${userProfile.firstName} ${userProfile.lastName}`,
     role: userProfile.headline || 'Alumni',
     initials: `${userProfile.firstName?.[0] || ''}${userProfile.lastName?.[0] || ''}`.toUpperCase(),
-    avatar: userProfile.profilePicture
+    avatar: userProfile.profilePicture ? `http://localhost:8080/${userProfile.profilePicture}` : null
   } : isMockUser ? dashboardUser : {
     name: user ? `${user.firstName} ${user.lastName}` : 'User',
     role: user?.headline || 'Alumni Member',
     initials: user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() : 'U',
-    avatar: user?.profilePicture
+    avatar: user?.profilePicture ? `http://localhost:8080/${user.profilePicture}` : null
   };
 
   if (loading) {
@@ -197,7 +233,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 text-gray-800">
       <Helmet>
         <title>Dashboard - DSCE Alumni Connect</title>
       </Helmet>
@@ -205,10 +241,23 @@ export default function Dashboard() {
       <MotionWrapper className="p-6 pt-24 max-w-[1600px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-dsce-blue">Welcome back, {currentUser.name.split(' ')[0]}</h1>
-            <p className="text-dsce-text-dark">Here's what's happening with your network today.</p>
+            <h1 className="text-3xl font-bold text-blue-900">Welcome back, {currentUser.name.split(' ')[0]}</h1>
+            <p className="text-gray-700">Here's what's happening with your network today.</p>
           </div>
           <div className="flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                console.log('Manual refresh clicked - calling fetchDashboardData');
+                fetchDashboardData();
+                toast({ title: "Refreshing", description: "Updating dashboard data..." });
+              }}
+              className="h-8 w-8 p-0 rounded-full hover:bg-dsce-blue/10"
+              title="Refresh Dashboard"
+            >
+              <RefreshCw className="h-4 w-4 text-gray-600" />
+            </Button>
             <div className="relative">
                <Bell className="h-6 w-6 text-gray-600 hover:text-dsce-blue cursor-pointer transition-colors" />
                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-dsce-bg-light"></span>
@@ -227,9 +276,17 @@ export default function Dashboard() {
               <div className="relative mx-auto mb-4 h-24 w-24">
                 <div className="absolute inset-0 bg-dsce-blue/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                 <div className="relative h-full w-full rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue p-[2px]">
-                  <div className="h-full w-full rounded-full bg-white flex items-center justify-center text-2xl font-bold text-dsce-blue">
-                    {currentUser.initials}
-                  </div>
+                  {currentUser.avatar ? (
+                    <img 
+                      src={currentUser.avatar} 
+                      alt={currentUser.name} 
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full rounded-full bg-white flex items-center justify-center text-2xl font-bold text-dsce-blue">
+                      {currentUser.initials}
+                    </div>
+                  )}
                 </div>
                 <div className="absolute bottom-0 right-0 bg-green-500 h-6 w-6 rounded-full border-4 border-white flex items-center justify-center">
                    <div className="h-2 w-2 bg-white rounded-full"></div>
@@ -383,20 +440,66 @@ export default function Dashboard() {
 
           {/* Right Column - Events & Fundings (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
+            {/* Your RSVP'd Events */}
+            {dashboardData.events.some(event => event.userRsvpStatus === 'GOING' || event.userRsvpStatus === 'MAYBE') && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <h3 className="font-bold text-dsce-text-dark">Your Events</h3>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                      {dashboardData.events.filter(event => event.userRsvpStatus === 'GOING' || event.userRsvpStatus === 'MAYBE').length}
+                    </span>
+                  </div>
+                  <Link to="/dashboard/events">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-green-100">
+                      <Calendar className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {dashboardData.events
+                    .filter(event => event.userRsvpStatus === 'GOING' || event.userRsvpStatus === 'MAYBE')
+                    .slice(0, 2)
+                    .map((event, i) => (
+                      <div key={i} className="flex items-center space-x-3 p-3 bg-white rounded-xl border border-green-100">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <Calendar className="h-5 w-5 text-green-600" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm text-dsce-text-dark truncate">{event.title}</h4>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-xs text-gray-600">{event.day} {event.month}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                              event.userRsvpStatus === 'GOING' ? 'bg-green-100 text-green-700' :
+                              'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {event.userRsvpStatus?.replace('_', ' ')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
             {/* Upcoming Events */}
             <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-dsce-text-dark">Upcoming Events</h3>
+                <h3 className="font-bold text-dsce-text-dark">All Events</h3>
                 <Link to="/dashboard/events">
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-dsce-blue/10">
                     <Calendar className="h-4 w-4 text-gray-600" />
                   </Button>
                 </Link>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-6" key={`events-${dataUpdateKey}`}>
                 {dashboardData.events.length > 0 ? (
-                  dashboardData.events.slice(0, 3).map((event, i) => (
-                  <div key={i} className="flex items-start group relative">
+                  dashboardData.events.slice(0, 3).map((event) => (
+                    <div key={`${event.id}-${dataUpdateKey}`} className="flex items-start group relative">
                     <div className="w-14 text-center mr-4 pt-1">
                       <div className="text-xs text-gray-600 uppercase">{event.month}</div>
                       <div className="text-lg font-bold text-dsce-blue">{event.day}</div>
@@ -406,7 +509,7 @@ export default function Dashboard() {
                       <div className="flex items-center mt-1 space-x-2">
                         <div className="flex items-center text-xs text-gray-600">
                           <Clock className="h-3 w-3 mr-1" />
-                          {event.time.split(' - ')[0]}
+                          {event.time?.split(' - ')[0] || event.time}
                         </div>
                         {event.userRsvpStatus && (
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
@@ -519,50 +622,14 @@ export default function Dashboard() {
 
 
       {/* New Post Modal */}
-      <AnimatePresence>
-        {isNewPostModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl border border-dsce-blue/10"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-dsce-text-dark">Create Post</h2>
-                <button onClick={() => setIsNewPostModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                toast({ title: "Post Created", description: "Your post has been shared successfully!" });
-                setIsNewPostModalOpen(false);
-                setNewPostContent('');
-              }} className="space-y-5">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-gray-700">What's on your mind?</Label>
-                  <textarea 
-                    value={newPostContent} 
-                    onChange={e => setNewPostContent(e.target.value)}
-                    placeholder="Share your thoughts, achievements, or questions..."
-                    className="w-full min-h-[150px] p-4 rounded-xl border border-gray-200 focus:border-dsce-blue focus:ring-2 focus:ring-dsce-blue/20 resize-none outline-none transition-all"
-                    required
-                  />
-                </div>
-                <div className="flex justify-end gap-3">
-                  <Button type="button" variant="ghost" onClick={() => setIsNewPostModalOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-xl px-6 shadow-lg hover:shadow-xl transition-all">
-                    Post
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <PostModal
+        isOpen={isNewPostModalOpen}
+        onClose={() => setIsNewPostModalOpen(false)}
+        onSubmit={(content) => {
+          toast({ title: "Post Created", description: "Your post has been shared successfully!" });
+          setNewPostContent('');
+        }}
+      />
     </div>
   );
 }

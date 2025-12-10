@@ -52,7 +52,7 @@ public class User {
     private List<Project> projects;
     private List<String> skills;
     private List<FeaturedSkill> featuredSkills;
-
+    private List<Achievement> achievements;
     @Getter
     @Setter
     @NoArgsConstructor
@@ -93,6 +93,16 @@ public class User {
     public static class FeaturedSkill {
         private String skill;
         private Integer rating;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Achievement {
+        private String Title;
+        private String Description;
+        private String Date;
     }
 
     public User(String firstName, String lastName, String email, String password, Role role) {

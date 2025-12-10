@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, GraduationCap, Users, BookOpen, Star } from 'lucide-react';
+import { ArrowRight, Users, BookOpen, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   landingTimelineEvents, 
   landingTestimonials, 
-  landingNotableAchievers, 
   campusMemories, 
   landingFeatures, 
-  alumniActivities 
+  alumniActivities,
+  mockAlumni
 } from '@/data/mockData';
 
 export default function Landing() {
@@ -24,9 +24,21 @@ export default function Landing() {
         <meta name="keywords" content="DSCE, Alumni, Dayananda Sagar College of Engineering, Network, Mentorship, Jobs" />
       </Helmet>
 
-      {/* Hero Section with clean background */}
+      {/* Hero Section with college background */}
       <section className="relative h-screen flex flex-col justify-center items-center px-4 pt-20">
-        <div className="text-center space-y-6 max-w-5xl mx-auto">
+        {/* Background Image */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img 
+            src="https://image-upload.getmycollege.com/new-uploads/college/gallery/dayananda-sagar-college-of-engineering1-gallery-image-968.jpg"
+            alt="DSCE Campus"
+            className="w-full h-full object-cover"
+          />
+          {/* Overlay for fade effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-dsce-bg-light/90 via-dsce-bg-cream/85 to-dsce-bg-light/90"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 text-center space-y-6 max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -284,9 +296,9 @@ export default function Landing() {
           <div className="mb-20">
             <h3 className="text-2xl font-bold mb-12 text-center">NOTABLE <span className="text-dsce-blue">ACHIEVERS</span></h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {landingNotableAchievers.map((alumni, i) => (
+              {mockAlumni.slice(0, 4).map((alumni, i) => (
                 <motion.div
-                  key={i}
+                  key={alumni.id}
                   className="group relative"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -295,25 +307,36 @@ export default function Landing() {
                 >
                   <div className="relative overflow-hidden rounded-2xl bg-white border border-dsce-blue/10 hover:border-dsce-light-blue/50 transition-all duration-300 shadow-lg hover:shadow-xl">
                     <div className="aspect-square relative">
-                      <img 
-                        src={alumni.image} 
-                        alt={alumni.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
+                      {alumni.image ? (
+                        <div className="w-full h-full p-4 flex items-center justify-center">
+                          <img 
+                            src={alumni.image} 
+                            alt={alumni.name}
+                            className="w-full h-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center">
+                          <span className="text-white text-3xl font-bold">
+                            {alumni.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                       
                       {/* Achievement Badge */}
                       <div className="absolute top-4 right-4">
                         <div className="w-12 h-12 rounded-full bg-dsce-gold flex items-center justify-center shadow-lg">
-                          <alumni.icon className="h-6 w-6 text-dsce-blue" />
+                          <Star className="h-6 w-6 text-dsce-blue" />
                         </div>
                       </div>
                       
                       {/* Alumni Info */}
                       <div className="absolute bottom-0 left-0 right-0 p-6">
                         <h4 className="text-xl font-bold mb-1 text-white">{alumni.name}</h4>
-                        <p className="text-sm text-dsce-gold mb-2">{alumni.batch}</p>
-                        <p className="text-sm text-gray-200">{alumni.achievement}</p>
+                        <p className="text-sm text-dsce-gold mb-2">Class of {alumni.graduationYear}</p>
+                        <p className="text-sm text-gray-200">{alumni.position}</p>
+                        <p className="text-xs text-gray-300 mt-1">{alumni.company}</p>
                       </div>
                     </div>
                   </div>
@@ -455,10 +478,12 @@ export default function Landing() {
       {/* Footer */}
       <footer className="py-16 border-t border-dsce-blue/20 bg-dsce-bg-light text-center">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-dsce-blue">
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <img 
+              src="https://www.eduopinions.com/wp-content/uploads/2021/12/dayananda-sagar-college-of-engineering-1-350x334.jpg"
+              alt="DSCE Logo"
+              className="h-10 w-auto rounded-lg"
+            />
             <span className="text-lg font-bold tracking-tight text-dsce-text-dark">DSCE Alumni Association</span>
           </div>
           <p className="text-gray-600 mb-2">Dayananda Sagar College of Engineering</p>

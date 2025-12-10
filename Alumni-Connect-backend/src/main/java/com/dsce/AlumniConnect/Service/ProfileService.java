@@ -116,6 +116,15 @@ public class ProfileService {
                     .collect(Collectors.toList());
             user.setFeaturedSkills(featuredSkills);
         }
+        if (request.getAchievements() != null) {
+            List<User.Achievement> achievements = request.getAchievements().stream()
+                    .map(ach -> new User.Achievement(
+                            ach.getTitle(),
+                            ach.getDescription(),
+                            ach.getDate()))
+                    .collect(Collectors.toList());
+            user.setAchievements(achievements);
+        }
 
         user.setUpdatedAt(LocalDateTime.now());
         markProfileAsCompleteIfReady(user);

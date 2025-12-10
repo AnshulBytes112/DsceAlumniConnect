@@ -1,23 +1,95 @@
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { Search, Users, Calendar, MapPin, Award, GraduationCap, Filter, X, Linkedin, Mail, Briefcase, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockAlumni } from '@/data/mockData';
+import { apiClient, type UserProfile } from '@/lib/api';
 
 export default function Alumni() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [realAlumni, setRealAlumni] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real alumni data on component mount
+  useEffect(() => {
+    const fetchAlumni = async () => {
+      try {
+        console.log('Fetching alumni from backend...');
+        const alumni = await apiClient.getAllAlumni();
+        console.log('Received alumni:', alumni);
+        setRealAlumni(alumni);
+      } catch (error) {
+        console.warn('Failed to fetch real alumni, using mock data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAlumni();
+  }, []);
+
+  // Combine real alumni with mock data, prioritizing real data
+  const allAlumni = realAlumni.length > 0 ? realAlumni.map(user => {
+    // Get the most recent work experience
+    const currentWork = user.workExperiences?.[0];
+    
+    // Create achievements from user's actual achievements, work experience, or fallback
+    const achievements = [];
+    
+    // First, use actual achievements if available
+    if (user.achievements && user.achievements.length > 0) {
+      user.achievements.forEach(ach => {
+        if (ach.title) achievements.push(ach.title);
+      });
+    }
+    
+    // If no achievements, use work experience
+    if (achievements.length === 0 && currentWork?.company) {
+      achievements.push(`Works at ${currentWork.company}`);
+      if (currentWork?.jobTitle) achievements.push(currentWork.jobTitle);
+    }
+    
+    // Add graduation year if still have space
+    if (achievements.length < 3 && user.graduationYear) {
+      achievements.push(`Class of ${user.graduationYear}`);
+    }
+    
+    // Final fallback
+    if (achievements.length === 0) achievements.push('DSCE Alumni');
+    
+    return {
+      id: parseInt(user.id), // Convert string ID to number to match mock data type
+      name: `${user.firstName} ${user.lastName}`,
+      graduationYear: user.graduationYear || 2020,
+      department: user.department || 'Computer Science',
+      location: user.location || 'Bangalore',
+      company: currentWork?.company || 'Company',
+      position: currentWork?.jobTitle || user.headline || 'Alumni',
+      achievements: achievements.slice(0, 3),
+      email: user.email,
+      linkedin: user.linkedinProfile || '#',
+      image: (() => {
+        if (user.profilePicture) {
+          const fullUrl = `http://localhost:8080/${user.profilePicture}`;
+          console.log('Profile picture URL:', fullUrl);
+          console.log('Original profilePicture path:', user.profilePicture);
+          return fullUrl;
+        }
+        return null;
+      })()
+    };
+  }) : mockAlumni;
 
   // Get unique years and departments for filters
-  const years = [...new Set(mockAlumni.map(a => a.graduationYear))].sort((a, b) => b - a);
-  const departments = [...new Set(mockAlumni.map(a => a.department))].sort();
+  const years = [...new Set(allAlumni.map(a => a.graduationYear))].sort((a, b) => b - a);
+  const departments = [...new Set(allAlumni.map(a => a.department))].sort();
 
   // Filter alumni based on search and filters
-  const filteredAlumni = mockAlumni.filter(alum => {
+  const filteredAlumni = allAlumni.filter(alum => {
     const matchesSearch = alum.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          alum.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          alum.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,7 +107,7 @@ export default function Alumni() {
     }
     acc[alum.graduationYear].push(alum);
     return acc;
-  }, {} as Record<number, typeof mockAlumni>);
+  }, {} as Record<number, typeof allAlumni>);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -188,7 +260,13 @@ export default function Alumni() {
         </div>
 
         {/* Content Area */}
-        {filteredAlumni.length > 0 ? (
+        {loading ? (
+            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+                <div className="animate-spin h-8 w-8 border-2 border-dsce-blue border-t-transparent rounded-full mx-auto mb-4"></div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Loading Alumni Directory</h3>
+                <p className="text-gray-500">Fetching alumni profiles...</p>
+            </div>
+        ) : filteredAlumni.length > 0 ? (
             <div className="space-y-12">
                 {Object.entries(alumniByYear)
                     .sort(([yearA], [yearB]) => parseInt(yearB) - parseInt(yearA))

@@ -60,9 +60,11 @@ export default function GlobalNavbar() {
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 pointer-events-none">
         {/* Logo Section - Pointer events enabled for interaction */}
         <div className="flex items-center gap-2 pointer-events-auto bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-sm border border-white/20">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-dsce-gold">
-            <GraduationCap className="h-5 w-5 text-dsce-blue" />
-          </div>
+          <img 
+            src="https://www.eduopinions.com/wp-content/uploads/2021/12/dayananda-sagar-college-of-engineering-1-350x334.jpg"
+            alt="DSCE Logo"
+            className="h-8 w-auto rounded-lg"
+          />
           <span className="text-lg font-bold tracking-tight text-dsce-blue">DSCE Alumni Connect</span>
         </div>
 
