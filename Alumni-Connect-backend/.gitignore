@@ -78,3 +78,5 @@ frontend/.next/
 # Ignore uploaded files
 uploads/
 resumes/
+
+profiles/
