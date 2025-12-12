@@ -1,0 +1,26 @@
+{
+  "name": "open_resume",
+  "version": "1.0.0",
+  "description": "",
+  "main": "parse-resume.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.1",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.11.0",
+    "pdfjs-dist": "^5.4.449"
+  }
+}

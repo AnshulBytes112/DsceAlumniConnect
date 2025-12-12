@@ -21,8 +21,8 @@ public class ResumeParserService {
 
     private final ObjectMapper objectMapper;
 
-    private static final String OPEN_RESUME_DIR = "open-resume";
-    private static final int PROCESS_TIMEOUT_SECONDS = 30;
+    // TODO : Need to use S3 bucket
+    private static final String OPEN_RESUME_DIR = "open_resume";
 
     public ResumeParserService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -98,8 +98,10 @@ public class ResumeParserService {
                     log.debug("Could not parse error JSON, using raw output", e);
                 }
 
-                log.error("Resume parser failed with exit code: {}. Error: {}", exitCode, errorMessage);
-                throw new RuntimeException("Resume parsing failed: " + errorMessage);
+            if (exitCode != 0) {
+                String combinedOutput = output.toString() + "\n" + errorOutput.toString();
+                log.error("Resume parser failed with exit code: {}\nOutput: {}", exitCode, combinedOutput);
+                throw new RuntimeException("Resume parsing failed: " + combinedOutput);
             }
 
             // Check if we got valid output
