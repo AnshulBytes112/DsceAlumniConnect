@@ -21,9 +21,11 @@ export function GoogleSignInButton({
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-  const handleGoogleSignIn = useGoogleLogin({
+  const loginFn = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
+      // ... existing success logic
       try {
         // console.log('Google login success, token:', tokenResponse);
         // Send access token to backend
@@ -62,14 +64,34 @@ export function GoogleSignInButton({
           });
         }
       }
+    },
+    onError: (errorResponse) => {
+       console.error('Google login error:', errorResponse);
+       toast({
+         title: 'Google Sign In failed',
+         description: 'Could not connect to Google.',
+         variant: 'destructive',
+       });
     }
   });
+
+  const handleGoogleSignIn = () => {
+    if (!clientId || clientId === 'mock_client_id') {
+      toast({
+        title: 'Configuration Missing',
+        description: 'Google Client ID is missing. Sign-in is disabled.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    loginFn();
+  };
 
   return (
     <Button
       type="button"
       variant="outline"
-      className={`w-full border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white ${className}`}
+      className={`w-full border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50 ${className}`}
       onClick={() => handleGoogleSignIn()}
     >
       <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">

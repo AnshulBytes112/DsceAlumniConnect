@@ -27,6 +27,7 @@ public class ProfileUpdateRequest {
     private List<ProjectDto> projects;
     private List<String> skills;
     private List<FeaturedSkillDto> featuredSkills;
+    private List<AchievementDto> achievements;
 
     @Data
     @NoArgsConstructor
@@ -64,5 +65,13 @@ public class ProfileUpdateRequest {
     public static class FeaturedSkillDto {
         private String skill;
         private Integer rating;
+    }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AchievementDto {
+        private String Title;
+        private String Description;
+        private String Date;
     }
 }
