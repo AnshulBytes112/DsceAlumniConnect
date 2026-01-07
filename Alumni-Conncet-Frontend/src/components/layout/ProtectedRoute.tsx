@@ -15,12 +15,12 @@ export default function ProtectedRoute() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // If profile is not complete and user is not on profile setup page, redirect to profile setup
-  if (user && !user.profileComplete && location.pathname !== '/profile-setup' && location.pathname !== '/dashboard') {
-    // Allow access to profile-setup, but redirect dashboard to profile-setup
+  if (user && !user.profileComplete && location.pathname !== '/profile-setup' && location.pathname !== '/dashboard' && location.pathname !== '/dashboard/profile') {
+    // Allow access to profile-setup and profile, but redirect dashboard to profile-setup
     if (location.pathname === '/dashboard') {
       return <Navigate to="/profile-setup" replace />;
     }

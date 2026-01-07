@@ -44,21 +44,18 @@ public class SpringSecurity {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(withDefaults())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/resume/parse").permitAll() // Resume parser endpoint
                         .requestMatchers("/chat.html").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/admin/resume/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/resume/**","/dashboard/fundings").hasRole("ADMIN")
                         .requestMatchers("/api/profile/**").authenticated() // Profile endpoints require authentication
                         .requestMatchers("/users/*/resume").authenticated()
-                        .anyRequest().permitAll()
-                );
+                        .requestMatchers("/alumni/**","/profiles/**").permitAll()
+                        .anyRequest().authenticated());
 
         http.addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -72,7 +69,7 @@ public class SpringSecurity {
 
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
-                                                         PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
@@ -88,7 +85,7 @@ public class SpringSecurity {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.addAllowedOriginPattern("*"); // Allow all origins for debugging
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

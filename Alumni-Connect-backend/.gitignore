@@ -80,3 +80,5 @@ open_resume/node_modules/
 # Ignore uploaded files
 uploads/
 resumes/
+
+profiles/

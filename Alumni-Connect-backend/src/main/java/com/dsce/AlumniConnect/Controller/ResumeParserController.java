@@ -15,7 +15,7 @@ import java.io.IOException;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/resume")
+@RequestMapping({ "/api/resume", "/resume" })
 public class ResumeParserController {
 
     @Autowired
