@@ -374,9 +374,11 @@ export default function Landing() {
 
           {/* View Gallery Button */}
           <div className="text-center mt-12">
-            <Button variant="outline" className="rounded-full px-8 py-4 border-dsce-blue text-dsce-blue hover:bg-dsce-blue hover:text-white transition-all">
-              View Full Gallery <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link to="/gallery">
+              <Button variant="outline" className="rounded-full px-8 py-4 border-dsce-blue text-dsce-blue hover:bg-dsce-blue hover:text-white transition-all">
+                View Full Gallery <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
