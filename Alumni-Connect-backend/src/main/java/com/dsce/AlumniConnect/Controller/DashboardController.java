@@ -86,17 +86,31 @@ public class DashboardController {
 
     @GetMapping("/events")
     public ResponseEntity<List<EventDTO>> getEvents() {
-        return ResponseEntity.ok(eventService.getEventsUserIsAttending());
+        try {
+            User currentUser = profileService.getCurrentUserProfile();
+            log.info("Getting events for user: {}", currentUser.getId());
+            
+            List<EventDTO> events = eventService.getEventsUserIsAttending();
+            log.info("Found {} events user is attending", events.size());
+            
+            return ResponseEntity.ok(events);
+        } catch (Exception e) {
+            log.error("Error fetching events", e);
+            return ResponseEntity.ok(List.of());
+        }
     }
 
     @GetMapping("/fundings")
     public ResponseEntity<List<FundingDTO>> getFundings() {
         try {
             User currentUser = profileService.getCurrentUserProfile();
+            log.info("Getting fundings for user: {}", currentUser.getId());
             List<ProjectFunding> fundings = projectFundingRepository.findByUserId(currentUser.getId());
+            log.info("Found {} fundings for user: {}", fundings.size(), currentUser.getId());
             List<FundingDTO> dtos = fundings.stream()
                     .map(f -> new FundingDTO(f.getTitle(), f.getAmount(), f.getStatus(), f.getDate()))
                     .collect(Collectors.toList());
+            log.info("Returning {} funding DTOs", dtos.size());
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             log.error("Error fetching fundings", e);

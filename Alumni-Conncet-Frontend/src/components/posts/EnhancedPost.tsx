@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Send, Image, Smile, Hash, AtSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Send, Image, Smile, Hash, AtSign, ChevronDown, ChevronUp, Edit, Trash2, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Comment {
   id: string;
   author: string;
-  avatar: string;
+  avatar?: string;
   role: string;
   content: string;
   time: string;
@@ -20,8 +20,9 @@ interface MediaAttachment {
 }
 
 interface EnhancedPostProps {
+  id: string;
   author: string;
-  avatar: string;
+  avatar?: string;
   role: string;
   content: string;
   time: string;
@@ -32,11 +33,17 @@ interface EnhancedPostProps {
   hashtags?: string[];
   mentions?: string[];
   initialComments?: Comment[];
+  isAuthor?: boolean;
   onLike?: () => void;
   onComment?: (content: string) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onReport?: () => void;
+  onShare?: () => void;
 }
 
 export default function EnhancedPost({
+  id,
   author,
   avatar,
   role,
@@ -49,8 +56,13 @@ export default function EnhancedPost({
   hashtags = [],
   mentions = [],
   initialComments = [],
+  isAuthor = false,
   onLike,
-  onComment
+  onComment,
+  onEdit,
+  onDelete,
+  onReport,
+  onShare
 }: EnhancedPostProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked] = useState(false);
@@ -59,6 +71,7 @@ export default function EnhancedPost({
   const [commentsList, setCommentsList] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [showAllComments, setShowAllComments] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -74,7 +87,6 @@ export default function EnhancedPost({
     const comment: Comment = {
       id: `comment-${Date.now()}`,
       author: 'You',
-      avatar: 'https://github.com/shadcn.png',
       role: 'Current User',
       content: newComment,
       time: 'Just now',
@@ -109,19 +121,80 @@ export default function EnhancedPost({
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
       {/* Post Header */}
       <div className="p-6 pb-4">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3">
+            {avatar ? (
             <img src={avatar} alt={author} className="h-12 w-12 rounded-full object-cover border border-gray-200" />
+          ) : (
+            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-gray-200">
+              <span className="text-white text-lg font-bold">
+                {author ? author.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+              </span>
+            </div>
+          )}
             <div>
               <h4 className="font-semibold text-gray-900 hover:text-dsce-blue cursor-pointer transition-colors">{author}</h4>
               <p className="text-sm text-gray-600">{role}</p>
               <p className="text-xs text-gray-500">{time}</p>
             </div>
           </div>
-          <button className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
-        </div>
+          <div className="relative">
+            <button 
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+            
+            {/* Dropdown Menu */}
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-10"
+                >
+                  {isAuthor ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          onEdit?.();
+                          setShowDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span>Edit Post</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this post?')) {
+                            onDelete?.();
+                            setShowDropdown(false);
+                          }
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>Delete Post</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        onReport?.();
+                        setShowDropdown(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <Flag className="h-4 w-4" />
+                      <span>Report Post</span>
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
         {/* Post Content */}
         <div className="mb-4">
@@ -227,7 +300,12 @@ export default function EnhancedPost({
             <span className="text-sm font-medium">Comment</span>
           </button>
 
-          <button className="flex items-center space-x-2 px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100 transition-all">
+          <button 
+            onClick={() => {
+              onShare?.();
+            }}
+            className="flex items-center space-x-2 px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100 transition-all"
+          >
             <Share2 className="h-5 w-5" />
             <span className="text-sm font-medium">Share</span>
           </button>
@@ -285,7 +363,15 @@ export default function EnhancedPost({
                 <div className="space-y-4">
                   {displayedComments.map((comment) => (
                     <div key={comment.id} className="flex items-start space-x-3">
+                      {comment.avatar ? (
                       <img src={comment.avatar} alt={comment.author} className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">
+                          {comment.author ? comment.author.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+                        </span>
+                      </div>
+                    )}
                       <div className="flex-1">
                         <div className="bg-gray-50 rounded-xl p-3">
                           <div className="flex items-center justify-between mb-1">

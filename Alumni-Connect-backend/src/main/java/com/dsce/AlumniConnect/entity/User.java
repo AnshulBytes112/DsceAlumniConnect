@@ -33,7 +33,10 @@ public class User {
 
     private Role role; // USER or ADMIN
 
+    @NotBlank(message = "Graduation year is required for alumni verification")
     private Integer graduationYear;
+    
+    @NotBlank(message = "Department is required for alumni verification")
     private String department;
     private String profilePicture;
     private String bio;

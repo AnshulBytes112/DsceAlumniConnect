@@ -7,13 +7,16 @@ import com.dsce.AlumniConnect.entity.Event;
 import com.dsce.AlumniConnect.entity.EventRSVP;
 import com.dsce.AlumniConnect.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventService {
@@ -37,15 +40,34 @@ public class EventService {
 
     public List<EventDTO> getEventsUserIsAttending() {
         User currentUser = profileService.getCurrentUserProfile();
+        log.info("Getting events user is attending for user: {}", currentUser.getId());
+        
         List<EventRSVP> rsvps = eventRSVPRepository.findByUserIdAndStatus(currentUser.getId(),
                 EventRSVP.RsvpStatus.GOING);
+        
+        log.info("Found {} RSVPs with GOING status for user: {}", rsvps.size(), currentUser.getId());
 
-        return rsvps.stream()
-                .map(rsvp -> eventRepository.findById(rsvp.getEventId()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(this::mapToDTO)
+        List<EventDTO> events = rsvps.stream()
+                .map(rsvp -> {
+                    log.info("Processing RSVP for event: {} with status: {}", rsvp.getEventId(), rsvp.getStatus());
+                    Optional<Event> eventOpt = eventRepository.findById(rsvp.getEventId());
+                    if (eventOpt.isPresent()) {
+                        Event event = eventOpt.get();
+                        EventDTO dto = mapToDTO(event);
+                        // Set RSVP status directly from the RSVP we already have
+                        dto.setUserRsvpStatus(rsvp.getStatus().name());
+                        log.info("Set RSVP status {} for event {}", rsvp.getStatus().name(), event.getId());
+                        return dto;
+                    } else {
+                        log.warn("Event not found for RSVP event ID: {}", rsvp.getEventId());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+        
+        log.info("Returning {} events for user: {}", events.size(), currentUser.getId());
+        return events;
     }
 
     public EventDTO createEvent(EventDTO eventDTO) {
@@ -81,6 +103,8 @@ public class EventService {
     public void rsvpEvent(String eventId, String status) {
         User currentUser = profileService.getCurrentUserProfile();
         EventRSVP.RsvpStatus rsvpStatus = EventRSVP.RsvpStatus.valueOf(status.toUpperCase());
+        
+        log.info("RSVP request - User: {}, Event: {}, Status: {}", currentUser.getId(), eventId, status);
 
         Optional<EventRSVP> existingRsvp = eventRSVPRepository.findByUserIdAndEventId(currentUser.getId(), eventId);
 
@@ -88,14 +112,17 @@ public class EventService {
         if (existingRsvp.isPresent()) {
             rsvp = existingRsvp.get();
             rsvp.setStatus(rsvpStatus);
+            log.info("Updated existing RSVP for user: {}, event: {}", currentUser.getId(), eventId);
         } else {
             rsvp = new EventRSVP();
             rsvp.setUserId(currentUser.getId());
             rsvp.setEventId(eventId);
             rsvp.setStatus(rsvpStatus);
+            log.info("Created new RSVP for user: {}, event: {}", currentUser.getId(), eventId);
         }
 
-        eventRSVPRepository.save(rsvp);
+        EventRSVP savedRsvp = eventRSVPRepository.save(rsvp);
+        log.info("Saved RSVP with ID: {}", savedRsvp.getId());
     }
 
     private EventDTO mapToDTO(Event event) {

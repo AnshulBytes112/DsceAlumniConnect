@@ -78,8 +78,8 @@ const urlSchema = z.string()
   );
 
 const profileSetupSchema = z.object({
-  graduationYear: z.string().regex(/^\d{4}$/, 'Please enter a valid year').optional(),
-  department: z.string().min(1, 'Please select a department').optional(),
+  graduationYear: z.string().regex(/^\d{4}$/, 'Please enter a valid graduation year').min(1, 'Graduation year is required for alumni verification'),
+  department: z.string().min(1, 'Department is required for alumni verification'),
   contactNumber: z.string().min(10, 'Phone number must be at least 10 characters').optional(),
   bio: z.string().optional(),
   location: z.string().optional(),
@@ -515,6 +515,20 @@ export default function ProfileSetup() {
 
               {/* Manual Entry Fields */}
               <div>
+                {/* Alumni Verification Notice */}
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-blue-900">Alumni Verification Required</h4>
+                      <p className="text-xs text-blue-700 mt-1">
+                        To maintain the authenticity of our alumni network, graduation year and department are mandatory fields. 
+                        This helps ensure that only genuine DSCE alumni can connect and share experiences.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <h3 className="text-xl font-semibold text-[#333333] mb-4">Profile Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -522,10 +536,13 @@ export default function ProfileSetup() {
                     name="graduationYear"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[#333333]">Graduation Year</FormLabel>
+                        <FormLabel className="text-[#333333]">
+                          Graduation Year <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="2023"
+                            required
                             className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                             {...field}
                           />
@@ -540,9 +557,12 @@ export default function ProfileSetup() {
                     name="department"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[#333333]">Department</FormLabel>
+                        <FormLabel className="text-[#333333]">
+                          Department <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormControl>
                           <select
+                            required
                             className="flex h-10 w-full rounded-md border border-[#003366]/10 bg-[#F8F8F8] px-3 py-2 text-sm text-[#333333] focus:outline-none focus:ring-2 focus:ring-[#003366]/50"
                             {...field}
                           >

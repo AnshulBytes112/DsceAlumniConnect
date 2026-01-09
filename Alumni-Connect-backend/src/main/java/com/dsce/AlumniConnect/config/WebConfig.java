@@ -16,5 +16,9 @@ public class WebConfig implements WebMvcConfigurer {
         // Serve files from the resumes directory  
         registry.addResourceHandler("/resumes/**")
                 .addResourceLocations("file:///C:/Users/ANSHUL/ALUMNI-CONNECT/ALUMNI-CONNECT/resumes/");
+        
+        // Serve uploaded images - point to the correct backend uploads directory
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:///C:/Users/ANSHUL/ALUMNI-CONNECT/ALUMNI-CONNECT/Alumni-Connect-backend/uploads/");
     }
 }

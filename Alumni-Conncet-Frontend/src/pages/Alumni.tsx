@@ -307,7 +307,9 @@ export default function Alumni() {
                                                         {alum.image ? (
                                                             <img src={alum.image} alt={alum.name} className="h-full w-full object-cover rounded-2xl" />
                                                         ) : (
-                                                            <span className="text-2xl font-bold">{alum.name.charAt(0)}</span>
+                                                            <span className="text-2xl font-bold">
+                                                                {alum.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                                            </span>
                                                         )}
                                                     </div>
                                                     <div className="absolute -bottom-2 -right-2 bg-white p-1 rounded-full shadow-md">
@@ -370,7 +372,9 @@ export default function Alumni() {
                                                 {alum.image ? (
                                                     <img src={alum.image} alt={alum.name} className="h-full w-full object-cover rounded-2xl" />
                                                 ) : (
-                                                    <span className="text-2xl font-bold">{alum.name.charAt(0)}</span>
+                                                    <span className="text-2xl font-bold">
+                                                        {alum.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                                    </span>
                                                 )}
                                             </div>
                                             
