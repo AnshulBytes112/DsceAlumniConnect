@@ -30,7 +30,8 @@ const LoadingFallback = () => (
 import MainLayout from './components/layout/MainLayout';
 import EventDetails from './pages/EventDetails';
 
-// ... imports
+
+import Gallery from './pages/Gallery';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
 
               {/* Public Routes */}
               <Route path="/alumni" element={<Alumni />} />
+              <Route path="/gallery" element={<Gallery />} />
               
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
