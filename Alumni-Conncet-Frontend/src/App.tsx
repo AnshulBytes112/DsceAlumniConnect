@@ -28,6 +28,7 @@ const LoadingFallback = () => (
 );
 
 import MainLayout from './components/layout/MainLayout';
+import EventDetails from './pages/EventDetails';
 
 // ... imports
 
@@ -56,6 +57,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/dashboard/profile" element={<Profile />} />
                 <Route path="/dashboard/events" element={<Events />} />
+                <Route path="/dashboard/events/:eventId" element={<EventDetails />} />
                 <Route path="/dashboard/announcements" element={<Announcements />} />
                 <Route path="/dashboard/posts" element={<Posts />} />
                 <Route path="/dashboard/settings" element={<Settings />} />

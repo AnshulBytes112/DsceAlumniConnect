@@ -16,6 +16,7 @@ const Events = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [rsvpModalEventId, setRsvpModalEventId] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -148,7 +149,8 @@ const Events = () => {
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col"
+                onClick={() => navigate(`/dashboard/events/${event.id}`)}
+                className="cursor-pointer bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col"
               >
                 <div className="absolute top-4 right-4 z-10">
                    {event.userRsvpStatus && (
@@ -192,7 +194,7 @@ const Events = () => {
                       ? 'bg-dsce-blue/5 text-dsce-blue hover:bg-dsce-blue/10' 
                       : 'bg-white text-dsce-blue hover:bg-dsce-blue hover:text-white shadow-sm'
                   }`}
-                  onClick={() => setRsvpModalEventId(event.id)}
+                  onClick={(e) => { e.stopPropagation(); setRsvpModalEventId(event.id); }}
                 >
                   {event.userRsvpStatus ? 'Update RSVP' : 'RSVP Now'}
                 </Button>

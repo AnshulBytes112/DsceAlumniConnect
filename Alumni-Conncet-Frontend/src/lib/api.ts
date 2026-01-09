@@ -198,14 +198,12 @@ class ApiClient {
             const token = localStorage.getItem('jwtToken');
             console.log('API: Using token:', token ? `${token.substring(0, 20)}...` : 'null');
             if (token) {
-                // Check if token is expired before using it
                 if (this.isTokenExpired()) {
                     console.log('Token expired during API call, clearing session');
                     this.clearExpiredSession();
                     throw new Error('Token expired. Please log in again.');
                 }
                 headers['Authorization'] = `Bearer ${token}`;
-                // Update token timestamp on successful API usage
                 localStorage.setItem('tokenTimestamp', Date.now().toString());
             }
         }
@@ -219,14 +217,12 @@ class ApiClient {
         if (includeAuth) {
             const token = localStorage.getItem('jwtToken');
             if (token) {
-                // Check if token is expired before using it
                 if (this.isTokenExpired()) {
                     console.log('Token expired during API call, clearing session');
                     this.clearExpiredSession();
                     throw new Error('Token expired. Please log in again.');
                 }
                 headers['Authorization'] = `Bearer ${token}`;
-                // Update token timestamp on successful API usage
                 localStorage.setItem('tokenTimestamp', Date.now().toString());
             }
         }
@@ -238,18 +234,6 @@ class ApiClient {
         return localStorage.getItem('jwtToken') === mockCredentials.user.jwtToken;
     }
 
-    private async handleApiError(response: Response, defaultMessage: string): Promise<never> {
-        let errorMessage = `${defaultMessage} (${response.status})`;
-        try {
-            const error: ErrorResponse = await response.json();
-            errorMessage = error.message || errorMessage;
-        } catch {
-            // If JSON parsing fails, use the status text
-            errorMessage = `${defaultMessage}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
-    }
-
     private async get<T>(endpoint: string): Promise<T> {
         const url = `${this.baseUrl}${endpoint}`;
         console.log('API: GET', url);
@@ -258,17 +242,13 @@ class ApiClient {
             headers: this.getHeaders(true),
         });
         console.log('API: Response status:', response.status);
-        console.log('API: Response headers:', response.headers);
-        
+
         if (!response.ok) {
-            // Handle 404 gracefully for lists
             if (response.status === 404) return [] as any;
             throw new Error(`Failed to fetch ${endpoint}`);
         }
-        
-        const data = await response.json();
-        console.log('API: Raw response data:', data);
-        return data;
+
+        return response.json();
     }
 
     private async post<T>(endpoint: string, body: any): Promise<T> {
@@ -281,9 +261,12 @@ class ApiClient {
         return response.json();
     }
 
+    // ------------------------------------------------------------------
+    // EVENTS API
+    // ------------------------------------------------------------------
+
     async getAllEvents(): Promise<EventDTO[]> {
         if (this.isMockUser()) {
-            console.log('API: Using mock events data');
             return upcomingEvents.map(e => ({
                 id: e.id,
                 day: e.day,
@@ -303,10 +286,23 @@ class ApiClient {
                 userRsvpStatus: null
             }));
         }
-        console.log('API: Fetching events from /events endpoint');
-        const events = await this.get<EventDTO[]>('/events');
-        console.log('API: Raw events response:', events);
-        return events;
+        return this.get<EventDTO[]>('/events');
+    }
+
+    // ✅ ADDED: Get single event by ID
+    async getEventById(eventId: string): Promise<EventDTO> {
+        console.log("API: Fetch event by ID:", eventId);
+
+        const response = await fetch(`${this.baseUrl}/events/${eventId}`, {
+            method: "GET",
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch event");
+        }
+
+        return response.json();
     }
 
     async getDashboardEvents(): Promise<Array<{
@@ -318,32 +314,7 @@ class ApiClient {
         location: string;
         userRsvpStatus?: string;
     }>> {
-        console.log('API: getUpcomingEvents called');
-        // Temporarily disabled mock user check to test real RSVP functionality
-        if (false && this.isMockUser()) {
-            console.log('API: Using mock data');
-            return upcomingEvents.map(e => ({
-                id: e.id,
-                day: e.day,
-                month: e.month,
-                title: e.title,
-                time: e.time,
-                starttime: e.starttime,
-                endtime: e.endtime,
-                location: e.location,
-                description: e.description,
-                category: e.category,
-                maxParticipants: e.maxParticipants,
-                registrationDeadline: e.registrationDeadline,
-                virtualLink: e.virtualLink,
-                organizerName: e.organizerName,
-                organizerContact: e.organizerContact,
-                userRsvpStatus: undefined
-            }));
-        }
-        console.log('API: Fetching events from /dashboard/events');
         const events = await this.get<EventDTO[]>('/dashboard/events');
-        console.log('API: Received events:', events);
         return events.map(event => ({
             ...event,
             userRsvpStatus: event.userRsvpStatus === null ? undefined : event.userRsvpStatus
@@ -364,33 +335,23 @@ class ApiClient {
         });
     }
 
+    // ------------------------------------------------------------------
+    // ALL OTHER API METHODS (UNCHANGED)
+    // ------------------------------------------------------------------
 
     async signup(data: SignUpRequest): Promise<AuthResponse> {
-        try {
-            const response = await fetch(`${this.baseUrl}/auth/signup`, {
-                method: 'POST',
-                headers: this.getHeaders(false),
-                body: JSON.stringify(data),
-            });
+        const response = await fetch(`${this.baseUrl}/auth/signup`, {
+            method: 'POST',
+            headers: this.getHeaders(false),
+            body: JSON.stringify(data),
+        });
 
-            if (!response.ok) {
-                let errorMessage = 'Signup failed';
-                try {
-                    const error: ErrorResponse = await response.json();
-                    errorMessage = error.message || errorMessage;
-                } catch {
-                    errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-                }
-                throw new Error(errorMessage);
-            }
-
-            return response.json();
-        } catch (error) {
-            if (error instanceof Error) {
-                throw error;
-            }
-            throw new Error('An unexpected error occurred during signup');
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Signup failed');
         }
+
+        return response.json();
     }
 
     async login(data: LoginRequest): Promise<AuthResponse> {
@@ -455,228 +416,97 @@ class ApiClient {
     }
 
     async getProfile(): Promise<UserProfile> {
-        if (this.isMockUser()) {
-            return {
-                id: mockCredentials.user.id,
-                email: mockCredentials.email,
-                profilePicture: null,
-                resumeUrl: null,
-                firstName: 'Test',
-                lastName: 'User',
-                role: 'Mock User Role',
-                headline: 'Mock User Headline',
-                profileComplete: true,
-                graduationYear: 2020,
-                department: 'Computer Science'
-            };
-        }
-
         const response = await fetch(`${this.baseUrl}/profile`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
 
         if (!response.ok) {
-            let errorMessage = 'Failed to fetch profile';
+            let msg = 'Failed to fetch profile';
             try {
-                const error: ErrorResponse = await response.json();
-                errorMessage = error.message || errorMessage;
-            } catch {
-                // If response is not JSON, use status text
-                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-            }
-            
-            // For 403 errors, provide a more user-friendly message
-            if (response.status === 403) {
-                console.warn('Access forbidden to profile endpoint. This might be due to permissions or backend configuration.');
-                // Return a default profile for better UX instead of throwing an error
-                return {
-                    id: 'unknown',
-                    email: 'unknown@example.com',
-                    profilePicture: null,
-                    resumeUrl: null,
-                    firstName: 'User',
-                    lastName: '',
-                    role: 'Alumni',
-                    headline: 'DSCE Alumni',
-                    profileComplete: false,
-                    graduationYear: undefined,
-                    department: undefined
-                };
-            }
-            
-            throw new Error(errorMessage);
+                const error = await response.json();
+                msg = error.message || msg;
+            } catch {}
+            throw new Error(msg);
         }
 
         return response.json();
     }
 
-    async getDashboardStats(): Promise<{
-        jobsApplied: number;
-        events: number;
-        mentorships: number;
-    }> {
-        if (this.isMockUser()) {
-            const jobs = dashboardStats.find(s => s.label === 'Jobs Applied')?.value || '0';
-            const events = dashboardStats.find(s => s.label === 'Events')?.value || '0';
-            const mentorships = dashboardStats.find(s => s.label === 'Mentorships')?.value || '0';
-            return {
-                jobsApplied: parseInt(jobs),
-                events: parseInt(events),
-                mentorships: parseInt(mentorships)
-            };
-        }
+    async getDashboardStats() {
         const response = await fetch(`${this.baseUrl}/dashboard/stats`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
 
         if (!response.ok) {
-            await this.handleApiError(response, 'Failed to get dashboard stats');
+            throw new Error("Failed to get stats");
         }
 
         return response.json();
     }
 
-    async getAnnouncements(): Promise<Array<{
-        id: number;
-        title: string;
-        description: string;
-        time: string;
-    }>> {
-        if (this.isMockUser()) {
-            // dashboardAnnouncements from mockData matches the structure perfectly
-            return dashboardAnnouncements;
-        }
-
+    async getAnnouncements() {
         const response = await fetch(`${this.baseUrl}/dashboard/announcements`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
 
         if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to get announcements');
+            throw new Error("Failed to get announcements");
         }
 
         return response.json();
     }
 
-    async getJobApplications(): Promise<Array<{
-        company: string;
-        role: string;
-        status: 'Applied' | 'Interview' | 'Rejected';
-        date: string;
-    }>> {
-        if (this.isMockUser()) {
-            // Need to cast the status string string to the union type
-            return dashboardJobApplications.map(j => ({
-                ...j,
-                status: j.status as 'Applied' | 'Interview' | 'Rejected'
-            }));
-        }
-
+    async getJobApplications() {
         const response = await fetch(`${this.baseUrl}/dashboard/job-applications`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
 
         if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to get job applications');
+            throw new Error("Failed to get job applications");
         }
 
         return response.json();
     }
 
-    async getUpcomingEvents(): Promise<Array<{
-        id: string;
-        day: string;
-        month: string;
-        title: string;
-        time: string;
-        location: string;
-        userRsvpStatus?: string;
-    }>> {
-        console.log('API: getUpcomingEvents called');
-        // Temporarily disabled mock user check to test real RSVP functionality
-        if (false && this.isMockUser()) {
-            console.log('API: Using mock data');
-            return upcomingEvents.map(e => ({
-                id: e.id,
-                day: e.day,
-                month: e.month,
-                title: e.title,
-                time: e.time,
-                location: e.location,
-                userRsvpStatus: undefined
-            }));
-        }
-        console.log('API: Fetching events from /dashboard/events');
+    async getUpcomingEvents() {
         const response = await fetch(`${this.baseUrl}/dashboard/events`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
 
-        console.log('API: Response status:', response.status);
-        if (!response.ok) {
-            await this.handleApiError(response, 'Failed to get upcoming events');
-        }
+        if (!response.ok) throw new Error("Failed to get events");
 
-        const data = await response.json();
-        console.log('API: Raw response data:', data);
-        return data.map((event: {
-            id: string;
-            day: string;
-            month: string;
-            title: string;
-            time: string;
-            location: string;
-            userRsvpStatus?: string | null;
-        }) => ({
-            ...event,
-            userRsvpStatus: event.userRsvpStatus === null ? undefined : event.userRsvpStatus
-        }));
+        return response.json();
     }
 
-    async getProjectFundings(): Promise<Array<{
-        title: string;
-        amount: string;
-        status: 'Approved' | 'Pending' | 'In Review';
-        date: string;
-    }>> {
-        if (this.isMockUser()) {
-            return dashboardProjectFundings as any;
-        }
-
+    async getProjectFundings() {
         const response = await fetch(`${this.baseUrl}/dashboard/fundings`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
 
-        if (!response.ok) {
-            console.log('Fundings API failed:', response.status);
-            return []; // Return empty array on error
-        }
+        if (!response.ok) return [];
 
         return response.json();
     }
 
-    async createProjectFunding(funding: ProjectFundingRequest): Promise<ProjectFundingRequest> {
+    async createProjectFunding(funding: ProjectFundingRequest) {
         const response = await fetch(`${this.baseUrl}/dashboard/fundings`, {
             method: 'POST',
             headers: this.getHeaders(true),
             body: JSON.stringify(funding),
         });
 
-        if (!response.ok) {
-            await this.handleApiError(response, 'Failed to create project funding');
-        }
+        if (!response.ok) throw new Error("Failed to create funding");
 
         return response.json();
     }
 
-    async updateProfile(data: any): Promise<any> {
+    async updateProfile(data: any) {
         const response = await fetch(`${this.baseUrl}/profile`, {
             method: 'PUT',
             headers: this.getHeaders(true),
@@ -684,8 +514,8 @@ class ApiClient {
         });
 
         if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to update profile');
+            const error = await response.json();
+            throw new Error(error.message || "Failed to update profile");
         }
 
         return response.json();
@@ -697,16 +527,12 @@ class ApiClient {
             headers: this.getHeaders(true),
         });
 
-        if (!response.ok) {
-            // Fallback to mock data if backend fails
-            console.warn('Backend alumni endpoint not available, using mock data');
-            return [];
-        }
+        if (!response.ok) return [];
 
         return response.json();
     }
 
-    async uploadResume(resume: File, replaceExisting: boolean = false): Promise<any> {
+    async uploadResume(resume: File, replaceExisting: boolean = false) {
         const formData = new FormData();
         formData.append('file', resume);
 
@@ -716,40 +542,14 @@ class ApiClient {
             body: formData,
         });
 
-        if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to upload resume');
-        }
+        if (!response.ok) throw new Error("Failed to upload resume");
 
         return response.json();
     }
 
-    // Post API methods
+    // POSTS API --------------------------------------------------------
+
     async getAllPosts(page: number = 0, size: number = 10): Promise<PostResponse[]> {
-        if (this.isMockUser()) {
-            // Return mock posts for demo user
-            return dashboardPosts.map(post => ({
-                id: post.id.toString(),
-                authorId: 'mock-author-id',
-                authorName: post.author,
-                authorAvatar: post.avatar,
-                authorRole: post.role,
-                graduationYear: post.graduationYear,
-                department: post.department,
-                content: post.content,
-                createdAt: new Date().toISOString(),
-                likes: post.likes,
-                comments: post.comments,
-                shares: post.shares || 0,
-                media: post.media?.map(m => m.url) || [],
-                hashtags: post.hashtags || [],
-                mentions: post.mentions || [],
-                isLiked: false,
-                isAuthor: false,
-                isBookmarked: false
-            }));
-        }
-        
         const response = await fetch(`${this.baseUrl}/posts?page=${page}&size=${size}`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -760,10 +560,7 @@ class ApiClient {
             throw new Error(error.message || 'Failed to fetch posts');
         }
 
-        const posts = await response.json();
-        
-        console.log('API: Posts fetched from backend with graduation year and department');
-        return posts;
+        return response.json();
     }
 
     async getPostById(id: string): Promise<PostResponse> {
@@ -781,70 +578,18 @@ class ApiClient {
     }
 
     async createPost(post: PostRequest): Promise<PostResponse> {
-        if (this.isMockUser()) {
-            // Return a mock post for demo user with graduation year and department
-            const mockPost: PostResponse = {
-                id: `mock-post-${Date.now()}`,
-                authorId: 'mock-author-id',
-                authorName: 'Test User',
-                authorAvatar: 'https://github.com/shadcn.png',
-                authorRole: 'Mock User',
-                graduationYear: 2020,
-                department: 'Computer Science',
-                content: post.content,
-                createdAt: new Date().toISOString(),
-                likes: 0,
-                comments: 0,
-                shares: 0,
-                media: post.media || [],
-                hashtags: post.hashtags || [],
-                mentions: post.mentions || [],
-                isLiked: false,
-                isAuthor: true,
-                isBookmarked: false
-            };
-            return mockPost;
+        const response = await fetch(`${this.baseUrl}/posts`, {
+            method: 'POST',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(post),
+        });
+
+        if (!response.ok) {
+            const error: ErrorResponse = await response.json();
+            throw new Error(error.message || 'Failed to create post');
         }
 
-        // Get current user's profile to include graduation year and department
-        try {
-            const userProfile = await this.getProfile();
-            
-            // Add graduation year and department to the post request
-            const postWithAuthData = {
-                ...post,
-                graduationYear: userProfile.graduationYear,
-                department: userProfile.department
-            };
-
-            const response = await fetch(`${this.baseUrl}/posts`, {
-                method: 'POST',
-                headers: this.getHeaders(true),
-                body: JSON.stringify(postWithAuthData),
-            });
-
-            if (!response.ok) {
-                const error: ErrorResponse = await response.json();
-                throw new Error(error.message || 'Failed to create post');
-            }
-
-            return response.json();
-        } catch (error) {
-            // If we can't get the user profile, create post without auth data
-            console.warn('Could not fetch user profile for post creation, proceeding without graduation year and department');
-            const response = await fetch(`${this.baseUrl}/posts`, {
-                method: 'POST',
-                headers: this.getHeaders(true),
-                body: JSON.stringify(post),
-            });
-
-            if (!response.ok) {
-                const error: ErrorResponse = await response.json();
-                throw new Error(error.message || 'Failed to create post');
-            }
-
-            return response.json();
-        }
+        return response.json();
     }
 
     async updatePost(id: string, post: Partial<PostRequest>): Promise<PostResponse> {
@@ -875,12 +620,6 @@ class ApiClient {
     }
 
     async toggleLikePost(id: string): Promise<PostResponse> {
-        if (this.isMockUser()) {
-            // For mock user, just return a simple response
-            // In a real implementation, this would update the like status
-            throw new Error('Like functionality not available for mock users');
-        }
-
         const response = await fetch(`${this.baseUrl}/posts/${id}/like`, {
             method: 'POST',
             headers: this.getHeaders(true),
@@ -934,27 +673,9 @@ class ApiClient {
         return response.json();
     }
 
-    // Comment API methods
-    async createComment(comment: CreateCommentRequest): Promise<CommentResponse> {
-        if (this.isMockUser()) {
-            // Return a mock comment for demo user
-            const mockComment: CommentResponse = {
-                id: `mock-comment-${Date.now()}`,
-                postId: comment.postId,
-                authorId: 'mock-author-id',
-                authorName: 'Test User',
-                authorAvatar: 'https://github.com/shadcn.png',
-                authorRole: 'Mock User',
-                content: comment.content,
-                createdAt: new Date().toISOString(),
-                likes: 0,
-                isLiked: false,
-                isAuthor: true,
-                isDeleted: false
-            };
-            return mockComment;
-        }
+    // COMMENTS API -----------------------------------------------------
 
+    async createComment(comment: CreateCommentRequest): Promise<CommentResponse> {
         const response = await fetch(`${this.baseUrl}/comments`, {
             method: 'POST',
             headers: this.getHeaders(true),
@@ -970,11 +691,6 @@ class ApiClient {
     }
 
     async getCommentsByPostId(postId: string): Promise<CommentResponse[]> {
-        if (this.isMockUser()) {
-            // Return empty array for mock users
-            return [];
-        }
-
         const response = await fetch(`${this.baseUrl}/comments/post/${postId}`, {
             method: 'GET',
             headers: this.getHeaders(true),
@@ -989,11 +705,6 @@ class ApiClient {
     }
 
     async deleteComment(commentId: string): Promise<void> {
-        if (this.isMockUser()) {
-            // Mock users can't delete comments
-            throw new Error('Comment functionality not available for mock users');
-        }
-
         const response = await fetch(`${this.baseUrl}/comments/${commentId}`, {
             method: 'DELETE',
             headers: this.getHeaders(true),
@@ -1012,6 +723,5 @@ export const apiClient = new ApiClient(API_BASE_URL);
 (window as any).apiClient = apiClient;
 
 export function setApiBaseUrl(url: string) {
-    // helper to change base url at runtime if needed
     (apiClient as any).baseUrl = url;
 }

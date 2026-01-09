@@ -30,12 +30,12 @@ interface ExpandableTabsProps {
 
 const buttonVariants = {
   initial: {
-    gap: 0,
+    gap: "0rem",
     paddingLeft: ".5rem",
     paddingRight: ".5rem",
   },
   animate: (isSelected: boolean) => ({
-    gap: isSelected ? ".5rem" : 0,
+    gap: isSelected ? ".5rem" : "0rem",
     paddingLeft: isSelected ? "1rem" : ".5rem",
     paddingRight: isSelected ? "1rem" : ".5rem",
   }),

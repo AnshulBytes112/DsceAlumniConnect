@@ -125,6 +125,22 @@ public class EventService {
         log.info("Saved RSVP with ID: {}", savedRsvp.getId());
     }
 
+    public EventDTO getEventById(String eventId) {
+        User currentUser = profileService.getCurrentUserProfile();
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (eventOpt.isEmpty()) {
+            throw new RuntimeException("Event not found");
+        }
+
+        Event event = eventOpt.get();
+        EventDTO dto = mapToDTO(event);
+
+        Optional<EventRSVP> rsvp = eventRSVPRepository.findByUserIdAndEventId(currentUser.getId(), eventId);
+        rsvp.ifPresent(r -> dto.setUserRsvpStatus(r.getStatus().name()));
+
+        return dto;
+    }
+
     private EventDTO mapToDTO(Event event) {
         EventDTO dto = new EventDTO();
         dto.setId(event.getId());

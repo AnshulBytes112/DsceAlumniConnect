@@ -32,4 +32,9 @@ public class EventController {
         eventService.rsvpEvent(id, status);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EventDTO> getEventById(@PathVariable String id) {
+        return ResponseEntity.ok(eventService.getEventById(id));
+    }
 }
