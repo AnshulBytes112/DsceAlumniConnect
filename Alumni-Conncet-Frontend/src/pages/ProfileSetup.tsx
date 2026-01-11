@@ -131,7 +131,7 @@ export default function ProfileSetup() {
 
   const resumeWatched = useWatch({ control: form.control, name: 'resume' });
   const profileWatched = useWatch({ control: form.control, name: 'profilePicture' });
-  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : null;
+  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : (user?.profilePicture ? `http://localhost:8080/${user.profilePicture}` : null);
 
   useEffect(() => {
     return () => {
@@ -174,21 +174,50 @@ export default function ProfileSetup() {
   const handleResumeUpload = async (file: File) => {
     setIsParsingResume(true);
     try {
-      const result = await apiClient.uploadResume(file, false);
-      setParsedData(result);
+      console.log('Uploading resume file:', file.name, file.size, file.type);
+      const updatedProfile = await apiClient.uploadResume(file, false);
+      console.log('Updated profile from resume upload:', updatedProfile);
+      setParsedData(updatedProfile);
 
-      // Wait a bit for backend to process and save the data
-      // Increased wait time to ensure backend has processed the resume
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Auto-fill form with parsed data from user profile
-      // The resume parsing happens on backend and updates the user profile
-      // We'll fetch the updated profile to get parsed data
-      const updatedProfile = await apiClient.getProfile();
-
-      console.log('Updated profile after resume upload:', updatedProfile);
+      // No need to wait or fetch profile again - use the returned data directly
+      console.log('Available fields in updatedProfile:', Object.keys(updatedProfile || {}));
+      console.log('Work experiences:', updatedProfile?.workExperiences);
+      console.log('Educations:', updatedProfile?.educations);
+      console.log('Projects:', updatedProfile?.projects);
+      console.log('Skills:', updatedProfile?.skills);
+      console.log('Featured skills:', updatedProfile?.featuredSkills);
+      console.log('Achievements:', updatedProfile?.achievements);
+      console.log('Basic info - contactNumber:', updatedProfile?.contactNumber);
+      console.log('Basic info - bio:', updatedProfile?.bio);
+      console.log('Basic info - location:', updatedProfile?.location);
 
       if (updatedProfile) {
+        // Check if any resume data was actually parsed
+        const hasResumeData = !!(
+          (updatedProfile.workExperiences && updatedProfile.workExperiences.length > 0) ||
+          (updatedProfile.educations && updatedProfile.educations.length > 0) ||
+          (updatedProfile.projects && updatedProfile.projects.length > 0) ||
+          (updatedProfile.skills && updatedProfile.skills.length > 0) ||
+          (updatedProfile.featuredSkills && updatedProfile.featuredSkills.length > 0) ||
+          (updatedProfile.achievements && updatedProfile.achievements.length > 0) ||
+          updatedProfile.contactNumber ||
+          updatedProfile.bio ||
+          updatedProfile.location
+        );
+
+        console.log('Has resume data:', hasResumeData);
+
+        if (!hasResumeData) {
+          console.warn('No resume data found in updated profile. Backend might not have parsed the resume correctly.');
+          toast({
+            title: 'Resume Parsed Successfully',
+            description: 'Resume was uploaded, but no parsed data was found. Please fill in the form manually.',
+            variant: 'default',
+          });
+          setIsParsingResume(false);
+          return;
+        }
+
         // Build form data object with all fields
         const formData: Partial<ProfileSetupFormValues> = {
           ...form.getValues(), // Keep existing values
@@ -364,6 +393,8 @@ export default function ProfileSetup() {
           profilePicture: updatedProfile.profilePicture || user.profilePicture,
           resumeUrl: updatedProfile.resumeUrl || user.resumeUrl,
         };
+        
+        // Update user context without affecting JWT token
         login(updatedUser);
       }
 

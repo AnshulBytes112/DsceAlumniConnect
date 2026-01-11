@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, Share2, MoreHorizontal, Plus, X, Edit, Trash2, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
+import { Heart, MessageCircle, Share2, Plus, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
@@ -29,7 +27,6 @@ interface Post {
 }
 
 export default function Posts() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);

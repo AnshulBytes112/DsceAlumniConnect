@@ -7,11 +7,13 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { GraduationCap, Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code, Save, ArrowLeft } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code, Save, ArrowLeft, Award } from 'lucide-react';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+
+const API_BASE_URL = 'http://localhost:8080';
 
 const workExperienceSchema = z.object({
   company: z.string().optional(),
@@ -32,6 +34,12 @@ const projectSchema = z.object({
   project: z.string().optional(),
   date: z.string().optional(),
   descriptions: z.array(z.string()).optional(),
+});
+
+const achievementSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  date: z.string().optional(),
 });
 
 const featuredSkillSchema = z.object({
@@ -82,6 +90,7 @@ const profileSetupSchema = z.object({
   workExperiences: z.array(workExperienceSchema).optional(),
   educations: z.array(educationSchema).optional(),
   projects: z.array(projectSchema).optional(),
+  achievements: z.array(achievementSchema).optional(),
   skills: z.array(z.string()).optional(),
   featuredSkills: z.array(featuredSkillSchema).optional(),
   profilePicture: z.any().optional(),
@@ -92,11 +101,12 @@ type ProfileSetupFormValues = z.infer<typeof profileSetupSchema>;
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const { user, login } = useAuth();
+  const { user, setUser } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [parsedData, setParsedData] = useState<any>(null);
+  const [replaceExistingData, setReplaceExistingData] = useState(false);
 
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
@@ -116,6 +126,7 @@ export default function EditProfile() {
       workExperiences: [],
       educations: [],
       projects: [],
+      achievements: [],
       skills: [],
       featuredSkills: [],
     },
@@ -123,7 +134,7 @@ export default function EditProfile() {
 
   const resumeWatched = useWatch({ control: form.control, name: 'resume' });
   const profileWatched = useWatch({ control: form.control, name: 'profilePicture' });
-  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : (user?.profilePicture || null);
+  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : (user?.profilePicture ? `${API_BASE_URL}/${user.profilePicture}` : null);
 
   useEffect(() => {
     return () => {
@@ -150,6 +161,7 @@ export default function EditProfile() {
             workExperiences: profile.workExperiences || [],
             educations: profile.educations || [],
             projects: profile.projects || [],
+            achievements: profile.achievements || [],
             skills: profile.skills || [],
             featuredSkills: profile.featuredSkills || [],
           });
@@ -165,7 +177,9 @@ export default function EditProfile() {
   const handleResumeUpload = async (file: File) => {
     setIsParsingResume(true);
     try {
-      const result = await apiClient.uploadResume(file, false);
+      const result = replaceExistingData 
+        ? await apiClient.uploadResumeAndReplace(file)
+        : await apiClient.uploadResume(file, false);
       setParsedData(result);
 
       // Wait a bit for backend to process and save the data
@@ -227,6 +241,13 @@ export default function EditProfile() {
             skill: fs.skill || '',
             rating: fs.rating || 1,
           }));
+        }
+        if (updatedProfile.achievements && updatedProfile.achievements.length > 0) {
+          formData.achievements = updatedProfile.achievements.map((ach: any) => ({
+            title: ach.title || ach.name || '',
+            description: ach.description || '',
+            date: ach.date || ach.year || '',
+          })).filter((ach: any) => ach.title || ach.description || ach.date);
         }
 
         form.reset(formData);
@@ -297,6 +318,7 @@ export default function EditProfile() {
       if (data.workExperiences && data.workExperiences.length > 0) profileData.workExperiences = data.workExperiences;
       if (data.educations && data.educations.length > 0) profileData.educations = data.educations;
       if (data.projects && data.projects.length > 0) profileData.projects = data.projects;
+      if (data.achievements && data.achievements.length > 0) profileData.achievements = data.achievements;
       if (data.skills && data.skills.length > 0) profileData.skills = data.skills;
       if (data.featuredSkills && data.featuredSkills.length > 0) profileData.featuredSkills = data.featuredSkills;
 
@@ -316,7 +338,10 @@ export default function EditProfile() {
           profilePicture: updatedProfile.profilePicture || user.profilePicture,
           resumeUrl: updatedProfile.resumeUrl || user.resumeUrl,
         };
-        login(updatedUser);
+        
+        // Update user context without affecting JWT token
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
 
       toast({
@@ -376,6 +401,23 @@ export default function EditProfile() {
                 <p className="text-sm text-gray-600 mb-4">
                   Upload a new resume to update your profile details automatically
                 </p>
+
+                <div className="mb-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={replaceExistingData}
+                      onChange={(e) => setReplaceExistingData(e.target.checked)}
+                      className="rounded border-dsce-blue/10 bg-dsce-bg-light text-dsce-blue focus:ring-dsce-blue/50"
+                    />
+                    <span className="text-sm text-dsce-text-dark">
+                      Replace all existing profile data with resume data
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1 ml-6">
+                    When enabled, this will overwrite existing work experience, education, projects, and skills with data from your resume
+                  </p>
+                </div>
 
                 <div
                   className={`border-2 border-dashed p-6 rounded-lg cursor-pointer transition-colors ${resumeDragActive
@@ -920,6 +962,98 @@ export default function EditProfile() {
                           ))}
                           {(!field.value || field.value.length === 0) && (
                             <p className="text-sm text-gray-600 text-center py-4">No projects added yet.</p>
+                          )}
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Achievements Section */}
+              <div className="border-b border-dsce-blue/10 pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-dsce-text-dark flex items-center">
+                    <Award className="mr-2 h-5 w-5 text-dsce-blue" />
+                    Achievements
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const current = form.getValues('achievements') || [];
+                      form.setValue('achievements', [...current, { title: '', description: '', date: '' }]);
+                    }}
+                    className="border-dsce-blue/10 bg-white text-dsce-text-dark hover:bg-dsce-bg-light hover:border-dsce-light-blue/50"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add
+                  </Button>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="achievements"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="space-y-4">
+                          {(field.value || []).map((achievement, index) => (
+                            <div key={index} className="p-4 border border-dsce-blue/10 rounded-lg bg-dsce-bg-light">
+                              <div className="flex justify-between items-start mb-3">
+                                <h4 className="text-dsce-text-dark font-medium">Achievement {index + 1}</h4>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const current = form.getValues('achievements') || [];
+                                    form.setValue('achievements', current.filter((_, i) => i !== index));
+                                  }}
+                                  className="text-red-400 hover:text-red-300"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="space-y-3">
+                                <Input
+                                  placeholder="Achievement Title (e.g., Best Project Award)"
+                                  value={achievement.title || ''}
+                                  onChange={(e) => {
+                                    const current = form.getValues('achievements') || [];
+                                    current[index].title = e.target.value;
+                                    form.setValue('achievements', [...current]);
+                                  }}
+                                  className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark"
+                                />
+                                <Input
+                                  placeholder="Date (e.g., 2023, May 2023)"
+                                  value={achievement.date || ''}
+                                  onChange={(e) => {
+                                    const current = form.getValues('achievements') || [];
+                                    current[index].date = e.target.value;
+                                    form.setValue('achievements', [...current]);
+                                  }}
+                                  className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark"
+                                />
+                                <div>
+                                  <label className="text-sm text-gray-600 mb-1 block">Description</label>
+                                  <textarea
+                                    placeholder="Describe your achievement and its significance..."
+                                    value={achievement.description || ''}
+                                    onChange={(e) => {
+                                      const current = form.getValues('achievements') || [];
+                                      current[index].description = e.target.value;
+                                      form.setValue('achievements', [...current]);
+                                    }}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-dsce-blue/10 rounded-md bg-dsce-bg-light text-dsce-text-dark placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-dsce-blue/50 resize-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {(!field.value || field.value.length === 0) && (
+                            <p className="text-sm text-gray-600 text-center py-4">No achievements added yet.</p>
                           )}
                         </div>
                       </FormControl>

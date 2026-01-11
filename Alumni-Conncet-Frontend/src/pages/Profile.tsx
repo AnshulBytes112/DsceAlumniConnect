@@ -7,6 +7,8 @@ import MotionWrapper from '@/components/ui/MotionWrapper';
 import { MapPin, Mail, Shield, Bell, Edit } from 'lucide-react';
 import { apiClient, type UserProfile } from '@/lib/api';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 export default function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -75,7 +77,7 @@ export default function Profile() {
                 <div className="relative h-full w-full rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue p-[3px]">
                   <div className="h-full w-full rounded-full bg-white flex items-center justify-center overflow-hidden">
                     {user?.profilePicture ? (
-                        <img src={user.profilePicture} alt="Profile" className="h-full w-full object-cover" />
+                        <img src={`${API_BASE_URL}/${user.profilePicture}`} alt="Profile" className="h-full w-full object-cover" />
                     ) : (
                         <div className="h-full w-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center">
                             <span className="text-white text-3xl font-bold">

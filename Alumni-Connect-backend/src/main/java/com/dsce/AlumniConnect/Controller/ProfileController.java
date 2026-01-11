@@ -85,12 +85,15 @@ public class ProfileController {
         }
     }
 
+//    @PutMapping
+//    public ResponseEntity<?> updateProfileWithResume()
+
     // Update profile picture
     @PostMapping("/picture")
     public ResponseEntity<?> updateProfilePicture(@RequestParam("file") MultipartFile file) {
         try {
             log.info("Profile picture update request received");
-            User updatedUser = profileService.updateProfilePicture(file);
+            User updatedUser = profileService.updateProfilePictureOnly(file);
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -144,6 +147,28 @@ public class ProfileController {
             log.error("Error parsing existing resume: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Failed to parse resume: " + e.getMessage()));
+        }
+    }
+
+    // Upload resume and parse it to update profile (always replaces existing data)
+    @PostMapping("/resume/update-parse")
+    public ResponseEntity<?> updateProfileFromResumeAndReplace(
+            @RequestParam("file") MultipartFile file) {
+        try {
+            log.info("Resume upload and parse request received with replaceExisting=true");
+            User updatedUser = profileService.updateProfileFromResume(file, true);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (IOException e) {
+            log.error("Error uploading resume: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Failed to upload resume: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error updating profile from resume: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Failed to update profile from resume: " + e.getMessage()));
         }
     }
 }

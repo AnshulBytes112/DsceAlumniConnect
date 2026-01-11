@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.0",
-    "pdfjs-dist": "^5.4.449"
+    "pdfjs-dist": "^5.4.449",
+    "tsx": "^4.19.2"
   }
 }

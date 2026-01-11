@@ -43,7 +43,6 @@ interface EnhancedPostProps {
 }
 
 export default function EnhancedPost({
-  id,
   author,
   avatar,
   role,

@@ -1,12 +1,7 @@
 const API_BASE_URL = 'http://localhost:8080'; // Uses Vite env var or fallback to relative path for proxy
 import {
-    dashboardAnnouncements,
-    dashboardJobApplications,
     upcomingEvents,
-    dashboardProjectFundings,
-    mockCredentials,
-    dashboardStats,
-    dashboardPosts
+    mockCredentials
 } from '../data/mockData';
 
 export interface SignUpRequest {
@@ -180,7 +175,7 @@ class ApiClient {
         
         const timestamp = parseInt(tokenTimestamp);
         const now = Date.now();
-        return (now - timestamp) > (5 * 60 * 1000); // 5 minutes
+        return (now - timestamp) > (30 * 60 * 1000); // 30 minutes
     }
 
     private clearExpiredSession(): void {
@@ -220,7 +215,7 @@ class ApiClient {
                 if (this.isTokenExpired()) {
                     console.log('Token expired during API call, clearing session');
                     this.clearExpiredSession();
-                    throw new Error('Token expired. Please log in again.');
+                    throw new Error('Your session has expired. Please log in again and try uploading your resume.');
                 }
                 headers['Authorization'] = `Bearer ${token}`;
                 localStorage.setItem('tokenTimestamp', Date.now().toString());
@@ -544,7 +539,26 @@ class ApiClient {
 
         if (!response.ok) throw new Error("Failed to upload resume");
 
-        return response.json();
+        const result = await response.json();
+        console.log('Resume upload response:', result);
+        return result;
+    }
+
+    async uploadResumeAndReplace(resume: File) {
+        const formData = new FormData();
+        formData.append('file', resume);
+
+        const response = await fetch(`${this.baseUrl}/profile/resume/update-parse`, {
+            method: 'POST',
+            headers: this.getHeadersForFormData(true),
+            body: formData,
+        });
+
+        if (!response.ok) throw new Error("Failed to upload and replace resume");
+
+        const result = await response.json();
+        console.log('Resume upload and replace response:', result);
+        return result;
     }
 
     // POSTS API --------------------------------------------------------

@@ -143,7 +143,25 @@ public class ProfileService {
             String profilePicturePath = fileStorageService.uploadProfilePicture(profilePicture);
             user.setProfilePicture(profilePicturePath);
             user.setUpdatedAt(LocalDateTime.now());
-            markProfileAsCompleteIfReady(user);
+            return userRepository.save(user);
+        }
+
+        throw new IllegalArgumentException("Profile picture is required");
+    }
+
+    // Update profile picture without requiring profile completion
+    public User updateProfilePictureOnly(MultipartFile profilePicture) throws IOException {
+        User user = getCurrentUserProfile();
+
+        if (profilePicture != null && !profilePicture.isEmpty()) {
+            // Delete old profile picture if exists
+            if (user.getProfilePicture() != null) {
+                fileStorageService.deleteFile(user.getProfilePicture());
+            }
+
+            String profilePicturePath = fileStorageService.uploadProfilePicture(profilePicture);
+            user.setProfilePicture(profilePicturePath);
+            user.setUpdatedAt(LocalDateTime.now());
             return userRepository.save(user);
         }
 
@@ -273,108 +291,97 @@ public class ProfileService {
             }
         }
 
-        // Update work experiences
+        // Update work experiences - always update when new resume is uploaded
         if (parsedResume.getWorkExperiences() != null && !parsedResume.getWorkExperiences().isEmpty()) {
-            if (replaceExisting || user.getWorkExperiences() == null || user.getWorkExperiences().isEmpty()) {
-                List<User.WorkExperience> workExps = parsedResume.getWorkExperiences().stream()
-                        .map(we -> new User.WorkExperience(
-                                we.getCompany(),
-                                we.getJobTitle(),
-                                we.getDate(),
-                                we.getDescriptions()))
-                        .collect(Collectors.toList());
-                user.setWorkExperiences(workExps);
-            }
+            List<User.WorkExperience> workExps = parsedResume.getWorkExperiences().stream()
+                    .map(we -> new User.WorkExperience(
+                            we.getCompany(),
+                            we.getJobTitle(),
+                            we.getDate(),
+                            we.getDescriptions()))
+                    .collect(Collectors.toList());
+            user.setWorkExperiences(workExps);
         }
 
-        // Update educations
+        // Update educations - always update when new resume is uploaded
         if (parsedResume.getEducations() != null && !parsedResume.getEducations().isEmpty()) {
-            if (replaceExisting || user.getEducations() == null || user.getEducations().isEmpty()) {
-                List<User.Education> educations = parsedResume.getEducations().stream()
-                        .map(ed -> new User.Education(
-                                ed.getSchool(),
-                                ed.getDegree(),
-                                ed.getDate(),
-                                ed.getGpa(),
-                                ed.getDescriptions()))
-                        .collect(Collectors.toList());
-                user.setEducations(educations);
-            }
+            List<User.Education> educations = parsedResume.getEducations().stream()
+                    .map(ed -> new User.Education(
+                            ed.getSchool(),
+                            ed.getDegree(),
+                            ed.getDate(),
+                            ed.getGpa(),
+                            ed.getDescriptions()))
+                    .collect(Collectors.toList());
+            user.setEducations(educations);
         }
 
-        // Update projects - flexible filling: only add projects that have at least name
-        // or date
+        // Update projects - always update when new resume is uploaded
         if (parsedResume.getProjects() != null && !parsedResume.getProjects().isEmpty()) {
-            if (replaceExisting || user.getProjects() == null || user.getProjects().isEmpty()) {
-                List<User.Project> projects = parsedResume.getProjects().stream()
-                        .filter(proj -> (proj.getProject() != null && !proj.getProject().trim().isEmpty()) ||
-                                (proj.getDate() != null && !proj.getDate().trim().isEmpty())) // Only include projects
-                                                                                              // with name or date
-                        .map(proj -> new User.Project(
-                                proj.getProject() != null ? proj.getProject() : "",
-                                proj.getDate() != null ? proj.getDate() : "",
-                                proj.getDescriptions() != null ? proj.getDescriptions() : new ArrayList<>()))
-                        .collect(Collectors.toList());
-                if (!projects.isEmpty()) {
-                    user.setProjects(projects);
-                }
+            List<User.Project> projects = parsedResume.getProjects().stream()
+                    .filter(proj -> (proj.getProject() != null && !proj.getProject().trim().isEmpty()) ||
+                            (proj.getDate() != null && !proj.getDate().trim().isEmpty())) // Only include projects with name or date
+                    .map(proj -> new User.Project(
+                            proj.getProject() != null ? proj.getProject() : "",
+                            proj.getDate() != null ? proj.getDate() : "",
+                            proj.getDescriptions() != null ? proj.getDescriptions() : new ArrayList<>()))
+                    .collect(Collectors.toList());
+            if (!projects.isEmpty()) {
+                user.setProjects(projects);
             }
         }
 
-        // Update skills - clean and filter out empty/null values
+        // Update skills - always update when new resume is uploaded
         if (parsedResume.getSkills() != null) {
-            if (replaceExisting || user.getSkills() == null || user.getSkills().isEmpty()) {
-                List<String> skills = new ArrayList<>();
+            List<String> skills = new ArrayList<>();
 
-                if (parsedResume.getSkills().getFeaturedSkills() != null) {
-                    // Add featured skills, filtering out empty/null values
-                    List<String> featuredSkillNames = parsedResume.getSkills().getFeaturedSkills().stream()
-                            .map(ResumeParserResponse.FeaturedSkill::getSkill)
-                            .filter(skill -> skill != null && !skill.trim().isEmpty() && !skill.trim().equals(","))
-                            .map(String::trim)
-                            .collect(Collectors.toList());
-                    skills.addAll(featuredSkillNames);
-
-                    // Set featured skills with ratings
-                    List<User.FeaturedSkill> featuredSkills = parsedResume.getSkills().getFeaturedSkills().stream()
-                            .filter(fs -> fs.getSkill() != null && !fs.getSkill().trim().isEmpty()
-                                    && !fs.getSkill().trim().equals(","))
-                            .map(fs -> new User.FeaturedSkill(fs.getSkill().trim(),
-                                    fs.getRating() != null ? fs.getRating() : 1))
-                            .collect(Collectors.toList());
-                    user.setFeaturedSkills(featuredSkills);
-                }
-
-                if (parsedResume.getSkills().getDescriptions() != null) {
-                    // Process descriptions - they might contain comma-separated skills or bullet
-                    // points
-                    List<String> descriptionSkills = parsedResume.getSkills().getDescriptions().stream()
-                            .filter(desc -> desc != null && !desc.trim().isEmpty())
-                            .flatMap(desc -> {
-                                // Split by comma if it contains comma-separated values
-                                if (desc.contains(",")) {
-                                    return Arrays.stream(desc.split(","))
-                                            .map(String::trim)
-                                            .filter(s -> !s.isEmpty() && !s.equals(","))
-                                            .collect(Collectors.toList())
-                                            .stream();
-                                }
-                                // Otherwise, return the description as-is if it's a meaningful skill
-                                return Stream.of(desc.trim());
-                            })
-                            .filter(skill -> !skill.isEmpty() && !skill.equals(","))
-                            .distinct() // Remove duplicates
-                            .collect(Collectors.toList());
-                    skills.addAll(descriptionSkills);
-                }
-
-                // Remove duplicates and set skills
-                List<String> uniqueSkills = skills.stream()
-                        .distinct()
-                        .filter(skill -> !skill.isEmpty() && !skill.equals(","))
+            if (parsedResume.getSkills().getFeaturedSkills() != null) {
+                // Add featured skills, filtering out empty/null values
+                List<String> featuredSkillNames = parsedResume.getSkills().getFeaturedSkills().stream()
+                        .map(ResumeParserResponse.FeaturedSkill::getSkill)
+                        .filter(skill -> skill != null && !skill.trim().isEmpty() && !skill.trim().equals(","))
+                        .map(String::trim)
                         .collect(Collectors.toList());
-                user.setSkills(uniqueSkills);
+                skills.addAll(featuredSkillNames);
+
+                // Set featured skills with ratings
+                List<User.FeaturedSkill> featuredSkills = parsedResume.getSkills().getFeaturedSkills().stream()
+                        .filter(fs -> fs.getSkill() != null && !fs.getSkill().trim().isEmpty()
+                                && !fs.getSkill().trim().equals(","))
+                        .map(fs -> new User.FeaturedSkill(fs.getSkill().trim(),
+                                fs.getRating() != null ? fs.getRating() : 1))
+                        .collect(Collectors.toList());
+                user.setFeaturedSkills(featuredSkills);
             }
+
+            if (parsedResume.getSkills().getDescriptions() != null) {
+                // Process descriptions - they might contain comma-separated skills or bullet points
+                List<String> descriptionSkills = parsedResume.getSkills().getDescriptions().stream()
+                        .filter(desc -> desc != null && !desc.trim().isEmpty())
+                        .flatMap(desc -> {
+                            // Split by comma if it contains comma-separated values
+                            if (desc.contains(",")) {
+                                return Arrays.stream(desc.split(","))
+                                        .map(String::trim)
+                                        .filter(s -> !s.isEmpty() && !s.equals(","))
+                                        .collect(Collectors.toList())
+                                        .stream();
+                            }
+                            // Otherwise, return the description as-is if it's a meaningful skill
+                            return Stream.of(desc.trim());
+                        })
+                        .filter(skill -> !skill.isEmpty() && !skill.equals(","))
+                        .distinct() // Remove duplicates
+                        .collect(Collectors.toList());
+                skills.addAll(descriptionSkills);
+            }
+
+            // Remove duplicates and set skills
+            List<String> uniqueSkills = skills.stream()
+                    .distinct()
+                    .filter(skill -> !skill.isEmpty() && !skill.equals(","))
+                    .collect(Collectors.toList());
+            user.setSkills(uniqueSkills);
         }
     }
 

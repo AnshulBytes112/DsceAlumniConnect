@@ -8,6 +8,7 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   isTokenExpired: () => boolean;
+  setUser: (user: AuthResponse | null) => void;
 }
 
 const TOKEN_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         loading,
         isTokenExpired,
+        setUser,
       }}
     >
       {children}

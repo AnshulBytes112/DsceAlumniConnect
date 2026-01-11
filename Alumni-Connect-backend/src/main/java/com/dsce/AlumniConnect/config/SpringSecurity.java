@@ -49,6 +49,7 @@ public class SpringSecurity {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/resume/parse").permitAll() // Resume parser endpoint
+                        .requestMatchers("/api/profile/resume").permitAll() // Resume upload endpoint
                         .requestMatchers("/chat.html").permitAll()
                         .requestMatchers("/uploads/**").permitAll() // Allow public access to uploaded images
                         .requestMatchers("/admin/**").hasRole("ADMIN")

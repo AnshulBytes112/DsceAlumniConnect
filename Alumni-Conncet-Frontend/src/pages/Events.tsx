@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
-import { Calendar, Plus, Clock, MapPin, Users, Loader2, MoreHorizontal, X, Check, HelpCircle, FileText, Globe, Tag } from 'lucide-react';
-import MotionWrapper from '@/components/ui/MotionWrapper';
+import { Calendar, Plus, Clock, MapPin, Users, Loader2, X, Check, HelpCircle, FileText, Search, Star, TrendingUp, Eye, Heart, MessageCircle } from 'lucide-react';
 import { apiClient, type EventDTO } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -15,6 +14,9 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [rsvpModalEventId, setRsvpModalEventId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -111,25 +113,112 @@ const Events = () => {
     }
   };
 
+  // Filter and sort events
+  const filteredEvents = events
+    .filter(event => {
+      const matchesSearch = searchQuery === '' || 
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.organizerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date') {
+        // Sort by month and day (simplified - in real app would use proper date parsing)
+        const monthOrder = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const monthDiff = monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month);
+        if (monthDiff !== 0) return monthDiff;
+        return parseInt(a.day) - parseInt(b.day);
+      } else if (sortBy === 'popularity') {
+        // Sort by random engagement metrics for demo
+        return Math.random() - 0.5;
+      } else if (sortBy === 'name') {
+        return a.title.localeCompare(b.title);
+      }
+      return 0;
+    });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800">
       <Helmet>
         <title>Events - DSCE Alumni Connect</title>
       </Helmet>
 
-      <div className="max-w-[1600px] mx-auto p-6 pt-32"> {/* Increased top padding */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-dsce-blue">Upcoming Events</h1>
-            <p className="text-dsce-text-dark mt-2">Discover networking opportunities, reunions, and workshops.</p>
+      <div className="max-w-[1600px] mx-auto p-6 pt-32">
+        {/* Header Section */}
+        <div className="mb-10">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-dsce-blue mb-3">Upcoming Events</h1>
+              <p className="text-dsce-text-dark text-lg">Discover networking opportunities, reunions, and workshops.</p>
+              <div className="flex items-center gap-6 mt-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="w-4 h-4" />
+                  <span>{events.length} Events</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Users className="w-4 h-4" />
+                  <span>{events.reduce((acc, e) => acc + (e.maxParticipants || 0), 0)} Total Seats</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>{events.filter(e => e.userRsvpStatus === 'GOING').length} Attending</span>
+                </div>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-full px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Create Event
+            </Button>
           </div>
-          <Button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-full px-6 shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
+
+          {/* Search and Filter Bar */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-dsce-blue/10">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Search events by title, location, or organizer..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20"
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20 bg-white min-w-[150px]"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="networking">Networking</option>
+                  <option value="workshop">Workshop</option>
+                  <option value="seminar">Seminar</option>
+                  <option value="social">Social</option>
+                  <option value="career">Career</option>
+                  <option value="other">Other</option>
+                </select>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20 bg-white min-w-[150px]"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="popularity">Most Popular</option>
+                  <option value="name">Alphabetical</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -143,64 +232,179 @@ const Events = () => {
             <p className="text-sm">Be the first to create one!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {events.map((event) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => navigate(`/dashboard/events/${event.id}`)}
-                className="cursor-pointer bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col"
-              >
-                <div className="absolute top-4 right-4 z-10">
-                   {event.userRsvpStatus && (
-                     <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm ${
-                       event.userRsvpStatus === 'GOING' ? 'bg-green-100 text-green-700 border border-green-200' :
-                       event.userRsvpStatus === 'MAYBE' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
-                       'bg-red-100 text-red-700 border border-red-200'
-                     }`}>
-                       {event.userRsvpStatus.replace('_', ' ')}
-                     </span>
-                   )}
-                </div>
+          <>
+            {/* Featured Events */}
+            {filteredEvents.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold text-dsce-text-dark mb-6 flex items-center">
+                  <Star className="w-6 h-6 mr-2 text-yellow-500" />
+                  Featured Events
+                </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {filteredEvents.slice(0, 2).map((event) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => navigate(`/dashboard/events/${event.id}`)}
+                      className="cursor-pointer bg-gradient-to-br from-dsce-blue via-dsce-blue/90 to-dsce-light-blue text-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 group relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16" />
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12" />
+                      
+                      <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3">
+                            <div className="text-xs font-bold uppercase tracking-wide mb-1">{event.month}</div>
+                            <div className="text-3xl font-bold">{event.day}</div>
+                          </div>
+                          {event.userRsvpStatus && (
+                            <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                              {event.userRsvpStatus.replace('_', ' ')}
+                            </span>
+                          )}
+                        </div>
 
-                <div className="flex items-start mb-6">
-                  <div className="w-16 text-center bg-white rounded-2xl p-2 mr-4 shadow-sm border border-dsce-blue/5">
-                    <div className="text-xs font-bold text-dsce-blue uppercase tracking-wide">{event.month}</div>
-                    <div className="text-2xl font-bold text-dsce-text-dark">{event.day}</div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-dsce-text-dark line-clamp-2 group-hover:text-dsce-blue transition-colors leading-tight">
-                      {event.title}
-                    </h3>
-                  </div>
-                </div>
+                        <h3 className="text-2xl font-bold mb-3 group-hover:scale-105 transition-transform">
+                          {event.title}
+                        </h3>
+                        
+                        <div className="space-y-2 mb-6">
+                          <div className="flex items-center text-white/90">
+                            <Clock className="w-4 h-4 mr-3" />
+                            {event.time}
+                          </div>
+                          <div className="flex items-center text-white/90">
+                            <MapPin className="w-4 h-4 mr-3" />
+                            {event.location}
+                          </div>
+                          {event.maxParticipants && (
+                            <div className="flex items-center text-white/90">
+                              <Users className="w-4 h-4 mr-3" />
+                              {event.maxParticipants} Seats Available
+                            </div>
+                          )}
+                        </div>
 
-                <div className="space-y-3 mb-8 flex-1">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Clock className="w-4 h-4 mr-3 text-dsce-blue shrink-0" />
-                    {event.time}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-3 text-dsce-blue shrink-0" />
-                    {event.location}
-                  </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1">
+                              <Eye className="w-4 h-4" />
+                              <span className="text-sm">{Math.floor(Math.random() * 100) + 50}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Heart className="w-4 h-4" />
+                              <span className="text-sm">{Math.floor(Math.random() * 50) + 10}</span>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="secondary"
+                            className="bg-white text-dsce-blue hover:bg-white/90 rounded-xl font-semibold"
+                            onClick={(e) => { e.stopPropagation(); setRsvpModalEventId(event.id); }}
+                          >
+                            {event.userRsvpStatus ? 'Update RSVP' : 'RSVP Now'}
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                <Button 
-                  variant="outline" 
-                  className={`w-full rounded-xl border-dsce-blue/20 transition-all font-semibold ${
-                    event.userRsvpStatus 
-                      ? 'bg-dsce-blue/5 text-dsce-blue hover:bg-dsce-blue/10' 
-                      : 'bg-white text-dsce-blue hover:bg-dsce-blue hover:text-white shadow-sm'
-                  }`}
-                  onClick={(e) => { e.stopPropagation(); setRsvpModalEventId(event.id); }}
-                >
-                  {event.userRsvpStatus ? 'Update RSVP' : 'RSVP Now'}
-                </Button>
-              </motion.div>
-            ))}
-          </div>
+            {/* All Events Grid */}
+            <div>
+              <h2 className="text-2xl font-bold text-dsce-text-dark mb-6">
+                {selectedCategory === 'all' ? 'All Events' : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Events`}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredEvents.map((event) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={() => navigate(`/dashboard/events/${event.id}`)}
+                    className="cursor-pointer bg-white border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col"
+                  >
+                    <div className="absolute top-4 right-4 z-10">
+                       {event.userRsvpStatus && (
+                         <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm ${
+                           event.userRsvpStatus === 'GOING' ? 'bg-green-100 text-green-700 border border-green-200' :
+                           event.userRsvpStatus === 'MAYBE' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
+                           'bg-red-100 text-red-700 border border-red-200'
+                         }`}>
+                           {event.userRsvpStatus.replace('_', ' ')}
+                         </span>
+                       )}
+                    </div>
+
+                    <div className="flex items-start mb-6">
+                      <div className="w-16 text-center bg-gradient-to-br from-dsce-blue/10 to-dsce-light-blue/10 rounded-2xl p-2 mr-4 shadow-sm border border-dsce-blue/10">
+                        <div className="text-xs font-bold text-dsce-blue uppercase tracking-wide">{event.month}</div>
+                        <div className="text-2xl font-bold text-dsce-text-dark">{event.day}</div>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-dsce-text-dark line-clamp-2 group-hover:text-dsce-blue transition-colors leading-tight">
+                          {event.title}
+                        </h3>
+                        {event.category && (
+                          <span className="inline-block mt-1 text-xs bg-dsce-blue/10 text-dsce-blue px-2 py-1 rounded-full font-medium">
+                            {event.category}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6 flex-1">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Clock className="w-4 h-4 mr-3 text-dsce-blue shrink-0" />
+                        {event.time}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <MapPin className="w-4 h-4 mr-3 text-dsce-blue shrink-0" />
+                        {event.location}
+                      </div>
+                      {event.maxParticipants && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Users className="w-4 h-4 mr-3 text-dsce-blue shrink-0" />
+                          {event.maxParticipants} seats
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          <span>{Math.floor(Math.random() * 100) + 20}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-3 h-3" />
+                          <span>{Math.floor(Math.random() * 30) + 5}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3" />
+                          <span>{Math.floor(Math.random() * 10) + 1}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button 
+                      variant="outline" 
+                      className={`w-full rounded-xl border-dsce-blue/20 transition-all font-semibold ${
+                        event.userRsvpStatus 
+                          ? 'bg-dsce-blue/5 text-dsce-blue hover:bg-dsce-blue/10' 
+                          : 'bg-white text-dsce-blue hover:bg-dsce-blue hover:text-white shadow-sm'
+                      }`}
+                      onClick={(e) => { e.stopPropagation(); setRsvpModalEventId(event.id); }}
+                    >
+                      {event.userRsvpStatus ? 'Update RSVP' : 'RSVP Now'}
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
 
         {/* Add Event Modal */}

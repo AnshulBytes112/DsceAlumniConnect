@@ -1,6 +1,6 @@
 ﻿import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiClient, type UserProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -11,8 +11,7 @@ import {
   dashboardJobApplications,
   upcomingEvents,
   dashboardProjectFundings,
-  mockCredentials,
-  dashboardPosts
+  mockCredentials
 } from '@/data/mockData';
 import PostModal from '@/components/posts/PostModal';
 
@@ -67,7 +66,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
-  const [newPostContent, setNewPostContent] = useState('');
   const [posts, setPosts] = useState<any[]>([]);
   const [comments, setComments] = useState<{ [postId: string]: any[] }>({});
   const [commentingPostId, setCommentingPostId] = useState<string | null>(null);
@@ -132,7 +130,6 @@ export default function Dashboard() {
       console.log('Real user detected, fetching events and announcements...');
       
       // Force fresh API calls with cache-busting
-      const timestamp = Date.now();
       console.log('=== FORCE FRESH API CALLS ===');
       
       // Fetch events and announcements (both working)
@@ -935,7 +932,6 @@ export default function Dashboard() {
               await apiClient.createPost({ content, media, hashtags });
               toast({ title: "Post Created", description: "Your post has been shared successfully!" });
             }
-            setNewPostContent('');
             setIsNewPostModalOpen(false);
             // Refresh posts to show changes
             fetchDashboardData();
