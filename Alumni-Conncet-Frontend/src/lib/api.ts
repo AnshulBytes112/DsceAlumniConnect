@@ -162,6 +162,22 @@ export interface CreateCommentRequest {
     content: string;
 }
 
+export interface JobPostDTO {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    type: string;
+    description: string;
+    requirements: string;
+    contactEmail: string;
+    applicationLink: string;
+    postedByName: string;
+    postedById: string;
+    createdAt: string;
+    active: boolean;
+}
+
 class ApiClient {
     private baseUrl: string;
 
@@ -172,7 +188,7 @@ class ApiClient {
     private isTokenExpired(): boolean {
         const tokenTimestamp = localStorage.getItem('tokenTimestamp');
         if (!tokenTimestamp) return true;
-        
+
         const timestamp = parseInt(tokenTimestamp);
         const now = Date.now();
         return (now - timestamp) > (30 * 60 * 1000); // 30 minutes
@@ -252,7 +268,17 @@ class ApiClient {
             headers: this.getHeaders(true),
             body: JSON.stringify(body),
         });
-        if (!response.ok) throw new Error(`Failed to post to ${endpoint}`);
+        if (!response.ok) {
+            let errorMsg = `Failed to post to ${endpoint}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.message) errorMsg += `: ${errData.message}`;
+            } catch (_) {
+                const text = await response.text();
+                if (text) errorMsg += `: ${text}`;
+            }
+            throw new Error(errorMsg);
+        }
         return response.json();
     }
 
@@ -421,7 +447,7 @@ class ApiClient {
             try {
                 const error = await response.json();
                 msg = error.message || msg;
-            } catch {}
+            } catch { }
             throw new Error(msg);
         }
 
@@ -727,6 +753,33 @@ class ApiClient {
         if (!response.ok) {
             const error: ErrorResponse = await response.json();
             throw new Error(error.message || 'Failed to delete comment');
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // JOBS API
+    // ------------------------------------------------------------------
+
+    async getAllJobs(): Promise<JobPostDTO[]> {
+        return this.get<JobPostDTO[]>('/api/jobs');
+    }
+
+    async getMyJobs(): Promise<JobPostDTO[]> {
+        return this.get<JobPostDTO[]>('/api/jobs/my-jobs');
+    }
+
+    async createJob(job: Partial<JobPostDTO>): Promise<JobPostDTO> {
+        return this.post<JobPostDTO>('/api/jobs', job);
+    }
+
+    async deleteJob(id: string): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/api/jobs/${id}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete job');
         }
     }
 }
