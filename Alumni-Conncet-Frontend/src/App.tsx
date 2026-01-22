@@ -19,6 +19,8 @@ const Events = lazy(() => import('./pages/Events'));
 const Announcements = lazy(() => import('./pages/Announcements'));
 const Posts = lazy(() => import('./pages/Posts'));
 const Settings = lazy(() => import('./pages/Settings'));
+const AdminVerification = lazy(() => import('./pages/AdminVerification'));
+const PendingVerification = lazy(() => import('./pages/PendingVerification'));
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -63,6 +65,8 @@ function App() {
                 <Route path="/dashboard/announcements" element={<Announcements />} />
                 <Route path="/dashboard/posts" element={<Posts />} />
                 <Route path="/dashboard/settings" element={<Settings />} />
+                <Route path="/dashboard/verification" element={<AdminVerification />} />
+                <Route path="/pending-verification" element={<PendingVerification />} />
               </Route>
               
               {/* Public fallback for unauthenticated users */}

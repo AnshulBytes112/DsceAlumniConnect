@@ -1,18 +1,21 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, Image, Shield } from 'lucide-react';
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
 import { MobileNavbar } from './MobileNavbar';
 
 export default function GlobalNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  // Check if user is admin (using the test credentials)
+  const isAdmin = user?.email === 'test@example.com';
 
   const tabs = isAuthenticated ? [
     { title: 'Home', icon: GraduationCap, href: '/' },
@@ -21,7 +24,9 @@ export default function GlobalNavbar() {
     { title: 'Alumni', icon: Users, href: '/alumni' },
     { title: 'Announcements', icon: Bell, href: '/dashboard/announcements' },
     { title: 'Events', icon: Calendar, href: '/dashboard/events' },
+    { title: 'Gallery', icon: Image, href: '/gallery' },
     { title: 'Settings', icon: Settings, href: '/dashboard/settings' },
+    ...(isAdmin ? [{ title: 'Verification', icon: Shield, href: '/dashboard/verification' }] : []),
     { type: 'separator' } as const,
     { title: 'Logout', icon: LogOut, onClick: handleLogout },
   ] : [

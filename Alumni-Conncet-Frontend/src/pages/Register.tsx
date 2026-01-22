@@ -20,6 +20,9 @@ const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
+  linkedinUrl: z.string().optional().refine((val) => !val || val.includes('linkedin.com/in/'), {
+    message: 'Please enter a valid LinkedIn profile URL',
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -39,6 +42,7 @@ export default function Register() {
       email: '',
       password: '',
       confirmPassword: '',
+      linkedinUrl: '',
     },
   });
 
@@ -182,6 +186,27 @@ export default function Register() {
                         <Input
                           type="password"
                           placeholder="••••••••"
+                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="linkedinUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333]">
+                        LinkedIn Profile <span className="text-gray-400 font-normal">(optional)</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="url"
+                          placeholder="https://linkedin.com/in/yourprofile"
                           className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                           {...field}
                         />
