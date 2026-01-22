@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, Briefcase } from 'lucide-react';
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
 import { MobileNavbar } from './MobileNavbar';
 
@@ -21,6 +21,8 @@ export default function GlobalNavbar() {
     { title: 'Alumni', icon: Users, href: '/alumni' },
     { title: 'Announcements', icon: Bell, href: '/dashboard/announcements' },
     { title: 'Events', icon: Calendar, href: '/dashboard/events' },
+    { title: 'Global Posts', icon: Users, href: '/dashboard/posts' },
+    { title: 'Jobs', icon: Briefcase, href: '/jobs' },
     { title: 'Settings', icon: Settings, href: '/dashboard/settings' },
     { type: 'separator' } as const,
     { title: 'Logout', icon: LogOut, onClick: handleLogout },
@@ -47,7 +49,7 @@ export default function GlobalNavbar() {
     if (index === null) return;
     const tab = tabs[index];
     if (tab.type === 'separator') return;
-    
+
     if (tab.onClick) {
       tab.onClick();
     } else if (tab.href) {
@@ -60,7 +62,7 @@ export default function GlobalNavbar() {
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 pointer-events-none">
         {/* Logo Section - Pointer events enabled for interaction */}
         <div className="flex items-center gap-2 pointer-events-auto bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-sm border border-white/20">
-          <img 
+          <img
             src="https://www.eduopinions.com/wp-content/uploads/2021/12/dayananda-sagar-college-of-engineering-1-350x334.jpg"
             alt="DSCE Logo"
             className="h-8 w-auto rounded-lg"
@@ -70,8 +72,8 @@ export default function GlobalNavbar() {
 
         {/* Desktop Navigation Section - Hidden on mobile */}
         <div className="pointer-events-auto hidden md:block">
-          <ExpandableTabs 
-            tabs={tabs.map(t => t.type === 'separator' ? { type: 'separator' } : { title: t.title, icon: t.icon })} 
+          <ExpandableTabs
+            tabs={tabs.map(t => t.type === 'separator' ? { type: 'separator' } : { title: t.title, icon: t.icon })}
             onChange={handleTabChange}
             activeTabIndex={activeTabIndex !== -1 ? activeTabIndex : null}
             activeColor="text-dsce-gold-hover"

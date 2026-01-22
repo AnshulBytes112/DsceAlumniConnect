@@ -81,11 +81,11 @@ public class JobPostService {
         dto.setTitle(jobPost.getTitle());
         dto.setCompany(jobPost.getCompany());
         dto.setLocation(jobPost.getLocation());
-        dto.setJobType(jobPost.getJobType());
+        dto.setType(jobPost.getType());
         dto.setDescription(jobPost.getDescription());
         dto.setRequirements(jobPost.getRequirements());
-        dto.setSalaryRange(jobPost.getSalaryRange());
-        dto.setApplicationUrl(jobPost.getApplicationUrl());
+        dto.setContactEmail(jobPost.getContactEmail());
+        dto.setApplicationLink(jobPost.getApplicationLink());
         dto.setActive(jobPost.isActive());
         dto.setCreatedAt(jobPost.getCreatedAt());
 
