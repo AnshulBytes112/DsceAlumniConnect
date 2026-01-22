@@ -54,10 +54,13 @@ public class SpringSecurity {
                         .requestMatchers("/uploads/**").permitAll() // Allow public access to uploaded images
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/resume/**").hasRole("ADMIN")
-                        .requestMatchers("/dashboard/fundings","/comments/**").authenticated() // Allow authenticated users to access comments
+                        .requestMatchers("/dashboard/fundings", "/comments/**").authenticated() // Allow authenticated
+                                                                                                // users to access
+                                                                                                // comments
                         .requestMatchers("/api/profile/**").authenticated() // Profile endpoints require authentication
                         .requestMatchers("/users/*/resume").authenticated()
-                        .requestMatchers("/alumni/**","/profiles/**").permitAll()
+                        .requestMatchers("/api/jobs/**").authenticated() // Job Postings require authentication
+                        .requestMatchers("/alumni/**", "/profiles/**").permitAll()
                         .anyRequest().authenticated());
 
         http.addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class);
