@@ -1,4 +1,5 @@
 const API_BASE_URL = 'http://localhost:8080'; // Uses Vite env var or fallback to relative path for proxy
+import { id } from 'zod/v4/locales';
 import {
     upcomingEvents,
     mockCredentials
@@ -778,6 +779,8 @@ class ApiClient {
 
         if (!response.ok) throw new Error(`Failed to ${action} user`);
         return response.json();
+    }
+
     // ------------------------------------------------------------------
     // JOBS API
     // ------------------------------------------------------------------
