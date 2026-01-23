@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, ShieldCheck } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, ShieldCheck ,Briefcase} from 'lucide-react';
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
 import { MobileNavbar } from './MobileNavbar';
 
@@ -43,6 +43,8 @@ export default function GlobalNavbar() {
     { title: 'Alumni', icon: Users, href: '/alumni' },
     { title: 'Announcements', icon: Bell, href: '/dashboard/announcements' },
     { title: 'Events', icon: Calendar, href: '/dashboard/events' },
+    { title: 'Global Posts', icon: Users, href: '/dashboard/posts' },
+    { title: 'Jobs', icon: Briefcase, href: '/jobs' },
     { title: 'Settings', icon: Settings, href: '/dashboard/settings' },
     // Admin Link
     ...(user?.role === 'ADMIN' ? [{ title: 'Verification', icon: ShieldCheck, href: '/admin/verification', badge: pendingCount }] : []),

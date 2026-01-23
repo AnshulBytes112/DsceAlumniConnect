@@ -18,6 +18,7 @@ const VerifyOtp = lazy(() => import('./pages/VerifyOtp'));
 const Events = lazy(() => import('./pages/Events'));
 const Announcements = lazy(() => import('./pages/Announcements'));
 const Posts = lazy(() => import('./pages/Posts'));
+const Jobs = lazy(() => import('./pages/Jobs'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 // Loading fallback
@@ -67,6 +68,7 @@ function App() {
                 <Route path="/dashboard/events/:eventId" element={<EventDetails />} />
                 <Route path="/dashboard/announcements" element={<Announcements />} />
                 <Route path="/dashboard/posts" element={<Posts />} />
+                <Route path="/jobs" element={<Jobs />} />
                 <Route path="/dashboard/settings" element={<Settings />} />
               </Route>
 
