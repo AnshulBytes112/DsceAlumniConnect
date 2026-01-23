@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Image, AlertCircle } from 'lucide-react';
+import { X, Image, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { apiClient } from '@/lib/api';
 
 interface PostModalProps {
   isOpen: boolean;
@@ -16,10 +17,12 @@ interface PostModalProps {
 
 export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: PostModalProps) {
   const [content, setContent] = useState('');
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<{ content?: string }>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -28,12 +31,15 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
   useEffect(() => {
     if (initialPost) {
       setContent(initialPost.content);
-      setSelectedImages(initialPost.media || []);
       setHashtags(initialPost.hashtags || []);
+      if (initialPost.media && initialPost.media.length > 0) {
+        setUploadedImageUrls(initialPost.media);
+      }
     } else {
       // Reset form when not editing
       setContent('');
       setSelectedImages([]);
+      setUploadedImageUrls([]);
       setHashtags([]);
       setHashtagInput('');
     }
@@ -42,7 +48,7 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
   const validateForm = () => {
     const newErrors: { content?: string } = {};
     
-    if (!content.trim() && selectedImages.length === 0) {
+    if (!content.trim() && selectedImages.length === 0 && uploadedImageUrls.length === 0) {
       newErrors.content = 'Please write something or add an image to post';
     }
     
@@ -50,41 +56,51 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
     
-    onSubmit(content, selectedImages, hashtags);
-    setContent('');
-    setSelectedImages([]);
-    setHashtags([]);
-    setHashtagInput('');
-    setErrors({});
-    onClose();
+    try {
+      setIsUploading(true);
+      let finalMediaUrls = [...uploadedImageUrls];
+      
+      // Upload new images if any
+      if (selectedImages.length > 0) {
+        const uploadedUrls = await apiClient.uploadPostImages(selectedImages);
+        finalMediaUrls = [...finalMediaUrls, ...uploadedUrls];
+      }
+      
+      onSubmit(content, finalMediaUrls, hashtags);
+      setContent('');
+      setSelectedImages([]);
+      setUploadedImageUrls([]);
+      setHashtags([]);
+      setHashtagInput('');
+      setErrors({});
+      onClose();
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      setErrors({ content: 'Failed to upload images. Please try again.' });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
-    // Limit to 4 images
-    const remainingSlots = 4 - selectedImages.length;
+    // Limit to 4 images total (new + existing)
+    const totalImages = selectedImages.length + uploadedImageUrls.length;
+    const remainingSlots = 4 - totalImages;
     const filesToProcess = files.slice(0, remainingSlots);
     
-    filesToProcess.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setSelectedImages(prev => [...prev, event.target!.result as string]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    setSelectedImages(prev => [...prev, ...filesToProcess]);
     
     if (files.length > remainingSlots) {
-      alert(`You can only upload up to 4 images. ${files.length - remainingSlots} images were skipped.`);
+      alert(`You can only upload up to 4 images total. ${files.length - remainingSlots} images were skipped.`);
     }
   };
 
@@ -103,17 +119,18 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
     setIsDragging(false);
     
     const files = Array.from(e.dataTransfer.files);
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            setSelectedImages(prev => [...prev, event.target!.result as string]);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    // Limit to 4 images total (new + existing)
+    const totalImages = selectedImages.length + uploadedImageUrls.length;
+    const remainingSlots = 4 - totalImages;
+    const filesToProcess = imageFiles.slice(0, remainingSlots);
+    
+    setSelectedImages(prev => [...prev, ...filesToProcess]);
+    
+    if (imageFiles.length > remainingSlots) {
+      alert(`You can only upload up to 4 images total. ${imageFiles.length - remainingSlots} images were skipped.`);
+    }
   };
 
   // Hashtag handling functions
@@ -283,19 +300,40 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
                 </div>
 
                 {/* Image Preview */}
-                {selectedImages.length > 0 && (
+                {(selectedImages.length > 0 || uploadedImageUrls.length > 0) && (
                   <div className="mt-4 pb-6">
                     <div className="grid grid-cols-2 gap-3 max-w-full">
-                      {selectedImages.map((image, index) => (
-                        <div key={index} className="relative group flex-shrink-0">
+                      {/* New images (files) */}
+                      {selectedImages.map((file, index) => {
+                        const imageUrl = URL.createObjectURL(file);
+                        return (
+                          <div key={`new-${index}`} className="relative group flex-shrink-0">
+                            <img
+                              src={imageUrl}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
+                              className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {/* Existing uploaded images */}
+                      {uploadedImageUrls.map((url, index) => (
+                        <div key={`existing-${index}`} className="relative group flex-shrink-0">
                           <img
-                            src={image}
-                            alt={`Preview ${index + 1}`}
+                            src={url}
+                            alt={`Uploaded ${index + 1}`}
                             className="w-full h-32 object-cover rounded-lg border border-gray-200"
                           />
                           <button
                             type="button"
-                            onClick={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
+                            onClick={() => setUploadedImageUrls(prev => prev.filter((_, i) => i !== index))}
                             className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-3 h-3" />
@@ -318,9 +356,11 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 text-white bg-dsce-blue hover:bg-dsce-blue/90 rounded-xl transition-colors font-medium shadow-lg hover:shadow-xl"
+                  disabled={isUploading}
+                  className="px-6 py-2.5 text-white bg-dsce-blue hover:bg-dsce-blue/90 rounded-xl transition-colors font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {initialPost ? 'Update Post' : 'Share Post'}
+                  {isUploading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {initialPost ? (isUploading ? 'Updating...' : 'Update Post') : (isUploading ? 'Sharing...' : 'Share Post')}
                 </button>
               </div>
             </form>

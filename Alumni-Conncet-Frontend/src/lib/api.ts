@@ -620,6 +620,36 @@ class ApiClient {
         return response.json();
     }
 
+    async uploadPostImages(files: File[]): Promise<string[]> {
+        const uploadedUrls: string[] = [];
+        
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            const response = await fetch(`${this.baseUrl}/posts/upload-image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to upload image: ${file.name}`);
+            }
+
+            const result = await response.json();
+            // Convert relative path to full URL
+            const imageUrl = result.imageUrl.startsWith('http') 
+                ? result.imageUrl 
+                : `${this.baseUrl}/${result.imageUrl}`;
+            uploadedUrls.push(imageUrl);
+        }
+        
+        return uploadedUrls;
+    }
+
     async createPost(post: PostRequest): Promise<PostResponse> {
         const response = await fetch(`${this.baseUrl}/posts`, {
             method: 'POST',
