@@ -65,6 +65,8 @@ export interface UserProfile {
         skill?: string;
         rating?: number;
     }>;
+    verificationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    createdAt?: string;
 }
 
 export interface AuthResponse extends UserProfile {
@@ -172,7 +174,7 @@ class ApiClient {
     private isTokenExpired(): boolean {
         const tokenTimestamp = localStorage.getItem('tokenTimestamp');
         if (!tokenTimestamp) return true;
-        
+
         const timestamp = parseInt(tokenTimestamp);
         const now = Date.now();
         return (now - timestamp) > (30 * 60 * 1000); // 30 minutes
@@ -421,7 +423,7 @@ class ApiClient {
             try {
                 const error = await response.json();
                 msg = error.message || msg;
-            } catch {}
+            } catch { }
             throw new Error(msg);
         }
 
@@ -728,6 +730,28 @@ class ApiClient {
             const error: ErrorResponse = await response.json();
             throw new Error(error.message || 'Failed to delete comment');
         }
+    }
+
+    // ADMIN VERIFICATION API -------------------------------------------
+
+    async getVerifications(): Promise<UserProfile[]> {
+        const response = await fetch(`${this.baseUrl}/api/admin/verifications`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch pending verifications');
+        return response.json();
+    }
+
+    async verifyUser(userId: string, action: 'approve' | 'reject'): Promise<UserProfile> {
+        const response = await fetch(`${this.baseUrl}/api/admin/${action}/${userId}`, {
+            method: 'POST',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) throw new Error(`Failed to ${action} user`);
+        return response.json();
     }
 }
 

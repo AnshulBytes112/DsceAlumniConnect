@@ -15,5 +15,7 @@ public class AuthResponse {
     private String profilePicture;
     private String resumeUrl;
     private String jwtToken;
+    private String role;
     private Boolean profileComplete;
+    private String verificationStatus;
 }

@@ -35,7 +35,7 @@ public class User {
 
     @NotBlank(message = "Graduation year is required for alumni verification")
     private Integer graduationYear;
-    
+
     @NotBlank(message = "Department is required for alumni verification")
     private String department;
     private String profilePicture;
@@ -56,6 +56,8 @@ public class User {
     private List<String> skills;
     private List<FeaturedSkill> featuredSkills;
     private List<Achievement> achievements;
+    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -134,6 +136,12 @@ public class User {
     public enum Role {
         USER,
         ADMIN
+    }
+
+    public enum VerificationStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
     }
 
 }
