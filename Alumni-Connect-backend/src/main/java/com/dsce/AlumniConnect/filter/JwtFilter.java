@@ -27,8 +27,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain)
+            HttpServletResponse response,
+            FilterChain chain)
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
@@ -51,8 +51,11 @@ public class JwtFilter extends OncePerRequestFilter {
         String username = null;
         try {
             username = jwtUtil.extractUsername(jwt);
+            System.out.println("[JWT DEBUG] Successfully extracted username: " + username);
         } catch (Exception e) {
             // invalid token → skip authentication
+            System.out.println("[JWT DEBUG] Failed to extract username: " + e.getMessage());
+            e.printStackTrace();
             chain.doFilter(request, response);
             return;
         }
@@ -60,17 +63,23 @@ public class JwtFilter extends OncePerRequestFilter {
         // 4. If username is valid and no existing authentication
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            System.out.println(
+                    "[JWT DEBUG] Loaded user for: " + username + ", authorities: " + userDetails.getAuthorities());
 
             if (jwtUtil.validateToken(jwt)) {
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                System.out.println("[JWT DEBUG] ✓ Token VALID for: " + username);
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
+            } else {
+                System.out.println("[JWT DEBUG] ✗ Token INVALID for: " + username);
             }
+        } else {
+            System.out.println("[JWT DEBUG] Skip auth - user: " + username + ", hasAuth: "
+                    + (SecurityContextHolder.getContext().getAuthentication() != null));
         }
 
         chain.doFilter(request, response);
