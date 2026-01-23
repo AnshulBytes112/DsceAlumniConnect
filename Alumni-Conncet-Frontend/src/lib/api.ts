@@ -1,4 +1,5 @@
 const API_BASE_URL = 'http://localhost:8080'; // Uses Vite env var or fallback to relative path for proxy
+import { id } from 'zod/v4/locales';
 import {
     upcomingEvents,
     mockCredentials
@@ -65,6 +66,8 @@ export interface UserProfile {
         skill?: string;
         rating?: number;
     }>;
+    verificationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    createdAt?: string;
 }
 
 export interface AuthResponse extends UserProfile {
@@ -754,6 +757,28 @@ class ApiClient {
             const error: ErrorResponse = await response.json();
             throw new Error(error.message || 'Failed to delete comment');
         }
+    }
+
+    // ADMIN VERIFICATION API -------------------------------------------
+
+    async getVerifications(): Promise<UserProfile[]> {
+        const response = await fetch(`${this.baseUrl}/api/admin/verifications`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch pending verifications');
+        return response.json();
+    }
+
+    async verifyUser(userId: string, action: 'approve' | 'reject'): Promise<UserProfile> {
+        const response = await fetch(`${this.baseUrl}/api/admin/${action}/${userId}`, {
+            method: 'POST',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) throw new Error(`Failed to ${action} user`);
+        return response.json();
     }
 
     // ------------------------------------------------------------------

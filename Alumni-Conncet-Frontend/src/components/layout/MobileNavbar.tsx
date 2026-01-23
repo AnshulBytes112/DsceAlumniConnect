@@ -9,6 +9,7 @@ interface TabItem {
   href?: string;
   onClick?: () => void;
   type?: 'separator';
+  badge?: number;
 }
 
 interface MobileNavbarProps {
@@ -18,7 +19,7 @@ interface MobileNavbarProps {
 
 export function MobileNavbar({ tabs, activeTabIndex }: MobileNavbarProps) {
   const navigate = useNavigate();
-  
+
   // Filter out separators for mobile view
   const navItems = tabs.filter(tab => tab.type !== 'separator');
 
@@ -56,8 +57,12 @@ export function MobileNavbar({ tabs, activeTabIndex }: MobileNavbarProps) {
                 />
               )}
               <Icon size={24} className={cn("relative z-10", isActive && "stroke-[2.5px]")} />
-              {/* Optional: Show label for active item or all items if space permits */}
-              {/* <span className="text-[10px] font-medium mt-1">{tab.title}</span> */}
+              {/* Badge */}
+              {((tab as any).badge && (tab as any).badge > 0) && (
+                <span className="absolute top-1 right-2 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 ring-2 ring-white">
+                  <span className="sr-only">Notifications</span>
+                </span>
+              )}
             </button>
           );
         })}

@@ -28,11 +28,15 @@ const LoadingFallback = () => (
   </div>
 );
 
+import AdminRoute from './components/layout/AdminRoute';
 import MainLayout from './components/layout/MainLayout';
 import EventDetails from './pages/EventDetails';
+const AdminVerification = lazy(() => import('./pages/AdminVerification'));
 
 
 import Gallery from './pages/Gallery';
+
+const VerificationPending = lazy(() => import('./pages/VerificationPending'));
 
 function App() {
   return (
@@ -56,6 +60,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/home" element={<HomeAuthenticated />} />
                 <Route path="/profile-setup" element={<ProfileSetup />} />
+                <Route path="/verification-pending" element={<VerificationPending />} />
                 <Route path="/dashboard/profile/edit-profile" element={<EditProfile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/dashboard/profile" element={<Profile />} />
@@ -65,6 +70,11 @@ function App() {
                 <Route path="/dashboard/posts" element={<Posts />} />
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/dashboard/settings" element={<Settings />} />
+              </Route>
+
+              {/* Admin Routes */}
+              <Route element={<AdminRoute />}>
+                <Route path="/admin/verification" element={<AdminVerification />} />
               </Route>
 
               {/* Public fallback for unauthenticated users */}

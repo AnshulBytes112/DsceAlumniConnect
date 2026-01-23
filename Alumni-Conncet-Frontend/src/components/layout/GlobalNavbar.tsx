@@ -1,13 +1,35 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, Briefcase } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, ShieldCheck ,Briefcase} from 'lucide-react';
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
 import { MobileNavbar } from './MobileNavbar';
 
 export default function GlobalNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'ADMIN') {
+      const fetchPendingCount = async () => {
+        try {
+          const verifications = await apiClient.getVerifications();
+          const count = verifications.filter(v => (v.verificationStatus || 'PENDING') === 'PENDING').length;
+          setPendingCount(count);
+        } catch (error) {
+          console.error('Failed to fetch pending verifications count', error);
+        }
+      };
+
+      fetchPendingCount();
+      // Optional: Poll every minute to keep updated
+      const interval = setInterval(fetchPendingCount, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, user]);
 
   const handleLogout = () => {
     logout();
@@ -24,6 +46,8 @@ export default function GlobalNavbar() {
     { title: 'Global Posts', icon: Users, href: '/dashboard/posts' },
     { title: 'Jobs', icon: Briefcase, href: '/jobs' },
     { title: 'Settings', icon: Settings, href: '/dashboard/settings' },
+    // Admin Link
+    ...(user?.role === 'ADMIN' ? [{ title: 'Verification', icon: ShieldCheck, href: '/admin/verification', badge: pendingCount }] : []),
     { type: 'separator' } as const,
     { title: 'Logout', icon: LogOut, onClick: handleLogout },
   ] : [
@@ -73,7 +97,7 @@ export default function GlobalNavbar() {
         {/* Desktop Navigation Section - Hidden on mobile */}
         <div className="pointer-events-auto hidden md:block">
           <ExpandableTabs
-            tabs={tabs.map(t => t.type === 'separator' ? { type: 'separator' } : { title: t.title, icon: t.icon })}
+            tabs={tabs.map(t => t.type === 'separator' ? { type: 'separator' } : { title: t.title, icon: t.icon, badge: (t as any).badge })}
             onChange={handleTabChange}
             activeTabIndex={activeTabIndex !== -1 ? activeTabIndex : null}
             activeColor="text-dsce-gold-hover"

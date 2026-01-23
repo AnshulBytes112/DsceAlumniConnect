@@ -53,10 +53,12 @@ public class AuthService {
                     user.getFirstName(),
                     user.getLastName(),
                     user.getEmail(),
-                    user.getResumeUrl(),
                     user.getProfilePicture(),
+                    user.getResumeUrl(),
                     token,
-                    user.getProfileComplete() != null ? user.getProfileComplete() : false);
+                    user.getRole() != null ? user.getRole().toString() : "USER",
+                    user.getProfileComplete() != null ? user.getProfileComplete() : false,
+                    user.getVerificationStatus() != null ? user.getVerificationStatus().toString() : "PENDING");
 
         } catch (BadCredentialsException e) {
             throw new RuntimeException("Invalid email or password");
@@ -79,6 +81,7 @@ public class AuthService {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         user.setProfileComplete(false); // Profile setup required after signup
+        user.setVerificationStatus(User.VerificationStatus.PENDING);
 
         userRepository.save(user);
 
@@ -89,11 +92,12 @@ public class AuthService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                user.getResumeUrl(),
                 user.getProfilePicture(),
+                user.getResumeUrl(),
                 token,
-                false // Profile not complete - redirect to setup
-        );
+                user.getRole() != null ? user.getRole().toString() : "USER",
+                false, // Profile not complete - redirect to setup
+                user.getVerificationStatus() != null ? user.getVerificationStatus().toString() : "PENDING");
     }
 
     public AuthResponse googleLogin(GoogleSignUpRequest googleSignUpRequest) {
@@ -117,7 +121,9 @@ public class AuthService {
                 user.setPassword(null); // no password needed
                 user.setCreatedAt(LocalDateTime.now());
                 user.setUpdatedAt(LocalDateTime.now());
+                user.setUpdatedAt(LocalDateTime.now());
                 user.setProfileComplete(false);
+                user.setVerificationStatus(User.VerificationStatus.PENDING);
                 userRepository.save(user);
             }
 
@@ -131,7 +137,9 @@ public class AuthService {
                     user.getProfilePicture(),
                     user.getResumeUrl(),
                     token,
-                    user.getProfileComplete() != null ? user.getProfileComplete() : false);
+                    user.getRole() != null ? user.getRole().toString() : "USER",
+                    user.getProfileComplete() != null ? user.getProfileComplete() : false,
+                    user.getVerificationStatus() != null ? user.getVerificationStatus().toString() : "PENDING");
 
         } catch (Exception e) {
             throw new RuntimeException("Google login failed: " + e.getMessage());

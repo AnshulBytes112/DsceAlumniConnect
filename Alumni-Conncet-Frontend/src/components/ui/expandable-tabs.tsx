@@ -10,6 +10,7 @@ import type { Transition } from "framer-motion";
 interface Tab {
   title: string;
   icon: LucideIcon;
+  badge?: number;
   type?: never;
 }
 
@@ -110,7 +111,7 @@ export function ExpandableTabs({
             transition={transition}
             className={cn(
               "relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-300",
-              isExpanded  
+              isExpanded
                 ? cn("bg-muted", activeColor)
                 : "text-muted-foreground hover:bg-muted hover:text-dsce-gold-hover"
             )}
@@ -130,6 +131,11 @@ export function ExpandableTabs({
                 </motion.span>
               )}
             </AnimatePresence>
+            {tab.badge ? (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-1 ring-white">
+                {tab.badge > 99 ? '99+' : tab.badge}
+              </span>
+            ) : null}
           </motion.button>
         );
       })}
