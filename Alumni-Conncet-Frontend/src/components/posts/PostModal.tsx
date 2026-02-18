@@ -1,26 +1,30 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Image, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Image, AlertCircle, Loader2, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (content: string, media: string[], hashtags: string[]) => void;
+  onSubmit: (content: string, media: string[], hashtags: string[], isGlobal?: boolean) => void;
   initialPost?: {
     id: string;
     content: string;
     media?: string[];
     hashtags?: string[];
+    isGlobal?: boolean;
   };
 }
 
 export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: PostModalProps) {
+  const { user } = useAuth();
   const [content, setContent] = useState('');
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
+  const [isGlobal, setIsGlobal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<{ content?: string }>({});
@@ -32,6 +36,7 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
     if (initialPost) {
       setContent(initialPost.content);
       setHashtags(initialPost.hashtags || []);
+      setIsGlobal(initialPost.isGlobal || false);
       if (initialPost.media && initialPost.media.length > 0) {
         setUploadedImageUrls(initialPost.media);
       }
@@ -42,6 +47,7 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
       setUploadedImageUrls([]);
       setHashtags([]);
       setHashtagInput('');
+      setIsGlobal(false);
     }
   }, [initialPost]);
 
@@ -73,12 +79,13 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
         finalMediaUrls = [...finalMediaUrls, ...uploadedUrls];
       }
       
-      onSubmit(content, finalMediaUrls, hashtags);
+      onSubmit(content, finalMediaUrls, hashtags, isGlobal);
       setContent('');
       setSelectedImages([]);
       setUploadedImageUrls([]);
       setHashtags([]);
       setHashtagInput('');
+      setIsGlobal(false);
       setErrors({});
       onClose();
     } catch (error) {
@@ -210,6 +217,36 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
 
               {/* Hashtags Section */}
               <div className="px-6">
+                {/* Admin Global Post Option */}
+                {user?.role === 'ADMIN' && (
+                  <div className="mb-4 flex items-center">
+                    <label className="flex items-center cursor-pointer select-none group">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={isGlobal}
+                          onChange={(e) => setIsGlobal(e.target.checked)}
+                        />
+                        <div
+                          className={`block w-10 h-6 rounded-full transition-colors ${
+                            isGlobal ? 'bg-dsce-blue' : 'bg-gray-200'
+                          }`}
+                        ></div>
+                        <div
+                          className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                            isGlobal ? 'transform translate-x-4' : ''
+                          }`}
+                        ></div>
+                      </div>
+                      <div className="ml-3 flex items-center text-sm font-medium text-gray-700">
+                        <Globe className={`w-4 h-4 mr-2 ${isGlobal ? 'text-dsce-blue' : 'text-gray-400'}`} />
+                        Global Announcement
+                      </div>
+                    </label>
+                  </div>
+                )}
+
                 <div className="mb-3">
                   <label className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                     <span className="bg-dsce-blue/10 text-dsce-blue p-1.5 rounded-lg mr-2">

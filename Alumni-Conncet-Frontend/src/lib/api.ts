@@ -122,6 +122,7 @@ export interface PostRequest {
     mentions?: string[];
     graduationYear?: number;
     department?: string;
+    isGlobal?: boolean;
 }
 
 export interface PostResponse {
@@ -593,7 +594,7 @@ class ApiClient {
     // POSTS API --------------------------------------------------------
 
     async getAllPosts(page: number = 0, size: number = 10): Promise<PostResponse[]> {
-        const response = await fetch(`${this.baseUrl}/posts?page=${page}&size=${size}`, {
+        const response = await fetch(`${this.baseUrl}/api/posts?page=${page}&size=${size}`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
