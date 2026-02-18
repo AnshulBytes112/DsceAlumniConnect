@@ -28,4 +28,6 @@ public class CreatePostRequest {
     private Integer graduationYear;
     
     private String department;
+
+    private boolean isGlobal;
 }
