@@ -62,12 +62,13 @@ export default function Posts() {
     }
   };
 
-  const handleCreatePost = async (content: string, media: string[], hashtags: string[]) => {
+  const handleCreatePost = async (content: string, media: string[], hashtags: string[], isGlobal?: boolean) => {
     try {
       const newPost = await apiClient.createPost({
         content,
         media,
-        hashtags
+        hashtags,
+        isGlobal
       });
       // Transform PostResponse to Post interface
       const transformedPost = {
@@ -89,14 +90,15 @@ export default function Posts() {
     }
   };
 
-  const handleUpdatePost = async (content: string, media: string[], hashtags: string[]) => {
+  const handleUpdatePost = async (content: string, media: string[], hashtags: string[], isGlobal?: boolean) => {
     if (!editingPost) return;
     
     try {
       const updatedPost = await apiClient.updatePost(editingPost.id, {
         content,
         media,
-        hashtags
+        hashtags,
+        isGlobal
       });
       // Transform PostResponse to Post interface
       const transformedPost = {

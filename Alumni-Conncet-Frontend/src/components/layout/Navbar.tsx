@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 
 export default function Navbar() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4 bg-[#003366] shadow-lg">
@@ -21,11 +21,13 @@ export default function Navbar() {
           <>
             <span className="text-white">Welcome back!</span>
             <div className="flex items-center gap-2">
-              <Link to="/dashboard/profile">
-                <Button variant="ghost" className="text-white hover:text-[#FFD700] text-sm">
-                  Profile
-                </Button>
-              </Link>
+              {user?.role !== 'ADMIN' && (
+                <Link to="/dashboard/profile">
+                  <Button variant="ghost" className="text-white hover:text-[#FFD700] text-sm">
+                    Profile
+                  </Button>
+                </Link>
+              )}
               <Link to="/dashboard">
                 <Button className="bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] font-semibold">
                   Dashboard

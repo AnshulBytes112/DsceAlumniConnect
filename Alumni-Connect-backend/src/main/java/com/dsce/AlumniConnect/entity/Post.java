@@ -57,4 +57,6 @@ public class Post {
     private List<String> likedBy; // User IDs who liked this post
     
     private List<String> reportedBy; // User IDs who reported this post
+
+    private boolean isGlobal = false;
 }
