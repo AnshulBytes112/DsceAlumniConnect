@@ -1,30 +1,26 @@
-import { useState, useRef, useEffect } from 'react';
-import { X, Image, AlertCircle, Loader2, Globe } from 'lucide-react';
+import { X, Image, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useRef, useEffect } from 'react'; // Added missing imports for useState, useRef, useEffect
 
 interface PostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (content: string, media: string[], hashtags: string[], isGlobal?: boolean) => void;
+  onSubmit: (content: string, media: string[], hashtags: string[]) => void;
   initialPost?: {
     id: string;
     content: string;
     media?: string[];
     hashtags?: string[];
-    isGlobal?: boolean;
   };
 }
 
 export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: PostModalProps) {
-  const { user } = useAuth();
   const [content, setContent] = useState('');
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
-  const [isGlobal, setIsGlobal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<{ content?: string }>({});
@@ -36,7 +32,6 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
     if (initialPost) {
       setContent(initialPost.content);
       setHashtags(initialPost.hashtags || []);
-      setIsGlobal(initialPost.isGlobal || false);
       if (initialPost.media && initialPost.media.length > 0) {
         setUploadedImageUrls(initialPost.media);
       }
@@ -47,45 +42,43 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
       setUploadedImageUrls([]);
       setHashtags([]);
       setHashtagInput('');
-      setIsGlobal(false);
     }
   }, [initialPost]);
 
   const validateForm = () => {
     const newErrors: { content?: string } = {};
-    
+
     if (!content.trim() && selectedImages.length === 0 && uploadedImageUrls.length === 0) {
       newErrors.content = 'Please write something or add an image to post';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       setIsUploading(true);
       let finalMediaUrls = [...uploadedImageUrls];
-      
+
       // Upload new images if any
       if (selectedImages.length > 0) {
         const uploadedUrls = await apiClient.uploadPostImages(selectedImages);
         finalMediaUrls = [...finalMediaUrls, ...uploadedUrls];
       }
-      
-      onSubmit(content, finalMediaUrls, hashtags, isGlobal);
+
+      onSubmit(content, finalMediaUrls, hashtags);
       setContent('');
       setSelectedImages([]);
       setUploadedImageUrls([]);
       setHashtags([]);
       setHashtagInput('');
-      setIsGlobal(false);
       setErrors({});
       onClose();
     } catch (error) {
@@ -98,14 +91,14 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     // Limit to 4 images total (new + existing)
     const totalImages = selectedImages.length + uploadedImageUrls.length;
     const remainingSlots = 4 - totalImages;
     const filesToProcess = files.slice(0, remainingSlots);
-    
+
     setSelectedImages(prev => [...prev, ...filesToProcess]);
-    
+
     if (files.length > remainingSlots) {
       alert(`You can only upload up to 4 images total. ${files.length - remainingSlots} images were skipped.`);
     }
@@ -124,17 +117,17 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    
+
     // Limit to 4 images total (new + existing)
     const totalImages = selectedImages.length + uploadedImageUrls.length;
     const remainingSlots = 4 - totalImages;
     const filesToProcess = imageFiles.slice(0, remainingSlots);
-    
+
     setSelectedImages(prev => [...prev, ...filesToProcess]);
-    
+
     if (imageFiles.length > remainingSlots) {
       alert(`You can only upload up to 4 images total. ${imageFiles.length - remainingSlots} images were skipped.`);
     }
@@ -168,7 +161,7 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -179,9 +172,9 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
               <h3 className="text-xl font-semibold text-gray-900">
                 {initialPost ? 'Edit Post' : 'Create New Post'}
               </h3>
-              <button 
+              <button
                 type="button"
-                onClick={onClose} 
+                onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-all duration-200"
               >
                 <X className="w-5 h-5" />
@@ -202,9 +195,8 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
                       }
                     }}
                     placeholder="Share your thoughts, achievements, or updates with fellow alumni..."
-                    className={`w-full min-h-[120px] p-4 text-gray-900 placeholder-gray-400 border border-gray-200 rounded-xl outline-none resize-none text-lg focus:border-dsce-blue focus:ring-2 focus:ring-dsce-blue/20 transition-all ${
-                      errors.content ? 'border-red-500 ring-2 ring-red-500/20' : ''
-                    }`}
+                    className={`w-full min-h-[120px] p-4 text-gray-900 placeholder-gray-400 border border-gray-200 rounded-xl outline-none resize-none text-lg focus:border-dsce-blue focus:ring-2 focus:ring-dsce-blue/20 transition-all ${errors.content ? 'border-red-500 ring-2 ring-red-500/20' : ''
+                      }`}
                   />
                   {errors.content && (
                     <div className="absolute -bottom-6 left-4 flex items-center text-red-500 text-sm">
@@ -218,34 +210,6 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
               {/* Hashtags Section */}
               <div className="px-6">
                 {/* Admin Global Post Option */}
-                {user?.role === 'ADMIN' && (
-                  <div className="mb-4 flex items-center">
-                    <label className="flex items-center cursor-pointer select-none group">
-                      <div className="relative">
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={isGlobal}
-                          onChange={(e) => setIsGlobal(e.target.checked)}
-                        />
-                        <div
-                          className={`block w-10 h-6 rounded-full transition-colors ${
-                            isGlobal ? 'bg-dsce-blue' : 'bg-gray-200'
-                          }`}
-                        ></div>
-                        <div
-                          className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                            isGlobal ? 'transform translate-x-4' : ''
-                          }`}
-                        ></div>
-                      </div>
-                      <div className="ml-3 flex items-center text-sm font-medium text-gray-700">
-                        <Globe className={`w-4 h-4 mr-2 ${isGlobal ? 'text-dsce-blue' : 'text-gray-400'}`} />
-                        Global Announcement
-                      </div>
-                    </label>
-                  </div>
-                )}
 
                 <div className="mb-3">
                   <label className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
@@ -256,7 +220,7 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
                     <span className="text-gray-400 font-normal ml-2">(Optional)</span>
                   </label>
                 </div>
-                
+
                 {/* Hashtag Input */}
                 <div className="mb-4">
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-dsce-blue focus-within:ring-2 focus-within:ring-dsce-blue/20 transition-all">
@@ -306,10 +270,9 @@ export default function PostModal({ isOpen, onClose, onSubmit, initialPost }: Po
                     <span className="text-gray-400 font-normal ml-2">(Optional)</span>
                   </label>
                 </div>
-                <div 
-                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-                    isDragging ? 'border-dsce-blue bg-dsce-blue/5' : 'border-gray-300 hover:border-gray-400 bg-gray-50/50'
-                  }`}
+                <div
+                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${isDragging ? 'border-dsce-blue bg-dsce-blue/5' : 'border-gray-300 hover:border-gray-400 bg-gray-50/50'
+                    }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}

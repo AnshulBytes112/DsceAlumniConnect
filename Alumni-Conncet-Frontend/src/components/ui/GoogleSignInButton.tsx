@@ -45,7 +45,7 @@ export function GoogleSignInButton({
           onSuccess(response);
         } else {
           // Default navigation if no callback provided
-          if (!response.profileComplete) {
+          if (response.role !== 'ADMIN' && !response.profileComplete) {
             navigate('/profile-setup');
           } else {
             navigate('/dashboard');
@@ -66,12 +66,12 @@ export function GoogleSignInButton({
       }
     },
     onError: (errorResponse) => {
-       console.error('Google login error:', errorResponse);
-       toast({
-         title: 'Google Sign In failed',
-         description: 'Could not connect to Google.',
-         variant: 'destructive',
-       });
+      console.error('Google login error:', errorResponse);
+      toast({
+        title: 'Google Sign In failed',
+        description: 'Could not connect to Google.',
+        variant: 'destructive',
+      });
     }
   });
 

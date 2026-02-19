@@ -1,5 +1,4 @@
 const API_BASE_URL = 'http://localhost:8080'; // Uses Vite env var or fallback to relative path for proxy
-import { id } from 'zod/v4/locales';
 import {
     upcomingEvents,
     mockCredentials
@@ -272,18 +271,89 @@ class ApiClient {
             headers: this.getHeaders(true),
             body: JSON.stringify(body),
         });
+
         if (!response.ok) {
             let errorMsg = `Failed to post to ${endpoint}`;
             try {
                 const errData = await response.json();
-                if (errData && errData.message) errorMsg += `: ${errData.message}`;
+                if (errData && errData.message) errorMsg = errData.message;
             } catch (_) {
-                const text = await response.text();
-                if (text) errorMsg += `: ${text}`;
+                try {
+                    const text = await response.text();
+                    if (text) errorMsg = text;
+                } catch (__) {
+                    errorMsg = `Error: ${response.status} ${response.statusText}`;
+                }
             }
             throw new Error(errorMsg);
         }
-        return response.json();
+
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            try {
+                return await response.json();
+            } catch (e) {
+                return {} as T;
+            }
+        }
+        return {} as T;
+    }
+
+    private async put<T>(endpoint: string, body: any): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'PUT',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            let errorMsg = `Failed to put to ${endpoint}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.message) errorMsg = errData.message;
+            } catch (_) {
+                try {
+                    const text = await response.text();
+                    if (text) errorMsg = text;
+                } catch (__) {
+                    errorMsg = `Error: ${response.status} ${response.statusText}`;
+                }
+            }
+            throw new Error(errorMsg);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            try {
+                return await response.json();
+            } catch (e) {
+                return {} as T;
+            }
+        }
+        return {} as T;
+    }
+
+    private async delete(endpoint: string): Promise<void> {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            let errorMsg = `Failed to delete ${endpoint}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.message) errorMsg = errData.message;
+            } catch (_) {
+                try {
+                    const text = await response.text();
+                    if (text) errorMsg = text;
+                } catch (__) {
+                    errorMsg = `Error: ${response.status} ${response.statusText}`;
+                }
+            }
+            throw new Error(errorMsg);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -608,7 +678,7 @@ class ApiClient {
     }
 
     async getPostById(id: string): Promise<PostResponse> {
-        const response = await fetch(`${this.baseUrl}/posts/${id}`, {
+        const response = await fetch(`${this.baseUrl}/api/posts/${id}`, {
             method: 'GET',
             headers: this.getHeaders(true),
         });
@@ -623,12 +693,12 @@ class ApiClient {
 
     async uploadPostImages(files: File[]): Promise<string[]> {
         const uploadedUrls: string[] = [];
-        
+
         for (const file of files) {
             const formData = new FormData();
             formData.append('image', file);
-            
-            const response = await fetch(`${this.baseUrl}/posts/upload-image`, {
+
+            const response = await fetch(`${this.baseUrl}/api/posts/upload-image`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -642,87 +712,37 @@ class ApiClient {
 
             const result = await response.json();
             // Convert relative path to full URL
-            const imageUrl = result.imageUrl.startsWith('http') 
-                ? result.imageUrl 
+            const imageUrl = result.imageUrl.startsWith('http')
+                ? result.imageUrl
                 : `${this.baseUrl}/${result.imageUrl}`;
             uploadedUrls.push(imageUrl);
         }
-        
+
         return uploadedUrls;
     }
 
     async createPost(post: PostRequest): Promise<PostResponse> {
-        const response = await fetch(`${this.baseUrl}/posts`, {
-            method: 'POST',
-            headers: this.getHeaders(true),
-            body: JSON.stringify(post),
-        });
-
-        if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to create post');
-        }
-
-        return response.json();
+        return this.post<PostResponse>('/api/posts', post);
     }
 
     async updatePost(id: string, post: Partial<PostRequest>): Promise<PostResponse> {
-        const response = await fetch(`${this.baseUrl}/posts/${id}`, {
-            method: 'PUT',
-            headers: this.getHeaders(true),
-            body: JSON.stringify(post),
-        });
-
-        if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to update post');
-        }
-
-        return response.json();
+        return this.put<PostResponse>(`/api/posts/${id}`, post);
     }
 
     async deletePost(id: string): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/posts/${id}`, {
-            method: 'DELETE',
-            headers: this.getHeaders(true),
-        });
-
-        if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to delete post');
-        }
+        await this.delete(`/api/posts/${id}`);
     }
 
-    async toggleLikePost(id: string): Promise<PostResponse> {
-        const response = await fetch(`${this.baseUrl}/posts/${id}/like`, {
-            method: 'POST',
-            headers: this.getHeaders(true),
-        });
-
-        if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to like post');
-        }
-
-        return response.json();
+    async toggleLikePost(id: string): Promise<void> {
+        await this.post(`/api/posts/${id}/like`, {});
     }
 
-    async sharePost(id: string): Promise<PostResponse> {
-        const response = await fetch(`${this.baseUrl}/posts/${id}/share`, {
-            method: 'POST',
-            headers: this.getHeaders(true),
-        });
-
-        if (!response.ok) {
-            const error: ErrorResponse = await response.json();
-            throw new Error(error.message || 'Failed to share post');
-        }
-
-        return response.json();
+    async sharePost(id: string): Promise<void> {
+        await this.post(`/api/posts/${id}/share`, {});
     }
 
     async reportPost(id: string): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/posts/${id}/report`, {
+        const response = await fetch(`${this.baseUrl}/api/posts/${id}/report`, {
             method: 'POST',
             headers: this.getHeaders(true),
         });

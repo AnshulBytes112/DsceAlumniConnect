@@ -1,7 +1,6 @@
 package com.dsce.AlumniConnect.Service;
 
 import com.dsce.AlumniConnect.DTO.CreatePostRequest;
-import com.dsce.AlumniConnect.DTO.ErrorResponse;
 import com.dsce.AlumniConnect.DTO.PostResponse;
 import com.dsce.AlumniConnect.DTO.UpdatePostRequest;
 import com.dsce.AlumniConnect.entity.Post;
@@ -33,7 +32,7 @@ public class PostService {
     public List<PostResponse> getAllPosts(String userEmail, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         List<Post> posts = postRepository.findAll(pageable).getContent();
-        
+
         return posts.stream()
                 .map(post -> convertToPostResponse(post, userEmail))
                 .collect(Collectors.toList());
@@ -42,7 +41,7 @@ public class PostService {
     public PostResponse getPostById(String postId, String userEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        
+
         return convertToPostResponse(post, userEmail);
     }
 
@@ -58,7 +57,7 @@ public class PostService {
         post.setGraduationYear(user.getGraduationYear());
         post.setDepartment(user.getDepartment());
         post.setContent(request.getContent());
-        
+
         // Process media - convert base64 to file URLs
         List<String> mediaUrls = new ArrayList<>();
         if (request.getMedia() != null) {
@@ -74,7 +73,7 @@ public class PostService {
             }
         }
         post.setMedia(mediaUrls);
-        
+
         post.setHashtags(request.getHashtags() != null ? request.getHashtags() : new ArrayList<>());
         post.setMentions(request.getMentions() != null ? request.getMentions() : new ArrayList<>());
         post.setCreatedAt(LocalDateTime.now());
@@ -86,7 +85,7 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
         log.info("Created new post by user: {} with {} images", userEmail, mediaUrls.size());
-        
+
         return convertToPostResponse(savedPost, userEmail);
     }
 
@@ -113,7 +112,7 @@ public class PostService {
 
         Post updatedPost = postRepository.save(post);
         log.info("Updated post {} by user: {}", postId, userEmail);
-        
+
         return convertToPostResponse(updatedPost, userEmail);
     }
 
@@ -146,7 +145,7 @@ public class PostService {
 
         post.setLikedBy(likedBy);
         Post updatedPost = postRepository.save(post);
-        
+
         return convertToPostResponse(updatedPost, userEmail);
     }
 
@@ -156,7 +155,7 @@ public class PostService {
 
         post.setShares(post.getShares() + 1);
         Post updatedPost = postRepository.save(post);
-        
+
         log.info("Shared post {} by user: {}", postId, userEmail);
         return convertToPostResponse(updatedPost, userEmail);
     }
@@ -174,7 +173,7 @@ public class PostService {
 
         reportedBy.add(user.getId());
         post.setReportedBy(reportedBy);
-        
+
         postRepository.save(post);
         log.info("Reported post {} by user: {}", postId, userEmail);
     }
@@ -182,7 +181,7 @@ public class PostService {
     public List<PostResponse> getPostsByUser(String userEmail) {
         User user = getUserByEmail(userEmail);
         List<Post> posts = postRepository.findByAuthorIdOrderByCreatedAtDesc(user.getId());
-        
+
         return posts.stream()
                 .map(post -> convertToPostResponse(post, userEmail))
                 .collect(Collectors.toList());
@@ -205,17 +204,17 @@ public class PostService {
         response.setMedia(post.getMedia());
         response.setHashtags(post.getHashtags());
         response.setMentions(post.getMentions());
-        
+
         // Check if current user liked this post
         User currentUser = getUserByEmail(currentUserEmail);
         boolean isLiked = post.getLikedBy() != null && post.getLikedBy().contains(currentUser.getId());
         response.setIsLiked(isLiked);
-        
+
         // Check if current user is the author
         response.setIsAuthor(post.getAuthorId().equals(currentUser.getId()));
-        
+
         response.setIsBookmarked(false); // TODO: Implement bookmark functionality
-        
+
         return response;
     }
 
@@ -226,7 +225,8 @@ public class PostService {
 
     private String getUserRole(User user) {
         if (user.getWorkExperiences() != null && !user.getWorkExperiences().isEmpty()) {
-            return user.getWorkExperiences().get(0).getJobTitle() + " at " + user.getWorkExperiences().get(0).getCompany();
+            return user.getWorkExperiences().get(0).getJobTitle() + " at "
+                    + user.getWorkExperiences().get(0).getCompany();
         }
         return "DSCE Alumni";
     }
