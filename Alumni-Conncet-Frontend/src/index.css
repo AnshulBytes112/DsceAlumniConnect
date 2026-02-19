@@ -65,6 +65,10 @@ body {
   color: var(--color-dsce-blue);
 }
 
+.text-dsce-cream {
+  color: var(--color-dsce-bg-cream);
+}
+
 .text-dsce-text-dark {
   color: var(--color-dsce-text-dark);
 }

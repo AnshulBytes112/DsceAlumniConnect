@@ -118,7 +118,7 @@ export default function Alumni() {
   const hasActiveFilters = searchTerm !== '' || selectedYear !== 'all' || selectedDepartment !== 'all';
 
   return (
-    <div className="min-h-screen bg-dsce-bg-light">
+    <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light">
       <Helmet>
         <title>Alumni Directory - DSCE Alumni Connect</title>
       </Helmet>

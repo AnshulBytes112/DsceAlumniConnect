@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, ShieldCheck ,Briefcase} from 'lucide-react';
+import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, ShieldCheck, Briefcase, Image } from 'lucide-react';
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
 import { MobileNavbar } from './MobileNavbar';
 
@@ -38,6 +38,7 @@ export default function GlobalNavbar() {
 
   const tabs = isAuthenticated ? [
     { title: 'Home', icon: GraduationCap, href: '/' },
+    { title: 'Gallery', icon: Image, href: '/gallery' },
     { title: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { title: 'Profile', icon: User, href: '/dashboard/profile' },
     { title: 'Alumni', icon: Users, href: '/alumni' },
@@ -45,14 +46,16 @@ export default function GlobalNavbar() {
     { title: 'Events', icon: Calendar, href: '/dashboard/events' },
     { title: 'Global Posts', icon: Users, href: '/dashboard/posts' },
     { title: 'Jobs', icon: Briefcase, href: '/jobs' },
-    { title: 'Settings', icon: Settings, href: '/dashboard/settings' },
+    
     // Admin Link
     ...(user?.role === 'ADMIN' ? [{ title: 'Verification', icon: ShieldCheck, href: '/admin/verification', badge: pendingCount }] : []),
     { type: 'separator' } as const,
+    { title: 'Settings', icon: Settings, href: '/dashboard/settings' },
     { title: 'Logout', icon: LogOut, onClick: handleLogout },
   ] : [
     { title: 'Home', icon: GraduationCap, href: '/' },
     { title: 'Alumni', icon: Users, href: '/alumni' },
+    { title: 'Gallery', icon: Image, href: '/gallery' },
     { type: 'separator' } as const,
     { title: 'Login', icon: LogIn, href: '/login' },
     { title: 'Sign Up', icon: UserPlus, href: '/register' },

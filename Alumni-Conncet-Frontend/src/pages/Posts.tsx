@@ -222,7 +222,7 @@ export default function Posts() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light">
       <Helmet>
         <title>Posts - DSCE Alumni Connect</title>
       </Helmet>
