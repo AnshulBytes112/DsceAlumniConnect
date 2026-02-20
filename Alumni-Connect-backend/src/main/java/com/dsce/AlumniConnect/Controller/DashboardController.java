@@ -183,4 +183,16 @@ public class DashboardController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @DeleteMapping("/announcements/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteAnnouncement(@PathVariable String id) {
+        try {
+            announcementRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error deleting announcement", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
