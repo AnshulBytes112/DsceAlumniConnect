@@ -9,9 +9,10 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   isTokenExpired: () => boolean;
+  setUser: (user: UserProfile | null) => void;
 }
 
-const TOKEN_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+const TOKEN_EXPIRY_TIME = 5 * 60 * 1000; 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -58,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
   };
 
+  const setUser = (userData: UserProfile | null) => {
+    queryClient.setQueryData(['user'], userData);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -67,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         loading,
         isTokenExpired,
+        setUser,
       }}
     >
       {children}
