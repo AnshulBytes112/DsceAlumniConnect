@@ -541,17 +541,20 @@ class ApiClient {
         return response.json();
     }
 
-    async getAnnouncements() {
-        const response = await fetch(`${this.baseUrl}/dashboard/announcements`, {
-            method: 'GET',
-            headers: this.getHeaders(true),
-        });
+    async getAnnouncements(): Promise<AnnouncementDTO[]> {
+        return this.get<AnnouncementDTO[]>('/api/announcements');
+    }
 
-        if (!response.ok) {
-            throw new Error("Failed to get announcements");
-        }
+    async createAnnouncement(announcement: Partial<AnnouncementDTO>): Promise<AnnouncementDTO> {
+        return this.post<AnnouncementDTO>('/api/announcements', announcement);
+    }
 
-        return response.json();
+    async updateAnnouncement(id: number, announcement: Partial<AnnouncementDTO>): Promise<AnnouncementDTO> {
+        return this.put<AnnouncementDTO>(`/api/announcements/${id}`, announcement);
+    }
+
+    async deleteAnnouncement(id: number): Promise<void> {
+        await this.delete(`/api/announcements/${id}`);
     }
 
     async getJobApplications() {
