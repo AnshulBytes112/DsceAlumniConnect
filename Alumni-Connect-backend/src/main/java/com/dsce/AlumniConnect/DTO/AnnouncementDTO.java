@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnnouncementDTO {
-    private Long id;
+
+    private String id;
     private String title;
     private String description;
     private String time;

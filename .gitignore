@@ -112,7 +112,7 @@ temp/
 
 # Resume files (already exists in project)
 resumes/
-
+profiles/
 # Database files
 *.db
 *.sqlite

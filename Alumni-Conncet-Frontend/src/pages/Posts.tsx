@@ -91,7 +91,7 @@ export default function Posts() {
 
   const handleUpdatePost = async (content: string, media: string[], hashtags: string[]) => {
     if (!editingPost) return;
-    
+
     try {
       const updatedPost = await apiClient.updatePost(editingPost.id, {
         content,
@@ -103,7 +103,7 @@ export default function Posts() {
         ...updatedPost,
         graduationYear: updatedPost.graduationYear?.toString()
       };
-      setPosts(prev => prev.map(post => 
+      setPosts(prev => prev.map(post =>
         post.id === editingPost.id ? { ...transformedPost } as Post : post
       ));
       toast({
@@ -141,22 +141,22 @@ export default function Posts() {
 
   const handleLikePost = async (postId: string) => {
     try {
-      const updatedPost = await apiClient.toggleLikePost(postId);
-      setPosts(prev => prev.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              isLiked: updatedPost.isLiked, 
-              likes: updatedPost.likes 
-            }
+      // Optimistic update
+      setPosts(prev => prev.map(post =>
+        post.id === postId
+          ? {
+            ...post,
+            isLiked: !post.isLiked,
+            likes: post.isLiked ? post.likes - 1 : post.likes + 1
+          }
           : post
       ));
-      toast({ 
-        title: updatedPost.isLiked ? "Post liked" : "Post unliked", 
-        description: updatedPost.isLiked ? "You liked this post" : "You unliked this post" 
-      });
+
+      await apiClient.toggleLikePost(postId);
     } catch (error) {
       console.error('Failed to like post:', error);
+      // Revert optimistic update on error
+      fetchPosts();
       toast({
         title: "Error",
         description: "Failed to like post. Please try again.",
@@ -168,7 +168,7 @@ export default function Posts() {
   const handleCommentClick = async (postId: string) => {
     setCommentingPostId(commentingPostId === postId ? null : postId);
     setCommentText('');
-    
+
     if (commentingPostId !== postId) {
       try {
         const postComments = await apiClient.getCommentsByPostId(postId);
@@ -187,18 +187,18 @@ export default function Posts() {
         postId: postId,
         content: commentText.trim()
       });
-      
+
       setComments(prev => ({
         ...prev,
         [postId]: [...(prev[postId] || []), newComment]
       }));
-      
-      setPosts(prev => prev.map(post => 
-        post.id === postId 
+
+      setPosts(prev => prev.map(post =>
+        post.id === postId
           ? { ...post, comments: post.comments + 1 }
           : post
       ));
-      
+
       toast({ title: "Comment added", description: "Your comment has been posted." });
       setCommentText('');
       setCommentingPostId(null);
@@ -222,11 +222,11 @@ export default function Posts() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light">
       <Helmet>
         <title>Posts - DSCE Alumni Connect</title>
       </Helmet>
-      
+
       <MotionWrapper className="p-6 pt-24 max-w-4xl mx-auto">
         {/* Header */}
         <header className="mb-8">
@@ -235,7 +235,7 @@ export default function Posts() {
               <h1 className="text-3xl font-bold text-blue-900">Alumni Posts</h1>
               <p className="text-gray-600 mt-1">Share updates, achievements, and connect with fellow alumni</p>
             </div>
-            <Button 
+            <Button
               onClick={() => setIsNewPostModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
             >
@@ -243,7 +243,7 @@ export default function Posts() {
               Create Post
             </Button>
           </div>
-          
+
           {/* Stats */}
           <div className="flex items-center gap-6 text-sm text-gray-600">
             <span className="flex items-center gap-2">
@@ -316,10 +316,10 @@ export default function Posts() {
                         </div>
                       </div>
                       <span className="text-[10px] text-gray-400 whitespace-nowrap ml-auto">
-                        {new Date(post.createdAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
+                        {new Date(post.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
                         })}
                       </span>
                     </div>
@@ -337,9 +337,9 @@ export default function Posts() {
                         {post.media.map((mediaUrl: string, index: number) => (
                           <div key={`${post.id}-media-${index}`} className="relative group">
                             <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 bg-white">
-                              <img 
-                                src={mediaUrl} 
-                                alt={`Post image ${index + 1}`} 
+                              <img
+                                src={mediaUrl}
+                                alt={`Post image ${index + 1}`}
                                 className="w-full h-auto object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
                                 onClick={() => window.open(mediaUrl, '_blank')}
                               />
@@ -350,13 +350,13 @@ export default function Posts() {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Post Hashtags */}
                   {post.hashtags && post.hashtags.length > 0 && (
                     <div className="mb-4">
                       <div className="flex flex-wrap gap-2">
                         {post.hashtags.map((tag: string, index: number) => (
-                          <span 
+                          <span
                             key={index}
                             className="inline-block bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-sm px-3 py-1.5 rounded-full hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 cursor-pointer border border-blue-200"
                             onClick={() => console.log('Hashtag clicked:', tag)}
@@ -370,24 +370,22 @@ export default function Posts() {
 
                   {/* Post Actions */}
                   <div className="flex items-center space-x-4 pt-4 border-t border-gray-100">
-                    <button 
+                    <button
                       onClick={() => handleLikePost(post.id)}
-                      className={`flex items-center space-x-1 text-sm transition-colors ${
-                        post.isLiked 
-                          ? 'text-red-500' 
-                          : 'text-gray-500 hover:text-red-500'
-                      }`}
+                      className={`flex items-center space-x-1 text-sm transition-colors ${post.isLiked
+                        ? 'text-red-500'
+                        : 'text-gray-500 hover:text-red-500'
+                        }`}
                     >
                       <Heart className={`h-4 w-4 ${post.isLiked ? 'fill-current' : ''}`} />
                       <span className="text-xs">{post.likes}</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleCommentClick(post.id)}
-                      className={`flex items-center space-x-1 text-sm transition-colors ${
-                        commentingPostId === post.id 
-                          ? 'text-blue-600' 
-                          : 'text-gray-500 hover:text-blue-600'
-                      }`}
+                      className={`flex items-center space-x-1 text-sm transition-colors ${commentingPostId === post.id
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-blue-600'
+                        }`}
                     >
                       <MessageCircle className="h-4 w-4" />
                       <span className="text-xs">{post.comments}</span>
@@ -420,15 +418,15 @@ export default function Posts() {
                             Post
                           </button>
                         </div>
-                        
+
                         {/* Comments List */}
                         {comments[post.id]?.map((comment) => (
                           <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
                             <div className="flex-shrink-0">
                               {comment.authorAvatar ? (
-                                <img 
-                                  src={comment.authorAvatar} 
-                                  alt={comment.authorName} 
+                                <img
+                                  src={comment.authorAvatar}
+                                  alt={comment.authorName}
                                   className="h-8 w-8 rounded-full object-cover border border-gray-200"
                                 />
                               ) : (
@@ -448,8 +446,8 @@ export default function Posts() {
                                   )}
                                 </div>
                                 <span className="text-xs text-gray-500">
-                                  {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('en-US', { 
-                                    month: 'short', 
+                                  {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                    month: 'short',
                                     day: 'numeric',
                                     hour: '2-digit',
                                     minute: '2-digit'
@@ -473,7 +471,7 @@ export default function Posts() {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
               <p className="text-gray-600 mb-6">Be the first to share something with the alumni community!</p>
-              <Button 
+              <Button
                 onClick={() => setIsNewPostModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >

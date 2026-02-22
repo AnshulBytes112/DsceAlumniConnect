@@ -6,14 +6,14 @@ import { Link } from 'react-router-dom';
 const TABS = [
 	{ label: 'Achievers', value: 'achievers' },
 	{ label: 'Campus', value: 'campus' },
-	{ label: 'Events', value: 'events' },
+	// { label: 'Events', value: 'events' },
 ];
 
 export default function Gallery() {
 	const [tab, setTab] = useState('achievers');
 
 	return (
-		<div className="min-h-screen bg-white py-16 px-6">
+		<div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light py-16 px-6">
 			<h1 className="text-4xl font-bold text-center mb-8">Gallery</h1>
 			<div className="flex justify-center gap-4 mb-12">
 				{TABS.map((t) => (

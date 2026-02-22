@@ -1,23 +1,23 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { type AuthResponse } from '@/lib/api';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient, type AuthResponse, type UserProfile } from '@/lib/api';
 
 interface AuthContextType {
-  user: AuthResponse | null;
+  user: UserProfile | null;
   isAuthenticated: boolean;
   login: (authData: AuthResponse) => void;
   logout: () => void;
   loading: boolean;
   isTokenExpired: () => boolean;
-  setUser: (user: AuthResponse | null) => void;
+  setUser: (user: UserProfile | null) => void;
 }
 
-const TOKEN_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+const TOKEN_EXPIRY_TIME = 5 * 60 * 1000; 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const isTokenExpired = () => {
     const tokenTimestamp = localStorage.getItem('tokenTimestamp');
@@ -28,55 +28,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return (now - timestamp) > TOKEN_EXPIRY_TIME;
   };
 
-  const clearExpiredSession = () => {
-    localStorage.removeItem('jwtToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('tokenTimestamp');
-    setUser(null);
-  };
-
-  useEffect(() => {
-    // Check for stored auth data on mount
-    const storedToken = localStorage.getItem('jwtToken');
-    const storedUser = localStorage.getItem('user');
-    const tokenTimestamp = localStorage.getItem('tokenTimestamp');
-
-    if (storedToken && storedUser && tokenTimestamp) {
-      try {
-        // Check if token is expired
-        if (isTokenExpired()) {
-          console.log('Token expired, clearing session');
-          clearExpiredSession();
-        } else {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error('Failed to parse stored user data:', error);
-        clearExpiredSession();
+  // React Query to fetch user profile
+  const { data: user, isLoading: loading, error } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) return null;
+      if (isTokenExpired()) {
+        logout();
+        return null;
       }
-    } else {
-      // Clear any partial session data
-      clearExpiredSession();
-    }
-    setLoading(false);
-  }, []);
+      return await apiClient.getProfile();
+    },
+    retry: false,
+    staleTime: 1000 * 60 * 5, // Cache profile for 5 mins
+  });
 
   const login = (authData: AuthResponse) => {
-    setUser(authData);
     localStorage.setItem('jwtToken', authData.jwtToken);
-    localStorage.setItem('user', JSON.stringify(authData));
     localStorage.setItem('tokenTimestamp', Date.now().toString());
+    // Directly set the user data in cache to avoid an extra fetch
+    queryClient.setQueryData(['user'], authData); 
   };
 
   const logout = () => {
-    setUser(null);
-    clearExpiredSession();
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('tokenTimestamp');
+    localStorage.removeItem('user'); // Cleanup legacy
+    queryClient.setQueryData(['user'], null);
+    queryClient.clear();
+  };
+
+  const setUser = (userData: UserProfile | null) => {
+    queryClient.setQueryData(['user'], userData);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user: user || null,
         isAuthenticated: !!user,
         login,
         logout,

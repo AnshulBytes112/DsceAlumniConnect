@@ -11,19 +11,20 @@ public class WebConfig implements WebMvcConfigurer {
 
         @Override
         public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                // Get the current working directory (project root)
+                String projectPath = System.getProperty("user.dir");
+                
                 // Serve files from the profiles directory
                 registry.addResourceHandler("/profiles/**")
-                                .addResourceLocations(
-                                                "file:/home/yash/Desktop/alum/DsceAlumniConnect/profiles/");
+                                .addResourceLocations("file:" + projectPath + "/profiles/");
 
                 // Serve files from the resumes directory
                 registry.addResourceHandler("/resumes/**")
-                                .addResourceLocations("file:/home/yash/Desktop/alum/DsceAlumniConnect/resumes/");
+                                .addResourceLocations("file:" + projectPath + "/resumes/");
 
                 // Serve uploaded images - point to the correct backend uploads directory
                 registry.addResourceHandler("/uploads/**")
-                                .addResourceLocations(
-                                                "file:/home/yash/Desktop/alum/DsceAlumniConnect/Alumni-Connect-backend/uploads/");
+                                .addResourceLocations("file:" + projectPath + "/uploads/");
         }
 
         @Bean

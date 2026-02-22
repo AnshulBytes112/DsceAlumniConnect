@@ -1,0 +1,14 @@
+{
+    "name": "alumni-connect-seeder",
+    "version": "1.0.0",
+    "description": "Script to seed MongoDB with mock data",
+    "main": "seed.js",
+    "scripts": {
+        "start": "node seed.js"
+    },
+    "dependencies": {
+        "mongodb": "^6.3.0",
+        "bcryptjs": "^2.4.3",
+        "@faker-js/faker": "^8.4.0"
+    }
+}

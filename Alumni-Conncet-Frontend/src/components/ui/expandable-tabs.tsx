@@ -59,9 +59,9 @@ export function ExpandableTabs({
 }: ExpandableTabsProps & { activeTabIndex?: number | null }) {
   const [selected, setSelected] = React.useState<number | null>(null);
   const [hovered, setHovered] = React.useState<number | null>(null);
-  const outsideClickRef = React.useRef(null);
+  const outsideClickRef = React.useRef<HTMLDivElement>(null);
 
-  useOnClickOutside(outsideClickRef, () => {
+  useOnClickOutside(outsideClickRef as any, () => {
     // Only clear local selection if not controlled
     if (activeTabIndex === undefined) {
       setSelected(null);

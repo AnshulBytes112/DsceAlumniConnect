@@ -188,7 +188,7 @@ const Events = () => {
                   placeholder="Search events by title, location, or organizer..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20"
+                  className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-dsce-blue focus:ring-dsce-blue/20 text-white" 
                 />
               </div>
               
@@ -393,8 +393,8 @@ const Events = () => {
                       variant="outline" 
                       className={`w-full rounded-xl border-dsce-blue/20 transition-all font-semibold ${
                         event.userRsvpStatus 
-                          ? 'bg-dsce-blue/5 text-dsce-blue hover:bg-dsce-blue/10' 
-                          : 'bg-white text-dsce-blue hover:bg-dsce-blue hover:text-white shadow-sm'
+                          ? 'bg-dsce-blue/5 text-dsce-cream hover:bg-dsce-blue/10' 
+                          : 'bg-white text-dsce-blue hover:bg-dsce-blue hover:text-dsce-cream shadow-sm'
                       }`}
                       onClick={(e) => { e.stopPropagation(); setRsvpModalEventId(event.id); }}
                     >
