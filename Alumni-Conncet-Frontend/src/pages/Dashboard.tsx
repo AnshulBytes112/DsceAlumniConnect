@@ -11,7 +11,8 @@ import {
   dashboardJobApplications,
   upcomingEvents,
   dashboardProjectFundings,
-  mockCredentials
+  mockCredentials,
+  campusMemories
 } from '@/data/mockData';
 import PostModal from '@/components/posts/PostModal';
 
@@ -496,18 +497,18 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600 mb-6">{currentUser.role}</p>
 
                 <div className="grid grid-cols-3 gap-2 mb-6 border-t border-dsce-blue/10 pt-6">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-dsce-blue">{dashboardData.stats?.jobsApplied ?? '-'}</div>
-                    <div className="text-xs text-gray-600">Applied</div>
-                  </div>
+                  <Link to="/jobs" className="text-center group cursor-pointer hover:bg-dsce-blue/5 rounded-xl p-1 transition-colors">
+                    <div className="text-lg font-bold text-dsce-blue group-hover:text-dsce-light-blue transition-colors">{dashboardData.jobApplications.length > 0 ? dashboardData.jobApplications.length : (dashboardData.stats?.jobsApplied ?? '-')}</div>
+                    <div className="text-xs text-gray-600 group-hover:text-dsce-blue transition-colors">Applied</div>
+                  </Link>
                   <div className="text-center border-l border-dsce-blue/10">
                     <div className="text-lg font-bold text-dsce-blue">-</div>
                     <div className="text-xs text-gray-600">Views</div>
                   </div>
-                  <div className="text-center border-l border-dsce-blue/10">
-                    <div className="text-lg font-bold text-dsce-blue">{dashboardData.stats?.events ?? '-'}</div>
-                    <div className="text-xs text-gray-600">Events</div>
-                  </div>
+                  <Link to="/dashboard/events" className="text-center border-l border-dsce-blue/10 group cursor-pointer hover:bg-dsce-blue/5 rounded-xl p-1 transition-colors">
+                    <div className="text-lg font-bold text-dsce-blue group-hover:text-dsce-light-blue transition-colors">{dashboardData.events.length > 0 ? dashboardData.events.length : (dashboardData.stats?.events ?? '-')}</div>
+                    <div className="text-xs text-gray-600 group-hover:text-dsce-blue transition-colors">Events</div>
+                  </Link>
                 </div>
                 <Link to="/dashboard/profile">
                   <Button className="w-full rounded-full bg-dsce-gold text-dsce-blue hover:bg-dsce-gold-hover transition-all font-semibold">
@@ -521,21 +522,21 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-dsce-text-dark">Active Applications</h3>
-                <div className="flex -space-x-2">
-                  {/* Dynamic avatars or nothing if empty */}
-                </div>
+                <Link to="/jobs" className="text-xs text-dsce-blue hover:text-dsce-light-blue font-medium flex items-center gap-1 transition-colors">
+                  View all <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
 
               <div className="space-y-4">
                 {dashboardData.jobApplications.length > 0 ? (
                   dashboardData.jobApplications.map((job, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-dsce-blue/10 hover:border-dsce-light-blue/50 transition-colors group shadow-sm hover:shadow-md">
+                    <Link key={i} to="/jobs" className="flex items-center justify-between p-4 rounded-2xl bg-white border border-dsce-blue/10 hover:border-dsce-light-blue/50 hover:shadow-md transition-all group shadow-sm cursor-pointer block">
                       <div className="flex items-center space-x-4">
-                        <div className="h-10 w-10 rounded-xl bg-dsce-blue/10 flex items-center justify-center text-lg font-bold text-dsce-blue">
+                        <div className="h-10 w-10 rounded-xl bg-dsce-blue/10 flex items-center justify-center text-lg font-bold text-dsce-blue group-hover:bg-dsce-blue/20 transition-colors">
                           {job.company[0]}
                         </div>
                         <div>
-                          <h4 className="font-semibold text-dsce-text-dark">{job.role}</h4>
+                          <h4 className="font-semibold text-dsce-text-dark group-hover:text-dsce-blue transition-colors">{job.role}</h4>
                           <p className="text-xs text-gray-600">{job.company}</p>
                         </div>
                       </div>
@@ -545,11 +546,15 @@ export default function Dashboard() {
                         }`}>
                         {job.status}
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500 text-sm">
-                    No active applications.
+                  <div className="text-center py-6 text-gray-500 text-sm">
+                    <Briefcase className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                    <p>No active applications.</p>
+                    <Link to="/jobs" className="mt-3 inline-flex items-center gap-1 text-xs text-dsce-blue hover:text-dsce-light-blue font-medium transition-colors">
+                      Browse Jobs <ArrowRight className="h-3 w-3" />
+                    </Link>
                   </div>
                 )}
               </div>
@@ -994,6 +999,63 @@ export default function Dashboard() {
                     No project fundings.
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Campus Memories Marquee Strip */}
+        <style>{`
+          @keyframes campus-marquee {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .campus-marquee-track {
+            display: flex;
+            width: max-content;
+            animation: campus-marquee 300s linear infinite;
+          }
+          .campus-marquee-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+        <div style={{ marginTop: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <h3 style={{ fontWeight: 700, color: '#333333', fontSize: '1.125rem' }}>🏫 Campus Memories</h3>
+            <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontStyle: 'italic' }}>Hover to pause</span>
+          </div>
+          <div style={{
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            border: '1px solid rgba(0,51,102,0.1)',
+            boxShadow: '0 4px 16px rgba(0,51,102,0.08)',
+            background: 'linear-gradient(to right, rgba(0,51,102,0.03), rgba(0,174,239,0.05))',
+            padding: '12px 0',
+          }}>
+            <div style={{ overflow: 'hidden', width: '100%' }}>
+              <div className="campus-marquee-track">
+                {[...campusMemories, ...campusMemories].map((img, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      flexShrink: 0,
+                      width: '192px',
+                      height: '128px',
+                      borderRadius: '0.75rem',
+                      overflow: 'hidden',
+                      border: '2px solid rgba(255,255,255,0.6)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                      margin: '0 6px',
+                    }}
+                  >
+                    <img
+                      src={img}
+                      alt={`DSCE Campus ${(i % campusMemories.length) + 1}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
