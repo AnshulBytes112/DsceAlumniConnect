@@ -17,11 +17,18 @@ public class EventDTO {
     private String time;
     private String description;
     private String category;
-    private String maxParticipants;
+    private Integer maxParticipants;
+    private Integer registeredCount;
     private String registrationDeadline;
     private String virtualLink;
     private String organizerName;
     private String organizerContact;
     private String location;
     private String userRsvpStatus; // GOING, MAYBE, NOT_GOING, or null
+    private boolean featured; // Admin can feature events
+    
+    // Engagement metrics
+    private Integer likes = 0;
+    private Integer views = 0;
+    private Integer comments = 0;
 }

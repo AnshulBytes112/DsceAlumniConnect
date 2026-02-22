@@ -12,4 +12,6 @@ public interface EventRSVPRepository extends MongoRepository<EventRSVP, String> 
     List<EventRSVP> findByUserIdAndStatus(String userId, EventRSVP.RsvpStatus status);
 
     Optional<EventRSVP> findByUserIdAndEventId(String userId, String eventId);
+    
+    long countByEventIdAndStatus(String eventId, EventRSVP.RsvpStatus status);
 }

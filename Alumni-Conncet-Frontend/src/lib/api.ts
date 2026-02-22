@@ -83,21 +83,27 @@ export interface EventDTO {
     id: string;
     day: string;
     month: string;
-    title: string;
-    time: string;
     starttime?: string;
     endtime?: string;
-    location: string;
+    time?: string;
+    title: string;
     description?: string;
     category?: string;
     maxParticipants?: number;
+    registeredCount?: number;
     registrationDeadline?: string;
     virtualLink?: string;
     organizerName?: string;
     organizerContact?: string;
+    location: string;
+    featured?: boolean;
     userRsvpStatus?: 'GOING' | 'MAYBE' | 'NOT_GOING' | null;
     createdAt?: string;
     updatedAt?: string;
+    // Engagement metrics
+    likes?: number;
+    views?: number;
+    comments?: number;
 }
 
 export interface AnnouncementDTO {
@@ -194,7 +200,7 @@ class ApiClient {
 
         const timestamp = parseInt(tokenTimestamp);
         const now = Date.now();
-        return (now - timestamp) > (30 * 60 * 1000); // 30 minutes
+        return (now - timestamp) > (5 * 60 * 1000); // 5 minutes (matches backend)
     }
 
     private clearExpiredSession(): void {
@@ -384,6 +390,10 @@ class ApiClient {
         return this.get<EventDTO[]>('/events');
     }
 
+    async getFeaturedEvents(): Promise<EventDTO[]> {
+        return this.get<EventDTO[]>('/events/featured');
+    }
+
     // ✅ ADDED: Get single event by ID
     async getEventById(eventId: string): Promise<EventDTO> {
         console.log("API: Fetch event by ID:", eventId);
@@ -412,6 +422,7 @@ class ApiClient {
         const events = await this.get<EventDTO[]>('/dashboard/events');
         return events.map(event => ({
             ...event,
+            time: event.time || '',
             userRsvpStatus: event.userRsvpStatus === null ? undefined : event.userRsvpStatus
         }));
     }
@@ -427,6 +438,31 @@ class ApiClient {
             body: JSON.stringify({ status }),
         }).then(response => {
             if (!response.ok) throw new Error('Failed to RSVP');
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // ADMIN EVENT MANAGEMENT
+    // ------------------------------------------------------------------
+
+    async getAllEventsForAdmin(): Promise<EventDTO[]> {
+        return this.get<EventDTO[]>('/api/admin/events');
+    }
+
+    async featureEvent(eventId: string): Promise<EventDTO> {
+        return this.post<EventDTO>(`/api/admin/events/${eventId}/feature`, {});
+    }
+
+    async unfeatureEvent(eventId: string): Promise<EventDTO> {
+        return this.post<EventDTO>(`/api/admin/events/${eventId}/unfeature`, {});
+    }
+
+    async deleteEvent(eventId: string): Promise<void> {
+        await fetch(`${this.baseUrl}/api/admin/events/${eventId}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(true),
+        }).then(response => {
+            if (!response.ok) throw new Error('Failed to delete event');
         });
     }
 

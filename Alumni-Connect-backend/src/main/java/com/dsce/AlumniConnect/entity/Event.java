@@ -15,21 +15,27 @@ import java.time.LocalDateTime;
 public class Event {
     @Id
     private String id;
-    private String time;
-    private String title;
     private String day;
     private String month;
+    private String time;
     private String starttime;
     private String endtime;
-    private String location;
+    private String title;
     private String description;
     private String category;
-    private String maxParticipants;
+    private Integer maxParticipants;
     private String registrationDeadline;
     private String virtualLink;
     private String organizerName;
     private String organizerContact;
+    private String location;
     private String createDate;
     private String updateDate;
     private LocalDateTime eventDate;
+    private boolean featured = false; // Admin can feature events
+    
+    // Engagement metrics
+    private Integer likes = 0;
+    private Integer views = 0;
+    private Integer comments = 0;
 }

@@ -5,6 +5,7 @@ import { apiClient, type AuthResponse, type UserProfile } from '@/lib/api';
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   login: (authData: AuthResponse) => void;
   logout: () => void;
   loading: boolean;
@@ -12,7 +13,7 @@ interface AuthContextType {
   setUser: (user: UserProfile | null) => void;
 }
 
-const TOKEN_EXPIRY_TIME = 5 * 60 * 1000; 
+const TOKEN_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes (matches backend) 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -63,11 +64,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.setQueryData(['user'], userData);
   };
 
+  const isAdmin = user?.role === 'ADMIN';
+
   return (
     <AuthContext.Provider
       value={{
         user: user || null,
         isAuthenticated: !!user,
+        isAdmin,
         login,
         logout,
         loading,

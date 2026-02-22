@@ -21,6 +21,11 @@ public class EventController {
         return ResponseEntity.ok(eventService.getAllEventsWithUserStatus());
     }
 
+    @GetMapping("/featured")
+    public ResponseEntity<List<EventDTO>> getFeaturedEvents() {
+        return ResponseEntity.ok(eventService.getFeaturedEvents());
+    }
+
     @PostMapping
     public ResponseEntity<EventDTO> createEvent(@RequestBody EventDTO eventDTO) {
         return ResponseEntity.ok(eventService.createEvent(eventDTO));
@@ -36,5 +41,11 @@ public class EventController {
     @GetMapping("/{id}")
     public ResponseEntity<EventDTO> getEventById(@PathVariable String id) {
         return ResponseEntity.ok(eventService.getEventById(id));
+    }
+    
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Void> incrementViewCount(@PathVariable String id) {
+        eventService.incrementViewCount(id);
+        return ResponseEntity.ok().build();
     }
 }
