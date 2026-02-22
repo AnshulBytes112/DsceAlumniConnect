@@ -47,7 +47,7 @@ public class DashboardController {
         List<Announcement> announcements = announcementRepository.findAllByOrderByCreatedAtDesc();
         List<AnnouncementDTO> dtos = announcements.stream()
                 .map(a -> new AnnouncementDTO(
-                        (long) a.getId().hashCode(),
+                        a.getId(),
                         a.getTitle(),
                         a.getDescription(),
                         a.getTime()))
@@ -69,6 +69,7 @@ public class DashboardController {
             return ResponseEntity.ok(List.of());
         }
     }
+
     @GetMapping("/get-fundings")
     public ResponseEntity<List<FundingDTO>> getUserFundings() {
         try {
@@ -89,10 +90,10 @@ public class DashboardController {
         try {
             User currentUser = profileService.getCurrentUserProfile();
             log.info("Getting events for user: {}", currentUser.getId());
-            
+
             List<EventDTO> events = eventService.getEventsUserIsAttending();
             log.info("Found {} events user is attending", events.size());
-            
+
             return ResponseEntity.ok(events);
         } catch (Exception e) {
             log.error("Error fetching events", e);
@@ -118,7 +119,6 @@ public class DashboardController {
         }
     }
 
-
     @PostMapping("/fundings")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FundingDTO> createFunding(@RequestBody ProjectFunding funding) {
@@ -133,8 +133,7 @@ public class DashboardController {
                     savedFunding.getTitle(),
                     savedFunding.getAmount(),
                     savedFunding.getStatus(),
-                    savedFunding.getDate()
-            );
+                    savedFunding.getDate());
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             log.error("Error creating funding", e);
@@ -142,17 +141,16 @@ public class DashboardController {
         }
     }
 
-
     @PostMapping("/announcements")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AnnouncementDTO> createAnnouncement(@RequestBody Announcement announcement) {
         try {
             Announcement savedAnnouncement = announcementRepository.save(announcement);
             AnnouncementDTO dto = new AnnouncementDTO(
+                    savedAnnouncement.getId(),
                     savedAnnouncement.getTitle(),
                     savedAnnouncement.getDescription(),
-                    savedAnnouncement.getTime()
-            );
+                    savedAnnouncement.getTime());
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             log.error("Error creating announcement", e);
@@ -162,7 +160,8 @@ public class DashboardController {
 
     @PutMapping("/announcements/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AnnouncementDTO> updateAnnouncement(@PathVariable String id, @RequestBody Announcement announcement) {
+    public ResponseEntity<AnnouncementDTO> updateAnnouncement(@PathVariable String id,
+            @RequestBody Announcement announcement) {
         try {
             Announcement existingAnnouncement = announcementRepository.findById(id).orElse(null);
             if (existingAnnouncement == null) {
@@ -173,10 +172,10 @@ public class DashboardController {
             existingAnnouncement.setTime(announcement.getTime());
             Announcement savedAnnouncement = announcementRepository.save(existingAnnouncement);
             AnnouncementDTO dto = new AnnouncementDTO(
+                    savedAnnouncement.getId(),
                     savedAnnouncement.getTitle(),
                     savedAnnouncement.getDescription(),
-                    savedAnnouncement.getTime()
-            );
+                    savedAnnouncement.getTime());
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             log.error("Error updating announcement", e);

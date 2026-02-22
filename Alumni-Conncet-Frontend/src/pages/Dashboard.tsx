@@ -1,6 +1,6 @@
 ﻿import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight } from 'lucide-react';
+import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiClient, type UserProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +23,7 @@ interface DashboardStats {
 }
 
 interface Announcement {
-  id: number;
+  id: string;
   title: string;
   description: string;
   time: string;
@@ -444,12 +444,20 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <Link to="/admin/analytics">
-                  <Button className="w-full bg-dsce-gold text-dsce-blue hover:bg-dsce-gold/90 border-none font-bold rounded-xl h-11 flex items-center justify-between group/btn">
-                    Platform Management
-                    <ArrowRight size={16} className="transform group-hover/btn:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
+                <div className="space-y-3">
+                  <Link to="/admin/analytics">
+                    <Button className="w-full bg-dsce-gold text-dsce-blue hover:bg-dsce-gold/90 border-none font-bold rounded-xl h-11 flex items-center justify-between group/btn text-xs">
+                      Platform Management
+                      <ArrowRight size={16} className="transform group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                  <Link to="/admin/manager">
+                    <Button variant="outline" className="w-full border-dsce-gold/30 text-dsce-gold hover:bg-dsce-gold hover:text-dsce-blue font-bold rounded-xl h-11 flex items-center justify-between group/btn text-xs mt-2">
+                      Announcement Manager
+                      <Megaphone size={16} className="transform group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
 
                 {adminStats && adminStats.pendingVerifications > 0 && (
                   <Link to="/admin/verification" className="block mt-4 text-center text-xs text-dsce-gold hover:underline font-medium">

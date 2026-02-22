@@ -101,7 +101,7 @@ export interface EventDTO {
 }
 
 export interface AnnouncementDTO {
-    id: number;
+    id: string;
     title: string;
     description: string;
     time: string;
@@ -542,19 +542,19 @@ class ApiClient {
     }
 
     async getAnnouncements(): Promise<AnnouncementDTO[]> {
-        return this.get<AnnouncementDTO[]>('/api/announcements');
+        return this.get<AnnouncementDTO[]>('/api/dashboard/announcements');
     }
 
     async createAnnouncement(announcement: Partial<AnnouncementDTO>): Promise<AnnouncementDTO> {
-        return this.post<AnnouncementDTO>('/api/announcements', announcement);
+        return this.post<AnnouncementDTO>('/api/dashboard/announcements', announcement);
     }
 
-    async updateAnnouncement(id: number, announcement: Partial<AnnouncementDTO>): Promise<AnnouncementDTO> {
-        return this.put<AnnouncementDTO>(`/api/announcements/${id}`, announcement);
+    async updateAnnouncement(id: string, announcement: Partial<AnnouncementDTO>): Promise<AnnouncementDTO> {
+        return this.put<AnnouncementDTO>(`/api/dashboard/announcements/${id}`, announcement);
     }
 
-    async deleteAnnouncement(id: number): Promise<void> {
-        await this.delete(`/api/announcements/${id}`);
+    async deleteAnnouncement(id: string): Promise<void> {
+        await this.delete(`/api/dashboard/announcements/${id}`);
     }
 
     async getJobApplications() {

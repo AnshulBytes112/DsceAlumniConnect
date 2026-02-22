@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, ShieldCheck, Briefcase, Image, BarChart3 } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, User, Users, LogOut, LogIn, UserPlus, Bell, Settings, Calendar, ShieldCheck, Briefcase, Image, BarChart3, Globe } from 'lucide-react';
 import { ExpandableTabs } from '@/components/ui/expandable-tabs';
 import { MobileNavbar } from './MobileNavbar';
 
@@ -42,15 +42,16 @@ export default function GlobalNavbar() {
     { title: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     ...(user?.role !== 'ADMIN' ? [{ title: 'Profile', icon: User, href: '/dashboard/profile' }] : []),
     { title: 'Alumni', icon: Users, href: '/alumni' },
-    { title: 'Announcements', icon: Bell, href: '/dashboard/announcements' },
+    // { title: 'Announcements', icon: Bell, href: '/dashboard/announcements' },
     { title: 'Events', icon: Calendar, href: '/dashboard/events' },
-    { title: 'Global Posts', icon: Users, href: '/dashboard/posts' },
+    { title: 'Global Posts', icon: Globe, href: '/dashboard/posts' },
     { title: 'Jobs', icon: Briefcase, href: '/jobs' },
 
     // Admin Links
     ...(user?.role === 'ADMIN' ? [
       { title: 'Verification', icon: ShieldCheck, href: '/admin/verification', badge: pendingCount },
-      { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' }
+      { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
+      { title: 'Announcement Manager', icon: Bell, href: '/admin/manager' }
     ] : []),
     { type: 'separator' } as const,
     { title: 'Settings', icon: Settings, href: '/dashboard/settings' },

@@ -78,7 +78,7 @@ function App() {
               <Route element={<AdminRoute />}>
                 <Route path="/admin/verification" element={<AdminVerification />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                <Route path="/admin/announcements" element={<AnnouncementManager />} />
+                <Route path="/admin/manager" element={<AnnouncementManager />} />
               </Route>
 
               {/* Public fallback for unauthenticated users */}

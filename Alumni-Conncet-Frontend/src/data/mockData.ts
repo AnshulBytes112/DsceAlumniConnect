@@ -26,11 +26,11 @@ export const latestNews = [
 ];
 
 export const upcomingEvents = [
-    { 
-        id: '1', 
-        day: '12', 
-        month: 'DEC', 
-        title: 'Annual Alumni Reunion', 
+    {
+        id: '1',
+        day: '12',
+        month: 'DEC',
+        title: 'Annual Alumni Reunion',
         time: '10:00 AM - 5:00 PM',
         starttime: '10:00',
         endtime: '17:00',
@@ -43,11 +43,11 @@ export const upcomingEvents = [
         organizerName: 'DSCE Alumni Association',
         organizerContact: 'alumni@dsce.edu'
     },
-    { 
-        id: '2', 
-        day: '05', 
-        month: 'JAN', 
-        title: 'Tech Talk: Future of AI', 
+    {
+        id: '2',
+        day: '05',
+        month: 'JAN',
+        title: 'Tech Talk: Future of AI',
         time: '2:00 PM - 4:00 PM',
         starttime: '14:00',
         endtime: '16:00',
@@ -60,11 +60,11 @@ export const upcomingEvents = [
         organizerName: 'Computer Science Department',
         organizerContact: 'cs@dsce.edu'
     },
-    { 
-        id: '3', 
-        day: '20', 
-        month: 'JAN', 
-        title: 'Startup Mentorship Session', 
+    {
+        id: '3',
+        day: '20',
+        month: 'JAN',
+        title: 'Startup Mentorship Session',
         time: '11:00 AM - 1:00 PM',
         starttime: '11:00',
         endtime: '13:00',
@@ -101,19 +101,19 @@ export const dashboardStats = [
 
 export const dashboardAnnouncements = [
     {
-        id: 1,
+        id: '1',
         title: 'Alumni Meetup 2025',
         description: 'Join us for the annual alumni meetup at the main campus auditorium. Connect with fellow graduates and professors.',
         time: '2 hours ago',
     },
     {
-        id: 2,
+        id: '2',
         title: 'New Mentorship Program',
         description: 'We are launching a new mentorship program for recent graduates. Sign up now to become a mentor or mentee.',
         time: '1 day ago',
     },
     {
-        id: 3,
+        id: '3',
         title: 'Campus Recruitment Drive',
         description: 'Top tech companies are visiting the campus next week. Update your profiles and get ready for interviews.',
         time: '2 days ago',
