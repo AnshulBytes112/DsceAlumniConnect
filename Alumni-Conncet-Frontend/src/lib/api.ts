@@ -630,6 +630,19 @@ class ApiClient {
         return response.json();
     }
 
+    async getAlumniById(id: string): Promise<UserProfile> {
+        const response = await fetch(`${this.baseUrl}/alumni/${id}`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch alumni profile for id: ${id}`);
+        }
+
+        return response.json();
+    }
+
     async uploadResume(resume: File, replaceExisting: boolean = false) {
         const formData = new FormData();
         formData.append('file', resume);
