@@ -141,4 +141,58 @@ public class DashboardController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+
+    @PostMapping("/announcements")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AnnouncementDTO> createAnnouncement(@RequestBody Announcement announcement) {
+        try {
+            Announcement savedAnnouncement = announcementRepository.save(announcement);
+            AnnouncementDTO dto = new AnnouncementDTO(
+                    savedAnnouncement.getTitle(),
+                    savedAnnouncement.getDescription(),
+                    savedAnnouncement.getTime()
+            );
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            log.error("Error creating announcement", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/announcements/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AnnouncementDTO> updateAnnouncement(@PathVariable String id, @RequestBody Announcement announcement) {
+        try {
+            Announcement existingAnnouncement = announcementRepository.findById(id).orElse(null);
+            if (existingAnnouncement == null) {
+                return ResponseEntity.notFound().build();
+            }
+            existingAnnouncement.setTitle(announcement.getTitle());
+            existingAnnouncement.setDescription(announcement.getDescription());
+            existingAnnouncement.setTime(announcement.getTime());
+            Announcement savedAnnouncement = announcementRepository.save(existingAnnouncement);
+            AnnouncementDTO dto = new AnnouncementDTO(
+                    savedAnnouncement.getTitle(),
+                    savedAnnouncement.getDescription(),
+                    savedAnnouncement.getTime()
+            );
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            log.error("Error updating announcement", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/announcements/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteAnnouncement(@PathVariable String id) {
+        try {
+            announcementRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error deleting announcement", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
