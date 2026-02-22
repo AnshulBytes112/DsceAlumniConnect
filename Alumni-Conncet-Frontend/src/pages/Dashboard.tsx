@@ -14,6 +14,7 @@ import {
   mockCredentials
 } from '@/data/mockData';
 import PostModal from '@/components/posts/PostModal';
+import { ApplicationTracker } from '@/components/ApplicationTracker';
 
 // Define types for dashboard data
 interface DashboardStats {
@@ -521,38 +522,9 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-dsce-text-dark">Active Applications</h3>
-                <div className="flex -space-x-2">
-                  {/* Dynamic avatars or nothing if empty */}
-                </div>
               </div>
 
-              <div className="space-y-4">
-                {dashboardData.jobApplications.length > 0 ? (
-                  dashboardData.jobApplications.map((job, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-dsce-blue/10 hover:border-dsce-light-blue/50 transition-colors group shadow-sm hover:shadow-md">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-10 w-10 rounded-xl bg-dsce-blue/10 flex items-center justify-center text-lg font-bold text-dsce-blue">
-                          {job.company[0]}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-dsce-text-dark">{job.role}</h4>
-                          <p className="text-xs text-gray-600">{job.company}</p>
-                        </div>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${job.status === 'Interview' ? 'bg-dsce-gold/20 text-dsce-blue' :
-                        job.status === 'Applied' ? 'bg-dsce-light-blue/20 text-dsce-blue' :
-                          'bg-red-500/20 text-red-700'
-                        }`}>
-                        {job.status}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500 text-sm">
-                    No active applications.
-                  </div>
-                )}
-              </div>
+              <ApplicationTracker />
             </div>
           </div>
 

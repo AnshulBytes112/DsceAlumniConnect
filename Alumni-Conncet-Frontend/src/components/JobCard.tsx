@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/Button';
 interface JobCardProps {
     job: JobPostDTO;
     onDelete: (id: string) => void;
+    onApply?: (job: JobPostDTO) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onDelete, onApply }) => {
     const { user } = useAuth();
     const isOwner = user?.id === job.postedById || user?.role === 'ADMIN';
 
@@ -77,15 +78,15 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
                             onClick={() => window.open(job.applicationLink, '_blank')}
                         >
                             <ExternalLink size={14} className="mr-2" />
-                            Apply Now
+                            External Apply
                         </Button>
                     ) : (
                         <Button
                             className="flex-1 bg-dsce-blue text-white hover:bg-dsce-blue/90 h-9 text-sm"
-                            onClick={() => job.contactEmail && (window.location.href = `mailto:${job.contactEmail}`)}
+                            onClick={() => onApply && onApply(job)}
                         >
-                            <Mail size={14} className="mr-2" />
-                            Email
+                            <Briefcase size={14} className="mr-2" />
+                            Easy Apply
                         </Button>
                     )}
 
