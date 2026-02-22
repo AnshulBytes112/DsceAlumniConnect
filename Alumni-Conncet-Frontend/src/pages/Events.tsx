@@ -5,12 +5,14 @@ import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
-import { Calendar, Plus, Clock, MapPin, Users, Loader2, X, Check, HelpCircle, FileText, Search, Star, TrendingUp, Eye, Heart, MessageCircle } from 'lucide-react';
+import { Calendar, Plus, Clock, MapPin, Users, Loader2, X, Check, HelpCircle, FileText, Search, TrendingUp, Eye, Heart, MessageCircle } from 'lucide-react';
 import { apiClient, type EventDTO } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import { Crown, Star, Trash2 } from 'lucide-react';
 
 const Events = () => {
   const [events, setEvents] = useState<EventDTO[]>([]);
+  const [featuredEvents, setFeaturedEvents] = useState<EventDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [rsvpModalEventId, setRsvpModalEventId] = useState<string | null>(null);
@@ -19,7 +21,7 @@ const Events = () => {
   const [sortBy, setSortBy] = useState('date');
   const { toast } = useToast();
   const navigate = useNavigate();
-
+  
   const [newEvent, setNewEvent] = useState({
     title: '',
     day: '',
@@ -38,8 +40,12 @@ const Events = () => {
 
   const fetchEvents = async () => {
     try {
-      const data = await apiClient.getAllEvents();
-      setEvents(data);
+      const [allEvents, featured] = await Promise.all([
+        apiClient.getAllEvents(),
+        apiClient.getFeaturedEvents()
+      ]);
+      setEvents(allEvents);
+      setFeaturedEvents(featured);
     } catch (error) {
       console.error('Failed to fetch events', error);
       toast({
@@ -101,6 +107,41 @@ const Events = () => {
     }
   };
 
+  const handleFeatureEvent = async (eventId: string) => {
+    try {
+      await apiClient.featureEvent(eventId);
+      toast({ title: "Success", description: "Event featured successfully!" });
+      fetchEvents();
+    } catch (error) {
+      console.error('Failed to feature event', error);
+      toast({ title: "Error", description: "Failed to feature event.", variant: "destructive" });
+    }
+  };
+
+  const handleUnfeatureEvent = async (eventId: string) => {
+    try {
+      await apiClient.unfeatureEvent(eventId);
+      toast({ title: "Success", description: "Event unfeatured successfully!" });
+      fetchEvents();
+    } catch (error) {
+      console.error('Failed to unfeature event', error);
+      toast({ title: "Error", description: "Failed to unfeature event.", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    
+    try {
+      await apiClient.deleteEvent(eventId);
+      toast({ title: "Success", description: "Event deleted successfully!" });
+      fetchEvents();
+    } catch (error) {
+      console.error('Failed to delete event', error);
+      toast({ title: "Error", description: "Failed to delete event.", variant: "destructive" });
+    }
+  };
+
   const handleRsvp = async (status: string) => {
     if (!rsvpModalEventId) return;
     try {
@@ -128,7 +169,6 @@ const Events = () => {
     })
     .sort((a, b) => {
       if (sortBy === 'date') {
-        // Sort by month and day (simplified - in real app would use proper date parsing)
         const monthOrder = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         const monthDiff = monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month);
         if (monthDiff !== 0) return monthDiff;
@@ -149,7 +189,6 @@ const Events = () => {
       </Helmet>
 
       <div className="max-w-[1600px] mx-auto p-6 pt-32">
-        {/* Header Section */}
         <div className="mb-10">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
             <div>
@@ -179,7 +218,6 @@ const Events = () => {
             </Button>
           </div>
 
-          {/* Search and Filter Bar */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-dsce-blue/10">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1 relative">
@@ -234,14 +272,14 @@ const Events = () => {
         ) : (
           <>
             {/* Featured Events */}
-            {filteredEvents.length > 0 && (
+            {featuredEvents.length > 0 && (
               <div className="mb-12">
                 <h2 className="text-2xl font-bold text-dsce-text-dark mb-6 flex items-center">
                   <Star className="w-6 h-6 mr-2 text-yellow-500" />
                   Featured Events
                 </h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {filteredEvents.slice(0, 2).map((event) => (
+                  {featuredEvents.map((event) => (
                     <motion.div
                       key={event.id}
                       initial={{ opacity: 0, y: 20 }}

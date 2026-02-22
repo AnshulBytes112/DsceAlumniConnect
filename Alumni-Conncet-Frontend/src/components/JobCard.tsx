@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { apiClient, type JobPostDTO } from '../lib/api';
 import { Calendar, MapPin, Building, Trash2, Mail, ExternalLink, Briefcase } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDate } from '../lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
+import ConfirmDialog from './ConfirmDialog';
 
 interface JobCardProps {
     job: JobPostDTO;
@@ -14,24 +15,32 @@ interface JobCardProps {
 const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
     const { user } = useAuth();
     const isOwner = user?.id === job.postedById || user?.role === 'ADMIN';
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
-        if (confirm('Are you sure you want to delete this job posting?')) {
-            try {
-                await apiClient.deleteJob(job.id);
-                onDelete(job.id);
-            } catch (error) {
-                console.error("Failed to delete job:", error);
-                alert("Failed to delete job.");
-            }
+        setIsDeleting(true);
+        try {
+            await apiClient.deleteJob(job.id);
+            onDelete(job.id);
+        } catch (error) {
+            console.error("Failed to delete job:", error);
+            alert("Failed to delete job.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
+    const openDeleteDialog = () => {
+        setShowDeleteDialog(true);
+    };
+
     return (
-        <motion.div
-            whileHover={{ y: -5 }}
-            className="group bg-white rounded-2xl border border-dsce-blue/5 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full"
-        >
+        <>
+            <motion.div
+                whileHover={{ y: -5 }}
+                className="group bg-white rounded-2xl border border-dsce-blue/5 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full"
+            >
             <div className="p-6 flex-1">
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-start gap-4">
@@ -91,9 +100,10 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
 
                     {isOwner && (
                         <button
-                            onClick={handleDelete}
+                            onClick={openDeleteDialog}
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 bg-white"
                             title="Delete Job"
+                            disabled={isDeleting}
                         >
                             <Trash2 size={16} />
                         </button>
@@ -104,6 +114,18 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
                 </div>
             </div>
         </motion.div>
+        
+        <ConfirmDialog
+            isOpen={showDeleteDialog}
+            onClose={() => setShowDeleteDialog(false)}
+            onConfirm={handleDelete}
+            title="Delete Job Posting"
+            message={`Are you sure you want to delete the job posting for "${job.title}" at ${job.company}? This action cannot be undone.`}
+            confirmText="Delete Job"
+            cancelText="Cancel"
+            type="danger"
+        />
+        </>
     );
 };
 

@@ -34,6 +34,7 @@ import EventDetails from './pages/EventDetails';
 const AdminVerification = lazy(() => import('./pages/AdminVerification'));
 const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
 const AnnouncementManager = lazy(() => import('./pages/AnnouncementManager'));
+const AdminEventManagement = lazy(() => import('./pages/AdminEventManagement'));
 
 
 import Gallery from './pages/Gallery';
@@ -79,6 +80,7 @@ function App() {
                 <Route path="/admin/verification" element={<AdminVerification />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/manager" element={<AnnouncementManager />} />
+                <Route path="/admin/events" element={<AdminEventManagement />} />
               </Route>
 
               {/* Public fallback for unauthenticated users */}

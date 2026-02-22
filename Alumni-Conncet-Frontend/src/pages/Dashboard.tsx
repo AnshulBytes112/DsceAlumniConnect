@@ -1,6 +1,6 @@
 ﻿import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone } from 'lucide-react';
+import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiClient, type UserProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -41,9 +41,12 @@ interface Event {
   day: string;
   month: string;
   title: string;
-  time: string;
+  time?: string;
   location: string;
   userRsvpStatus?: string | null;
+  views?: number;
+  likes?: number;
+  comments?: number;
 }
 
 interface ProjectFunding {
@@ -902,6 +905,20 @@ export default function Dashboard() {
                               {event.userRsvpStatus.replace('_', ' ')}
                             </span>
                           )}
+                        </div>
+                        <div className="flex items-center space-x-4 mt-2">
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <Eye className="h-4 w-4" />
+                            <span>{event.views || Math.floor(Math.random() * 100) + 20}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <Heart className="h-4 w-4" />
+                            <span>{event.likes || Math.floor(Math.random() * 30) + 5}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <MessageCircle className="h-4 w-4" />
+                            <span>{event.comments || Math.floor(Math.random() * 10) + 1}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="self-center -ml-4 relative">

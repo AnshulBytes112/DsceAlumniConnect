@@ -12,7 +12,9 @@ import {
   Activity,
   BarChart3,
   RefreshCw,
-  Zap
+  Zap,
+  Crown,
+  Star
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import MotionWrapper from '@/components/ui/MotionWrapper';
@@ -135,6 +137,15 @@ export default function AdminAnalytics() {
       bg: 'bg-purple-50',
       link: '/dashboard/events',
       actionText: 'Event Planner'
+    },
+    {
+      title: 'Event Management',
+      value: 'Manage',
+      icon: Star,
+      color: 'text-yellow-600',
+      bg: 'bg-yellow-50',
+      link: '/admin/events',
+      actionText: 'Control Events'
     },
   ];
 

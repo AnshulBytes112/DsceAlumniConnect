@@ -70,6 +70,14 @@ public class EventService {
         return events;
     }
 
+    public List<EventDTO> getFeaturedEvents() {
+        List<Event> events = eventRepository.findAll();
+        return events.stream()
+                .filter(Event::isFeatured)
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     public EventDTO createEvent(EventDTO eventDTO) {
         Event event = new Event();
         event.setTitle(eventDTO.getTitle());
@@ -86,6 +94,7 @@ public class EventService {
         event.setOrganizerName(eventDTO.getOrganizerName());
         event.setOrganizerContact(eventDTO.getOrganizerContact());
         event.setLocation(eventDTO.getLocation());
+        event.setFeatured(eventDTO.isFeatured());
 
         event.setEventDate(LocalDateTime.now()); // Simplified date handling
         
@@ -158,6 +167,26 @@ public class EventService {
         dto.setOrganizerName(event.getOrganizerName());
         dto.setOrganizerContact(event.getOrganizerContact());
         dto.setLocation(event.getLocation());
+        dto.setFeatured(event.isFeatured());
+        
+        long registeredCount = eventRSVPRepository.countByEventIdAndStatus(event.getId(), EventRSVP.RsvpStatus.GOING);
+        dto.setRegisteredCount((int) registeredCount);
+        
+        // Set engagement metrics
+        dto.setLikes(event.getLikes());
+        dto.setViews(event.getViews());
+        dto.setComments(event.getComments());
+        
         return dto;
+    }
+    
+    public void incrementViewCount(String eventId) {
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (eventOpt.isPresent()) {
+            Event event = eventOpt.get();
+            event.setViews((event.getViews() != null ? event.getViews() : 0) + 1);
+            eventRepository.save(event);
+            log.info("Incremented view count for event: {}", eventId);
+        }
     }
 }

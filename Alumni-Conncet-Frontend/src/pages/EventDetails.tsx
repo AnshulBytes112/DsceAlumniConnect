@@ -54,9 +54,9 @@ const EventDetails = () => {
       const data = await apiClient.getEventById(eventId);
       setEvent(data);
       
-      // Simulate engagement metrics
-      setViewCount(Math.floor(Math.random() * 500) + 100);
-      setLikeCount(Math.floor(Math.random() * 100) + 20);
+      // Use real engagement metrics from event data
+      setViewCount(data.views || 0);
+      setLikeCount(data.likes || 0);
     } catch (error) {
       console.error("Error fetching event:", error);
       toast({
@@ -280,7 +280,7 @@ END:VCALENDAR`;
                     </button>
                     <div className="flex items-center gap-2 text-gray-600">
                       <MessageCircle className="w-5 h-5" />
-                      <span className="font-medium">{Math.floor(Math.random() * 50) + 10}</span>
+                      <span className="font-medium">{event.comments || 0}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <Eye className="w-5 h-5" />
@@ -312,16 +312,22 @@ END:VCALENDAR`;
                         <Users className="w-5 h-5 text-dsce-blue" />
                         <span className="font-medium text-dsce-text-dark">Available Seats</span>
                       </div>
-                      <span className="text-2xl font-bold text-dsce-blue">{event.maxParticipants}</span>
+                      <span className="text-2xl font-bold text-dsce-blue">
+                        {Math.max(0, parseInt(String(event.maxParticipants || '0')) - (event.registeredCount || 0))}
+                      </span>
                     </div>
                     <div className="mt-3">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
                           className="bg-dsce-blue h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${Math.min(75, Math.random() * 100)}%` }}
+                          style={{ 
+                            width: `${Math.min(100, ((event.registeredCount || 0) / parseInt(String(event.maxParticipants || '0'))) * 100)}%` 
+                          }}
                         />
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">{Math.floor(Math.random() * 50) + 10} people already registered</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {event.registeredCount || 0} people already registered
+                      </p>
                     </div>
                   </div>
                 )}
