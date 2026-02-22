@@ -16,6 +16,8 @@ import {
 export default function Landing() {
   const { isAuthenticated } = useAuth();
 
+  const campusRows = [campusMemories];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800">
       <Helmet>
@@ -348,26 +350,25 @@ export default function Landing() {
           {/* College Photo Gallery */}
           <div>
             <h3 className="text-2xl font-bold mb-12 text-center">CAMPUS <span className="text-dsce-blue">MEMORIES</span></h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {campusMemories.map((image, i) => (
-                <motion.div
-                  key={i}
-                  className="relative overflow-hidden rounded-xl group cursor-pointer"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.05 }}
-                >
-                  <img 
-                    src={image} 
-                    alt={`DSCE Campus ${i + 1}`}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-dsce-blue font-semibold">
-                    DSCE Campus
+            <div>
+              {campusRows.map((rowImages, rowIndex) => (
+                <div key={rowIndex} className="overflow-hidden">
+                  <div className="flex w-max gap-4 animate-campus-scroll">
+                    {[...rowImages, ...rowImages, ...rowImages, ...rowImages].map((image, i) => (
+                      <div key={`${rowIndex}-${i}`} className="relative overflow-hidden rounded-xl group cursor-pointer shadow shrink-0">
+                        <img
+                          src={image}
+                          alt={`DSCE Campus ${rowIndex + 1}-${i + 1}`}
+                          className="w-[250px] h-[190px] object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-dsce-blue font-semibold">
+                          DSCE Campus
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>

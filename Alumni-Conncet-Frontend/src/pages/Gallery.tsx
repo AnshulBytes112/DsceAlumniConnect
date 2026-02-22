@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { mockAlumni, campusMemories, upcomingEvents } from '@/data/mockData';
+import { mockAlumni, upcomingEvents } from '@/data/mockData';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 
@@ -8,6 +8,53 @@ const TABS = [
 	{ label: 'Campus', value: 'campus' },
 	{ label: 'Events', value: 'events' },
 ];
+
+const campusGalleryImages = [
+	'https://www.dsce.edu.in/images/Gallery/2.jpg',
+	'https://www.dsce.edu.in/images/Gallery/20.JPG',
+	'https://www.dsce.edu.in/images/Gallery/21.JPG',
+	'https://www.dsce.edu.in/images/Gallery/22.JPG',
+	'https://www.dsce.edu.in/images/Gallery/23.JPG',
+	'https://www.dsce.edu.in/images/Gallery/24.JPG',
+	'https://www.dsce.edu.in/images/Gallery/25.JPG',
+	'https://www.dsce.edu.in/images/Gallery/26.JPG',
+	'https://www.dsce.edu.in/images/Gallery/27.JPG',
+	'https://www.dsce.edu.in/images/Gallery/28.JPG',
+	'https://www.dsce.edu.in/images/Gallery/29.JPG',
+	'https://www.dsce.edu.in/images/Gallery/3.jpg',
+	'https://www.dsce.edu.in/images/Gallery/30.JPG',
+	'https://www.dsce.edu.in/images/Gallery/31.JPG',
+	'https://www.dsce.edu.in/images/Gallery/32.JPG',
+	'https://image-static.collegedunia.com/public/reviewPhotos/1138713/Mech.jpeg',
+	'https://image-static.collegedunia.com/public/reviewPhotos/1052623/1000053507.jpg',
+	'https://image-static.collegedunia.com/public/reviewPhotos/1138713/download.jpeg',
+	'https://image-static.collegedunia.com/public/reviewPhotos/1138713/Campus.jpeg',
+	'https://image-static.collegedunia.com/public/reviewPhotos/1049554/WhatsApp%20Image%202025-01-13%20at%2015.39.33_5528f4e8.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/15676586023evnntt.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602eervnnt.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602eregvennnttttt.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602errevnt.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602ervent.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602evejntt.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602eventr.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531393.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531394.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531396.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531397.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531398.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531399.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/159015314010.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/159015314012.jpg',
+	'https://image-static.collegedunia.com/public/college_data/images/campusimage/159015314013.jpg',
+];
+
+const campusGalleryRows = Array.from({ length: 4 }, (_, rowIndex) => {
+	const shift = (rowIndex * 3) % campusGalleryImages.length;
+	return [
+		...campusGalleryImages.slice(shift),
+		...campusGalleryImages.slice(0, shift),
+	];
+});
 
 export default function Gallery() {
 	const [tab, setTab] = useState('achievers');
@@ -55,10 +102,16 @@ export default function Gallery() {
 			{tab === 'campus' && (
 				<div>
 					<h2 className="text-2xl font-bold mb-6 text-center">Campus Memories</h2>
-					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-						{campusMemories.map((img, i) => (
-							<div key={i} className="overflow-hidden rounded-xl shadow">
-								<img src={img} alt={`Campus ${i + 1}`} className="w-full h-64 object-cover" />
+					<div className="space-y-4">
+						{campusGalleryRows.map((rowImages, rowIndex) => (
+							<div key={rowIndex} className="overflow-hidden">
+								<div className={`flex w-max gap-4 ${rowIndex % 2 === 0 ? 'animate-campus-scroll' : 'animate-campus-scroll-reverse'}`}>
+									{[...rowImages, ...rowImages, ...rowImages, ...rowImages].map((img, i) => (
+										<div key={`${rowIndex}-${i}`} className="overflow-hidden rounded-xl shadow shrink-0 group">
+											<img src={img} alt={`Campus ${rowIndex + 1}-${i + 1}`} className="w-[250px] h-[190px] object-cover transition-transform duration-300 group-hover:scale-110" />
+										</div>
+									))}
+								</div>
 							</div>
 						))}
 					</div>

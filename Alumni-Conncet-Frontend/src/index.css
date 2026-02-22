@@ -72,3 +72,20 @@ body {
 .border-dsce-blue {
   border-color: var(--color-dsce-blue);
 }
+
+@keyframes campus-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-campus-scroll {
+  animation: campus-scroll 300s linear infinite;
+}
+
+.animate-campus-scroll-reverse {
+  animation: campus-scroll 300s linear infinite reverse;
+}
