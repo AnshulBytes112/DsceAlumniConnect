@@ -9,6 +9,4 @@ import java.util.List;
 @Repository
 public interface JobApplicationRepository extends MongoRepository<JobApplication, String> {
     List<JobApplication> findByUserId(String userId);
-
-    List<JobApplication> findByJobId(String jobId);
 }

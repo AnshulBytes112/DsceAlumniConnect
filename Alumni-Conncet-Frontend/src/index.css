@@ -76,24 +76,3 @@ body {
 .border-dsce-blue {
   border-color: var(--color-dsce-blue);
 }
-
-/* Campus Memories Marquee Strip */
-@keyframes marquee-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-scroll 300s linear infinite;
-}
-
-.marquee-track:hover {
-  animation-play-state: paused;
-}
-
-.marquee-wrapper {
-  overflow: hidden;
-  width: 100%;
-}

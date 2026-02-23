@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JobApplicationDTO {
-    private String id;
-    private String jobId;
     private String company;
     private String role;
     private String status;
