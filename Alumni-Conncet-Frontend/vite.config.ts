@@ -6,6 +6,11 @@ import path from "path"
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Some browser-targeted dependencies (e.g. sockjs-client) still reference `global`.
+  // In Vite, `global` is not defined by default, so map it to the standard `globalThis`.
+  define: {
+    global: 'globalThis',
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Search, Briefcase, RefreshCw, X, Filter } from 'lucide-react';
+import { Plus, Search, Briefcase, RefreshCw, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../lib/api';
 import type { JobPostDTO } from '../lib/api';

@@ -48,18 +48,17 @@ public class SpringSecurity {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/api/resume/parse").permitAll() // Resume parser endpoint
-                        .requestMatchers("/api/profile/resume").permitAll() // Resume upload endpoint
+                        .requestMatchers("/api/resume/parse").permitAll()
+                        .requestMatchers("/api/profile/resume").permitAll()
                         .requestMatchers("/chat.html").permitAll()
-                        .requestMatchers("/uploads/**").permitAll() // Allow public access to uploaded images
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/ws-forum", "/ws-forum/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/resume/**").hasRole("ADMIN")
-                        .requestMatchers("/dashboard/fundings", "/comments/**").authenticated() // Allow authenticated
-                                                                                                // users to access
-                                                                                                // comments
-                        .requestMatchers("/api/profile/**").authenticated() // Profile endpoints require authentication
+                        .requestMatchers("/dashboard/fundings", "/comments/**").authenticated()
+                        .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers("/users/*/resume").authenticated()
-                        .requestMatchers("/api/jobs/**").authenticated() // Job Postings require authentication
+                        .requestMatchers("/api/jobs/**").authenticated()
                         .requestMatchers("/alumni/**", "/profiles/**").permitAll()
                         .anyRequest().authenticated());
 

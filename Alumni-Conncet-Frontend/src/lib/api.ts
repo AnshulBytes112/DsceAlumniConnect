@@ -1,5 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080'; // Uses Vite env var or fallback to relative path for proxy
-import { id } from 'zod/v4/locales';
+const API_BASE_URL = 'http://localhost:8080';
 import {
     upcomingEvents,
     mockCredentials
@@ -837,9 +836,209 @@ class ApiClient {
             throw new Error('Failed to delete job');
         }
     }
+
+    // ------------------------------------------------------------------
+    // DISCUSSION FORUMS API
+    // ------------------------------------------------------------------
+
+    // Groups
+    async getAllDiscussionGroups(category?: string, search?: string): Promise<DiscussionGroup[]> {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (search) params.append('search', search);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.get<DiscussionGroup[]>(`/discussions/groups${query}`);
+    }
+
+    async getDiscussionGroupById(id: string): Promise<DiscussionGroup> {
+        return this.get<DiscussionGroup>(`/discussions/groups/${id}`);
+    }
+
+    async createDiscussionGroup(group: Partial<DiscussionGroup>): Promise<DiscussionGroup> {
+        return this.post<DiscussionGroup>('/discussions/groups', group);
+    }
+
+    async updateDiscussionGroup(id: string, group: Partial<DiscussionGroup>): Promise<DiscussionGroup> {
+        const response = await fetch(`${this.baseUrl}/discussions/groups/${id}`, {
+            method: 'PUT',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(group),
+        });
+        if (!response.ok) throw new Error('Failed to update group');
+        return response.json();
+    }
+
+    async deleteDiscussionGroup(id: string): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/discussions/groups/${id}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(true),
+        });
+        if (!response.ok) throw new Error('Failed to delete group');
+    }
+
+    async joinDiscussionGroup(id: string): Promise<{ message: string }> {
+        return this.post<{ message: string }>(`/discussions/groups/${id}/join`, {});
+    }
+
+    async leaveDiscussionGroup(id: string): Promise<{ message: string }> {
+        return this.post<{ message: string }>(`/discussions/groups/${id}/leave`, {});
+    }
+
+    async getMyDiscussionGroups(): Promise<DiscussionGroup[]> {
+        return this.get<DiscussionGroup[]>('/discussions/groups/my-groups');
+    }
+
+    async getDiscussionGroupCategories(): Promise<string[]> {
+        return this.get<string[]>('/discussions/groups/categories');
+    }
+
+    // Topics
+    async getTopicsByGroup(groupId: string, sortBy: 'activity' | 'newest' = 'activity'): Promise<DiscussionTopic[]> {
+        return this.get<DiscussionTopic[]>(`/discussions/topics/group/${groupId}?sortBy=${sortBy}`);
+    }
+
+    async getDiscussionTopicById(id: string): Promise<DiscussionTopic> {
+        return this.get<DiscussionTopic>(`/discussions/topics/${id}`);
+    }
+
+    async createDiscussionTopic(topic: Partial<DiscussionTopic>): Promise<DiscussionTopic> {
+        return this.post<DiscussionTopic>('/discussions/topics', topic);
+    }
+
+    async updateDiscussionTopic(id: string, topic: Partial<DiscussionTopic>): Promise<DiscussionTopic> {
+        const response = await fetch(`${this.baseUrl}/discussions/topics/${id}`, {
+            method: 'PUT',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(topic),
+        });
+        if (!response.ok) throw new Error('Failed to update topic');
+        return response.json();
+    }
+
+    async deleteDiscussionTopic(id: string): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/discussions/topics/${id}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(true),
+        });
+        if (!response.ok) throw new Error('Failed to delete topic');
+    }
+
+    async pinDiscussionTopic(id: string): Promise<{ message: string; isPinned: boolean }> {
+        return this.post<{ message: string; isPinned: boolean }>(`/discussions/topics/${id}/pin`, {});
+    }
+
+    async lockDiscussionTopic(id: string): Promise<{ message: string; isLocked: boolean }> {
+        return this.post<{ message: string; isLocked: boolean }>(`/discussions/topics/${id}/lock`, {});
+    }
+
+    async likeDiscussionTopic(id: string): Promise<{ message: string; likeCount: number; isLiked: boolean }> {
+        return this.post<{ message: string; likeCount: number; isLiked: boolean }>(`/discussions/topics/${id}/like`, {});
+    }
+
+    // Posts
+    async getPostsByTopic(topicId: string): Promise<DiscussionPost[]> {
+        return this.get<DiscussionPost[]>(`/discussions/posts/topic/${topicId}`);
+    }
+
+    async createDiscussionPost(post: Partial<DiscussionPost>): Promise<DiscussionPost> {
+        return this.post<DiscussionPost>('/discussions/posts', post);
+    }
+
+    async updateDiscussionPost(id: string, post: Partial<DiscussionPost>): Promise<DiscussionPost> {
+        const response = await fetch(`${this.baseUrl}/discussions/posts/${id}`, {
+            method: 'PUT',
+            headers: this.getHeaders(true),
+            body: JSON.stringify(post),
+        });
+        if (!response.ok) throw new Error('Failed to update post');
+        return response.json();
+    }
+
+    async deleteDiscussionPost(id: string): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/discussions/posts/${id}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(true),
+        });
+        if (!response.ok) throw new Error('Failed to delete post');
+    }
+
+    async likeDiscussionPost(id: string): Promise<{ message: string; likeCount: number; isLiked: boolean }> {
+        return this.post<{ message: string; likeCount: number; isLiked: boolean }>(`/discussions/posts/${id}/like`, {});
+    }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
+
+// DISCUSSION FORUM TYPES
+export interface DiscussionGroup {
+    id: string;
+    name: string;
+    description?: string;
+    createdBy: string;
+    createdByName: string;
+    category?: string;
+    tags?: string[];
+    icon?: string;
+    color?: string;
+    isPrivate: boolean;
+    members?: string[];
+    moderators?: string[];
+    topicCount: number;
+    postCount: number;
+    memberCount: number;
+    createdAt: string;
+    updatedAt: string;
+    lastTopicId?: string;
+    lastTopicTitle?: string;
+    lastPostAt?: string;
+    lastPostBy?: string;
+    lastPostByName?: string;
+    isActive: boolean;
+}
+
+export interface DiscussionTopic {
+    id: string;
+    groupId: string;
+    groupName: string;
+    title: string;
+    content?: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    authorRole?: string;
+    createdAt: string;
+    updatedAt: string;
+    viewCount: number;
+    replyCount: number;
+    likeCount: number;
+    likedBy?: string[];
+    isPinned: boolean;
+    isLocked: boolean;
+    isDeleted: boolean;
+    tags?: string[];
+    lastReplyId?: string;
+    lastReplyAt?: string;
+    lastReplyBy?: string;
+    lastReplyByName?: string;
+}
+
+export interface DiscussionPost {
+    id: string;
+    topicId: string;
+    groupId: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    authorRole?: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    likeCount: number;
+    likedBy?: string[];
+    isDeleted: boolean;
+    parentPostId?: string;
+    mentions?: string[];
+}
 
 // Make apiClient available globally for debugging
 (window as any).apiClient = apiClient;

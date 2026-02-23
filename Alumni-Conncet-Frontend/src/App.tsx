@@ -20,6 +20,9 @@ const Announcements = lazy(() => import('./pages/Announcements'));
 const Posts = lazy(() => import('./pages/Posts'));
 const Jobs = lazy(() => import('./pages/Jobs'));
 const Settings = lazy(() => import('./pages/Settings'));
+const ForumList = lazy(() => import('./pages/ForumList'));
+const ForumDetail = lazy(() => import('./pages/ForumDetail'));
+const TopicDetail = lazy(() => import('./pages/TopicDetail'));
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -70,6 +73,9 @@ function App() {
                 <Route path="/dashboard/posts" element={<Posts />} />
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/dashboard/settings" element={<Settings />} />
+                <Route path="/dashboard/forums" element={<ForumList />} />
+                <Route path="/dashboard/forums/:groupId" element={<ForumDetail />} />
+                <Route path="/dashboard/forums/:groupId/topics/:topicId" element={<TopicDetail />} />
               </Route>
 
               {/* Admin Routes */}

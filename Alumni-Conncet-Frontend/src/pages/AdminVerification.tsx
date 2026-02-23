@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { CheckCircle, XCircle, Clock, Linkedin, Mail, Calendar, Search, Filter, RefreshCw, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Linkedin, Mail, Calendar, Search, RefreshCw } from 'lucide-react';
 import { apiClient, type UserProfile } from '@/lib/api';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { Button } from '@/components/ui/Button'; // Assuming Button component availability
