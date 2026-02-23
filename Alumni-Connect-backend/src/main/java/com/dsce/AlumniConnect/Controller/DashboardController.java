@@ -7,7 +7,6 @@ import com.dsce.AlumniConnect.Service.ProfileService;
 import com.dsce.AlumniConnect.Service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -61,7 +60,8 @@ public class DashboardController {
             User currentUser = profileService.getCurrentUserProfile();
             List<JobApplication> applications = jobApplicationRepository.findByUserId(currentUser.getId());
             List<JobApplicationDTO> dtos = applications.stream()
-                    .map(j -> new JobApplicationDTO(j.getCompany(), j.getRole(), j.getStatus(), j.getDate()))
+                    .map(j -> new JobApplicationDTO(j.getId(), j.getJobId(), j.getCompany(), j.getRole(), j.getStatus(),
+                            j.getDate()))
                     .collect(Collectors.toList());
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {

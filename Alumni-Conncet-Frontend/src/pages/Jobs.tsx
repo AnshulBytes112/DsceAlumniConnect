@@ -6,6 +6,7 @@ import { apiClient } from '../lib/api';
 import type { JobPostDTO } from '../lib/api';
 import JobCard from '../components/JobCard';
 import CreateJobModal from '../components/CreateJobModal';
+import { JobApplicationModal } from '../components/JobApplicationModal';
 import MotionWrapper from '../components/ui/MotionWrapper';
 import { Button } from '../components/ui/Button';
 
@@ -14,6 +15,8 @@ const Jobs = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState<JobPostDTO | null>(null);
     const [filter, setFilter] = useState('all'); // all, my-jobs
     const [search, setSearch] = useState('');
 
@@ -215,7 +218,10 @@ const Jobs = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.05 }}
                                     >
-                                        <JobCard job={job} onDelete={handleJobDeleted} />
+                                        <JobCard job={job} onDelete={handleJobDeleted} onApply={(job: JobPostDTO) => {
+                                            setSelectedJob(job);
+                                            setIsApplyModalOpen(true);
+                                        }} />
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
@@ -228,6 +234,12 @@ const Jobs = () => {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onJobCreated={handleJobCreated}
+            />
+
+            <JobApplicationModal
+                isOpen={isApplyModalOpen}
+                onClose={() => setIsApplyModalOpen(false)}
+                job={selectedJob}
             />
         </div>
     );

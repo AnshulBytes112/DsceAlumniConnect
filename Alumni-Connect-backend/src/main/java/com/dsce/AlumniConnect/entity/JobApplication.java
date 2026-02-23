@@ -24,4 +24,5 @@ public class JobApplication {
     private User user;
 
     private String userId; // Store ID directly for easier querying
+    private String jobId; // Link to the specific job post
 }

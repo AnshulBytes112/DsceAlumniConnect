@@ -15,6 +15,14 @@ public class JobPostController {
     @Autowired
     private JobPostService jobPostService;
 
+    @Autowired
+    private com.dsce.AlumniConnect.Service.JobApplicationService jobApplicationService;
+
+    @PostMapping("/{id}/apply")
+    public ResponseEntity<com.dsce.AlumniConnect.DTO.JobApplicationDTO> applyForJob(@PathVariable String id) {
+        return ResponseEntity.ok(jobApplicationService.applyForJob(id));
+    }
+
     @GetMapping
     public ResponseEntity<List<JobPostDTO>> getAllJobs() {
         return ResponseEntity.ok(jobPostService.getAllActiveJobs());

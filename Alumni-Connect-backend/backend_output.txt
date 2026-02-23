@@ -1,0 +1,279 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.dsce:AlumniConnect >-----------------------
+[INFO] Building AlumniConnect 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.7:run (default-cli) > test-compile @ AlumniConnect >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ AlumniConnect ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ AlumniConnect ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ AlumniConnect ---
+[INFO] skip non existing resourceDirectory C:\Users\Abish Barnodia\Desktop\newfront\DsceAlumniConnect\Alumni-Connect-backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ AlumniConnect ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.5.7:run (default-cli) < test-compile @ AlumniConnect <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.7:run (default-cli) @ AlumniConnect ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.7)
+
+2026-02-23T00:27:14.632+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] c.d.A.AlumniConnectApplication           : Starting AlumniConnectApplication using Java 17.0.18 with PID 23696 (C:\Users\Abish Barnodia\Desktop\newfront\DsceAlumniConnect\Alumni-Connect-backend\target\classes started by Abish Barnodia in C:\Users\Abish Barnodia\Desktop\newfront\DsceAlumniConnect\Alumni-Connect-backend)
+2026-02-23T00:27:14.636+05:30 DEBUG 23696 --- [AlumniConnect] [  restartedMain] c.d.A.AlumniConnectApplication           : Running with Spring Boot v3.5.7, Spring v6.2.12
+2026-02-23T00:27:14.637+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] c.d.A.AlumniConnectApplication           : No active profile set, falling back to 1 default profile: "default"
+2026-02-23T00:27:14.712+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-23T00:27:14.713+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-23T00:27:16.092+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-02-23T00:27:16.094+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-02-23T00:27:16.424+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 319 ms. Found 9 MongoDB repository interfaces.
+2026-02-23T00:27:16.453+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-02-23T00:27:16.455+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-02-23T00:27:16.480+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.AnnouncementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.482+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.CommentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.482+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.EventRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.483+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.EventRSVPRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.483+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.JobApplicationRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.483+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.JobPostRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.484+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.PostRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.484+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.ProjectFundingRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.484+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.dsce.AlumniConnect.Repository.UserRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-02-23T00:27:16.484+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 16 ms. Found 0 Redis repository interfaces.
+2026-02-23T00:27:17.459+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-02-23T00:27:17.480+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-23T00:27:17.480+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-02-23T00:27:17.585+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-23T00:27:17.587+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2873 ms
+2026-02-23T00:27:17.899+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Eclipse Adoptium/17.0.18+8"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@292397ff, com.mongodb.Jep395RecordCodecProvider@1a9771c1, com.mongodb.KotlinCodecProvider@60aca58a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-02-23T00:27:17.930+05:30  INFO 23696 --- [AlumniConnect] [localhost:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=30529900, minRoundTripTimeNanos=0}
+2026-02-23T00:27:18.514+05:30 DEBUG 23696 --- [AlumniConnect] [  restartedMain] c.dsce.AlumniConnect.filter.JwtFilter    : Filter 'jwtFilter' configured for use
+2026-02-23T00:27:18.539+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-02-23T00:27:18.681+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-02-23T00:27:18.682+05:30  WARN 23696 --- [AlumniConnect] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+Image upload directory created at: C:\Users\Abish Barnodia\Desktop\newfront\DsceAlumniConnect\Alumni-Connect-backend\uploads\images
+2026-02-23T00:27:19.329+05:30 DEBUG 23696 --- [AlumniConnect] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, HeaderWriterFilter, CorsFilter, LogoutFilter, JwtFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, SessionManagementFilter, ExceptionTranslationFilter, AuthorizationFilter
+2026-02-23T00:27:20.274+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-02-23T00:27:20.292+05:30  INFO 23696 --- [AlumniConnect] [  restartedMain] c.d.A.AlumniConnectApplication           : Started AlumniConnectApplication in 6.39 seconds (process running for 7.215)
+2026-02-23T00:28:31.917+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-23T00:28:31.917+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-02-23T00:28:31.921+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2026-02-23T00:28:31.968+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing OPTIONS /alumni
+2026-02-23T00:28:31.968+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing OPTIONS /alumni
+2026-02-23T00:28:32.035+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /alumni
+2026-02-23T00:28:32.043+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:28:32.050+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /alumni
+2026-02-23T00:28:32.088+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-3] c.d.A.Controller.AlumniController        : Alumni found: 1
+2026-02-23T00:28:32.216+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /alumni
+2026-02-23T00:28:32.218+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:28:32.219+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /alumni
+2026-02-23T00:28:32.223+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-4] c.d.A.Controller.AlumniController        : Alumni found: 1
+2026-02-23T00:29:28.955+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing OPTIONS /alumni
+2026-02-23T00:29:28.955+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing OPTIONS /alumni
+2026-02-23T00:29:28.961+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /alumni
+2026-02-23T00:29:28.962+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:29:28.963+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /alumni
+2026-02-23T00:29:28.971+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-7] c.d.A.Controller.AlumniController        : Alumni found: 1
+2026-02-23T00:29:28.978+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /alumni
+2026-02-23T00:29:28.981+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:29:28.983+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /alumni
+2026-02-23T00:29:28.989+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-8] c.d.A.Controller.AlumniController        : Alumni found: 1
+2026-02-23T00:35:14.855+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing OPTIONS /alumni
+2026-02-23T00:35:14.855+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing OPTIONS /alumni
+2026-02-23T00:35:14.873+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /alumni
+2026-02-23T00:35:14.876+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:35:14.877+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /alumni
+2026-02-23T00:35:14.904+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-3] c.d.A.Controller.AlumniController        : Alumni found: 1
+2026-02-23T00:35:14.918+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /alumni
+2026-02-23T00:35:14.919+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:35:14.919+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /alumni
+2026-02-23T00:35:14.922+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-4] c.d.A.Controller.AlumniController        : Alumni found: 1
+2026-02-23T00:37:33.249+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing OPTIONS /auth/signup
+2026-02-23T00:37:33.255+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing POST /auth/signup
+2026-02-23T00:37:33.256+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:37:33.256+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured POST /auth/signup
+2026-02-23T00:37:33.631+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-8] c.d.A.Controller.AuthController          : Signup request received for email: mewagit245@fentaoba.com
+2026-02-23T00:39:19.111+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing OPTIONS /auth/signup
+2026-02-23T00:39:19.116+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing POST /auth/signup
+2026-02-23T00:39:19.117+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:39:19.118+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured POST /auth/signup
+2026-02-23T00:39:19.122+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-2] c.d.A.Controller.AuthController          : Signup request received for email: mewagit245@fentaoba.com
+2026-02-23T00:39:19.132+05:30 ERROR 23696 --- [AlumniConnect] [nio-8080-exec-2] c.d.A.Controller.AuthController          : Signup failed: Email already registered
+2026-02-23T00:40:03.402+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing OPTIONS /auth/signup
+2026-02-23T00:40:03.406+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing POST /auth/signup
+2026-02-23T00:40:03.407+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:40:03.407+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured POST /auth/signup
+2026-02-23T00:40:03.410+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-3] c.d.A.Controller.AuthController          : Signup request received for email: notnamed.fury@easymailer.live
+2026-02-23T00:42:49.232+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing OPTIONS /auth/login
+2026-02-23T00:42:49.240+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing POST /auth/login
+2026-02-23T00:42:49.241+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-23T00:42:49.241+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured POST /auth/login
+2026-02-23T00:42:49.257+05:30  INFO 23696 --- [AlumniConnect] [nio-8080-exec-6] c.d.A.Controller.AuthController          : Login request received for email: admin@example.com
+2026-02-23T00:42:49.626+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.s.a.dao.DaoAuthenticationProvider    : Authenticated user
+2026-02-23T00:42:49.694+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:42:49.699+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:42:49.855+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:42:50.318+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:42:50.318+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:42:50.323+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:42:50.330+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:42:50.352+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:42:50.360+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:43:49.699+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:43:49.704+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:43:49.715+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:44:13.182+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:44:13.184+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:44:13.192+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:44:13.202+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:44:13.215+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:44:13.227+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:44:49.702+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:44:49.707+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:44:49.715+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:45:49.702+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:45:49.706+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:45:49.723+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:46:49.702+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:46:49.706+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:46:49.724+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:47:50.439+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:47:50.444+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:47:50.451+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:48:38.473+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:48:38.473+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:48:38.482+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+2026-02-23T00:48:38.482+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:48:38.494+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:48:38.507+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:48:38.519+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /profile
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:48:38.530+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:48:38.541+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:48:38.557+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:49:39.436+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:49:39.442+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:49:39.451+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:50:39.445+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:50:39.449+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:50:39.457+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:51:39.445+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:51:39.449+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:51:39.457+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:52:34.017+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:52:34.018+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:52:34.020+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+2026-02-23T00:52:34.022+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:34.027+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+2026-02-23T00:52:34.034+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:34.039+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /profile
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:34.041+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications
+2026-02-23T00:52:34.051+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:34.058+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:52:45.936+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:52:45.937+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:52:45.942+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:45.949+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:52:45.957+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:45.966+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:52:52.996+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:52:52.996+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing OPTIONS /profile
+2026-02-23T00:52:53.001+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:53.011+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:52:53.020+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /profile
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:52:53.027+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /profile
+2026-02-23T00:53:34.432+05:30 DEBUG 23696 --- [AlumniConnect] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/admin/verifications
+2026-02-23T00:53:34.439+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api/admin/verifications
+[JWT DEBUG] Successfully extracted username: admin@example.com
+[JWT DEBUG] Loaded user for: admin@example.com, authorities: [ROLE_ADMIN]
+[JWT DEBUG] ? Token VALID for: admin@example.com
+2026-02-23T00:53:34.451+05:30 DEBUG 23696 --- [AlumniConnect] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api/admin/verifications

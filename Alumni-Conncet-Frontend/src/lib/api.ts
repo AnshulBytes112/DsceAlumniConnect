@@ -187,6 +187,15 @@ export interface JobPostDTO {
     active: boolean;
 }
 
+export interface JobApplicationDTO {
+    id: string;
+    jobId: string;
+    company: string;
+    role: string;
+    status: string;
+    date: string;
+}
+
 class ApiClient {
     private baseUrl: string;
 
@@ -593,17 +602,20 @@ class ApiClient {
         await this.delete(`/api/dashboard/announcements/${id}`);
     }
 
-    async getJobApplications() {
-        const response = await fetch(`${this.baseUrl}/dashboard/job-applications`, {
-            method: 'GET',
-            headers: this.getHeaders(true),
-        });
+    async getJobApplications(): Promise<JobApplicationDTO[]> {
+        return this.get<JobApplicationDTO[]>('/api/applications/my');
+    }
 
-        if (!response.ok) {
-            throw new Error("Failed to get job applications");
-        }
+    async applyForJob(jobId: string): Promise<JobApplicationDTO> {
+        return this.post<JobApplicationDTO>(`/api/jobs/${jobId}/apply`, {});
+    }
 
-        return response.json();
+    async updateJobApplication(id: string, status: string): Promise<JobApplicationDTO> {
+        return this.put<JobApplicationDTO>(`/api/applications/${id}/status`, { status });
+    }
+
+    async withdrawJobApplication(id: string): Promise<void> {
+        await this.delete(`/api/applications/${id}`);
     }
 
     async getUpcomingEvents() {
@@ -662,6 +674,19 @@ class ApiClient {
         });
 
         if (!response.ok) return [];
+
+        return response.json();
+    }
+
+    async getAlumniById(id: string): Promise<UserProfile> {
+        const response = await fetch(`${this.baseUrl}/alumni/${id}`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch alumni profile for id: ${id}`);
+        }
 
         return response.json();
     }
