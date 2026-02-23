@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @RestController
-@RequestMapping("/files")
+@RequestMapping({ "/api/files", "/files" })
 public class FileController {
 
     @Autowired
@@ -29,12 +29,11 @@ public class FileController {
 
     private Authentication authentication;
 
-
     @PostMapping("/users/{id}/resume")
     public ResponseEntity<String> uploadResume(@PathVariable String id,
-                                               @RequestParam("file") MultipartFile file) throws IOException {
-        String uname=userRepository.findById(id).orElseThrow().getEmail();
-        if(!authentication.getName().equals(uname)){
+            @RequestParam("file") MultipartFile file) throws IOException {
+        String uname = userRepository.findById(id).orElseThrow().getEmail();
+        if (!authentication.getName().equals(uname)) {
             return ResponseEntity.status(403).body("You are not authorized to upload resume for this user.");
         }
 
@@ -48,15 +47,14 @@ public class FileController {
     @PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/users/{id}/resume")
     public ResponseEntity<Resource> getResume(@PathVariable String id) throws IOException {
-        String uname=userRepository.findById(id).orElseThrow().getEmail();
-        if(!authentication.getName().equals(uname) && !authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))){
+        String uname = userRepository.findById(id).orElseThrow().getEmail();
+        if (!authentication.getName().equals(uname) && !authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return ResponseEntity.status(403).build();
         }
         User user = userRepository.findById(id).orElseThrow();
         Path path = fileStorageService.getFilePath(user.getResumeUrl());
         Resource resource = new UrlResource(path.toUri());
-
 
         String contentType = Files.probeContentType(path);
         if (contentType == null) {

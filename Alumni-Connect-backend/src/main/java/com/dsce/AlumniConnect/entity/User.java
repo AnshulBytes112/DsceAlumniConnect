@@ -33,7 +33,10 @@ public class User {
 
     private Role role; // USER or ADMIN
 
+    @NotBlank(message = "Graduation year is required for alumni verification")
     private Integer graduationYear;
+
+    @NotBlank(message = "Department is required for alumni verification")
     private String department;
     private String profilePicture;
     private String bio;
@@ -52,6 +55,8 @@ public class User {
     private List<Project> projects;
     private List<String> skills;
     private List<FeaturedSkill> featuredSkills;
+    private List<Achievement> achievements;
+    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
 
     @Getter
     @Setter
@@ -95,6 +100,16 @@ public class User {
         private Integer rating;
     }
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Achievement {
+        private String Title;
+        private String Description;
+        private String Date;
+    }
+
     public User(String firstName, String lastName, String email, String password, Role role) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -121,6 +136,12 @@ public class User {
     public enum Role {
         USER,
         ADMIN
+    }
+
+    public enum VerificationStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
     }
 
 }

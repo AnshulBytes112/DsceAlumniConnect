@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { GraduationCap, Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code } from 'lucide-react';
+import { GraduationCap, Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code, Award } from 'lucide-react';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,12 @@ const projectSchema = z.object({
   project: z.string().optional(),
   date: z.string().optional(),
   descriptions: z.array(z.string()).optional(),
+});
+
+const achievementSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  date: z.string().optional(),
 });
 
 const featuredSkillSchema = z.object({
@@ -72,8 +78,8 @@ const urlSchema = z.string()
   );
 
 const profileSetupSchema = z.object({
-  graduationYear: z.string().regex(/^\d{4}$/, 'Please enter a valid year').optional(),
-  department: z.string().min(1, 'Please select a department').optional(),
+  graduationYear: z.string().regex(/^\d{4}$/, 'Please enter a valid graduation year').min(1, 'Graduation year is required for alumni verification'),
+  department: z.string().min(1, 'Department is required for alumni verification'),
   contactNumber: z.string().min(10, 'Phone number must be at least 10 characters').optional(),
   bio: z.string().optional(),
   location: z.string().optional(),
@@ -82,6 +88,7 @@ const profileSetupSchema = z.object({
   workExperiences: z.array(workExperienceSchema).optional(),
   educations: z.array(educationSchema).optional(),
   projects: z.array(projectSchema).optional(),
+  achievements: z.array(achievementSchema).optional(),
   skills: z.array(z.string()).optional(),
   featuredSkills: z.array(featuredSkillSchema).optional(),
   profilePicture: z.any().optional(),
@@ -116,6 +123,7 @@ export default function ProfileSetup() {
       workExperiences: [],
       educations: [],
       projects: [],
+      achievements: [],
       skills: [],
       featuredSkills: [],
     },
@@ -123,7 +131,7 @@ export default function ProfileSetup() {
 
   const resumeWatched = useWatch({ control: form.control, name: 'resume' });
   const profileWatched = useWatch({ control: form.control, name: 'profilePicture' });
-  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : null;
+  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : (user?.profilePicture ? `http://localhost:8080/${user.profilePicture}` : null);
 
   useEffect(() => {
     return () => {
@@ -150,6 +158,7 @@ export default function ProfileSetup() {
             workExperiences: profile.workExperiences || [],
             educations: profile.educations || [],
             projects: profile.projects || [],
+            achievements: profile.achievements || [],
             skills: profile.skills || [],
             featuredSkills: profile.featuredSkills || [],
           });
@@ -165,21 +174,50 @@ export default function ProfileSetup() {
   const handleResumeUpload = async (file: File) => {
     setIsParsingResume(true);
     try {
-      const result = await apiClient.uploadResume(file, false);
-      setParsedData(result);
+      console.log('Uploading resume file:', file.name, file.size, file.type);
+      const updatedProfile = await apiClient.uploadResume(file, false);
+      console.log('Updated profile from resume upload:', updatedProfile);
+      setParsedData(updatedProfile);
 
-      // Wait a bit for backend to process and save the data
-      // Increased wait time to ensure backend has processed the resume
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Auto-fill form with parsed data from user profile
-      // The resume parsing happens on backend and updates the user profile
-      // We'll fetch the updated profile to get parsed data
-      const updatedProfile = await apiClient.getProfile();
-
-      console.log('Updated profile after resume upload:', updatedProfile);
+      // No need to wait or fetch profile again - use the returned data directly
+      console.log('Available fields in updatedProfile:', Object.keys(updatedProfile || {}));
+      console.log('Work experiences:', updatedProfile?.workExperiences);
+      console.log('Educations:', updatedProfile?.educations);
+      console.log('Projects:', updatedProfile?.projects);
+      console.log('Skills:', updatedProfile?.skills);
+      console.log('Featured skills:', updatedProfile?.featuredSkills);
+      console.log('Achievements:', updatedProfile?.achievements);
+      console.log('Basic info - contactNumber:', updatedProfile?.contactNumber);
+      console.log('Basic info - bio:', updatedProfile?.bio);
+      console.log('Basic info - location:', updatedProfile?.location);
 
       if (updatedProfile) {
+        // Check if any resume data was actually parsed
+        const hasResumeData = !!(
+          (updatedProfile.workExperiences && updatedProfile.workExperiences.length > 0) ||
+          (updatedProfile.educations && updatedProfile.educations.length > 0) ||
+          (updatedProfile.projects && updatedProfile.projects.length > 0) ||
+          (updatedProfile.skills && updatedProfile.skills.length > 0) ||
+          (updatedProfile.featuredSkills && updatedProfile.featuredSkills.length > 0) ||
+          (updatedProfile.achievements && updatedProfile.achievements.length > 0) ||
+          updatedProfile.contactNumber ||
+          updatedProfile.bio ||
+          updatedProfile.location
+        );
+
+        console.log('Has resume data:', hasResumeData);
+
+        if (!hasResumeData) {
+          console.warn('No resume data found in updated profile. Backend might not have parsed the resume correctly.');
+          toast({
+            title: 'Resume Parsed Successfully',
+            description: 'Resume was uploaded, but no parsed data was found. Please fill in the form manually.',
+            variant: 'default',
+          });
+          setIsParsingResume(false);
+          return;
+        }
+
         // Build form data object with all fields
         const formData: Partial<ProfileSetupFormValues> = {
           ...form.getValues(), // Keep existing values
@@ -249,6 +287,14 @@ export default function ProfileSetup() {
           formData.featuredSkills = updatedProfile.featuredSkills.map((fs: any) => ({
             skill: fs.skill || '',
             rating: fs.rating || 1,
+          }));
+        }
+        if (updatedProfile.achievements && updatedProfile.achievements.length > 0) {
+          console.log('Setting achievements:', updatedProfile.achievements);
+          formData.achievements = updatedProfile.achievements.map((ach: any) => ({
+            title: ach.title || ach.name || '',
+            description: ach.description || '',
+            date: ach.date || ach.year || '',
           }));
         }
 
@@ -326,6 +372,7 @@ export default function ProfileSetup() {
       if (data.workExperiences && data.workExperiences.length > 0) profileData.workExperiences = data.workExperiences;
       if (data.educations && data.educations.length > 0) profileData.educations = data.educations;
       if (data.projects && data.projects.length > 0) profileData.projects = data.projects;
+      if (data.achievements && data.achievements.length > 0) profileData.achievements = data.achievements;
       if (data.skills && data.skills.length > 0) profileData.skills = data.skills;
       if (data.featuredSkills && data.featuredSkills.length > 0) profileData.featuredSkills = data.featuredSkills;
 
@@ -346,6 +393,8 @@ export default function ProfileSetup() {
           profilePicture: updatedProfile.profilePicture || user.profilePicture,
           resumeUrl: updatedProfile.resumeUrl || user.resumeUrl,
         };
+        
+        // Update user context without affecting JWT token
         login(updatedUser);
       }
 
@@ -367,7 +416,7 @@ export default function ProfileSetup() {
   };
 
   return (
-    <MotionWrapper className="min-h-screen bg-brand-bg p-4 py-12">
+    <MotionWrapper className="min-h-screen bg-gradient-to-br from-[#F8F8F8] via-[#FFF9E6] to-[#F8F8F8] p-4 py-12">
       <Helmet>
         <title>Complete Your Profile - DSCE Alumni Connect</title>
         <meta name="description" content="Complete your profile to start connecting with alumni." />
@@ -375,34 +424,34 @@ export default function ProfileSetup() {
 
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-brand-accent mb-6">
-            <GraduationCap className="h-10 w-10 text-brand-bg" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-[#003366] mb-6 shadow-lg">
+            <GraduationCap className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white">
+          <h2 className="text-3xl font-bold tracking-tight text-[#003366]">
             Complete Your Profile
           </h2>
-          <p className="mt-2 text-brand-accent-light">
+          <p className="mt-2 text-[#333333]">
             Add your details or upload your resume to auto-fill your profile
           </p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm shadow-2xl">
+        <div className="rounded-xl border border-[#003366]/10 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Resume Upload Section */}
-              <div className="border-b border-white/10 pb-6">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <FileText className="mr-2 h-5 w-5 text-brand-accent" />
+              <div className="border-b border-[#003366]/10 pb-6">
+                <h3 className="text-xl font-semibold text-[#333333] mb-4 flex items-center">
+                  <FileText className="mr-2 h-5 w-5 text-[#003366]" />
                   Upload Resume (Optional)
                 </h3>
-                <p className="text-sm text-brand-accent-light mb-4">
+                <p className="text-sm text-gray-600 mb-4">
                   Upload your resume PDF and we'll automatically fill in your profile details
                 </p>
 
                 <div
                   className={`border-2 border-dashed p-6 rounded-lg cursor-pointer transition-colors ${resumeDragActive
-                    ? 'border-brand-accent bg-brand-accent/10'
-                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                    ? 'border-[#00AEEF] bg-[#00AEEF]/10'
+                    : 'border-[#003366]/10 bg-[#F8F8F8] hover:border-[#00AEEF]/50'
                     }`}
                   onClick={() => resumeInputRef.current?.click()}
                   onDragOver={(e) => { e.preventDefault(); setResumeDragActive(true); }}
@@ -420,38 +469,38 @@ export default function ProfileSetup() {
                   <div className="text-center">
                     {isParsingResume ? (
                       <div className="flex flex-col items-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-brand-accent mb-2" />
-                        <p className="text-sm text-brand-accent-light">Parsing resume...</p>
+                        <Loader2 className="h-8 w-8 animate-spin text-[#003366] mb-2" />
+                        <p className="text-sm text-gray-600">Parsing resume...</p>
                       </div>
                     ) : parsedData ? (
                       <div className="flex flex-col items-center">
                         <CheckCircle2 className="h-8 w-8 text-green-400 mb-2" />
-                        <p className="text-sm text-white">Resume parsed successfully!</p>
-                        <p className="text-xs text-brand-accent-light mt-1">Review and edit the auto-filled information below</p>
+                        <p className="text-sm text-[#333333]">Resume parsed successfully!</p>
+                        <p className="text-xs text-gray-600 mt-1">Review and edit the auto-filled information below</p>
                       </div>
                     ) : (
                       <>
-                        <Upload className="h-8 w-8 text-brand-accent mx-auto mb-2" />
-                        <p className="text-sm text-brand-accent-light mb-2">Click or drag & drop your resume PDF here</p>
-                        <p className="text-xs text-white/60">PDF files up to 5MB</p>
+                        <Upload className="h-8 w-8 text-[#003366] mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 mb-2">Click or drag & drop your resume PDF here</p>
+                        <p className="text-xs text-gray-500">PDF files up to 5MB</p>
                       </>
                     )}
                   </div>
                 </div>
                 {resumeWatched && (
-                  <p className="text-sm text-white/70 mt-2">
+                  <p className="text-sm text-gray-600 mt-2">
                     {resumeWatched.name} - {((resumeWatched.size || 0) / 1024 / 1024).toFixed(2)} MB
                   </p>
                 )}
               </div>
 
               {/* Profile Picture */}
-              <div className="border-b border-white/10 pb-6">
-                <h3 className="text-xl font-semibold text-white mb-4">Profile Picture (Optional)</h3>
+              <div className="border-b border-[#003366]/10 pb-6">
+                <h3 className="text-xl font-semibold text-[#333333] mb-4">Profile Picture (Optional)</h3>
                 <div
                   className={`border-2 border-dashed p-6 rounded-lg cursor-pointer transition-colors ${profileDragActive
-                    ? 'border-brand-accent bg-brand-accent/10'
-                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                    ? 'border-[#00AEEF] bg-[#00AEEF]/10'
+                    : 'border-[#003366]/10 bg-[#F8F8F8] hover:border-[#00AEEF]/50'
                     }`}
                   onClick={() => profileInputRef.current?.click()}
                   onDragOver={(e) => { e.preventDefault(); setProfileDragActive(true); }}
@@ -478,18 +527,18 @@ export default function ProfileSetup() {
                       <img
                         src={previewUrl}
                         alt="Profile preview"
-                        className="h-24 w-24 rounded-full object-cover border-2 border-white/20"
+                        className="h-24 w-24 rounded-full object-cover border-2 border-[#003366]/20"
                       />
                       <div>
-                        <p className="text-sm text-white">Profile picture selected</p>
-                        <p className="text-xs text-brand-accent-light">Click to change</p>
+                        <p className="text-sm text-[#333333]">Profile picture selected</p>
+                        <p className="text-xs text-gray-600">Click to change</p>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center">
-                      <Upload className="h-8 w-8 text-brand-accent mx-auto mb-2" />
-                      <p className="text-sm text-brand-accent-light">Click or drag & drop to upload</p>
-                      <p className="text-xs text-white/60">JPG, PNG, GIF up to 5MB</p>
+                      <Upload className="h-8 w-8 text-[#003366] mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Click or drag & drop to upload</p>
+                      <p className="text-xs text-gray-500">JPG, PNG, GIF up to 5MB</p>
                     </div>
                   )}
                 </div>
@@ -497,18 +546,35 @@ export default function ProfileSetup() {
 
               {/* Manual Entry Fields */}
               <div>
-                <h3 className="text-xl font-semibold text-white mb-4">Profile Information</h3>
+                {/* Alumni Verification Notice */}
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-blue-900">Alumni Verification Required</h4>
+                      <p className="text-xs text-blue-700 mt-1">
+                        To maintain the authenticity of our alumni network, graduation year and department are mandatory fields. 
+                        This helps ensure that only genuine DSCE alumni can connect and share experiences.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-semibold text-[#333333] mb-4">Profile Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="graduationYear"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-brand-accent-light/80">Graduation Year</FormLabel>
+                        <FormLabel className="text-[#333333]">
+                          Graduation Year <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="2023"
-                            className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                            required
+                            className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                             {...field}
                           />
                         </FormControl>
@@ -522,19 +588,22 @@ export default function ProfileSetup() {
                     name="department"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-brand-accent-light/80">Department</FormLabel>
+                        <FormLabel className="text-[#333333]">
+                          Department <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormControl>
                           <select
-                            className="flex h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                            required
+                            className="flex h-10 w-full rounded-md border border-[#003366]/10 bg-[#F8F8F8] px-3 py-2 text-sm text-[#333333] focus:outline-none focus:ring-2 focus:ring-[#003366]/50"
                             {...field}
                           >
-                            <option value="" className="bg-brand-bg">Select Department</option>
-                            <option value="CSE" className="bg-brand-bg">CSE</option>
-                            <option value="ECE" className="bg-brand-bg">ECE</option>
-                            <option value="ME" className="bg-brand-bg">ME</option>
-                            <option value="CE" className="bg-brand-bg">CE</option>
-                            <option value="EEE" className="bg-brand-bg">EEE</option>
-                            <option value="ISE" className="bg-brand-bg">ISE</option>
+                            <option value="" className="bg-white">Select Department</option>
+                            <option value="CSE" className="bg-white">CSE</option>
+                            <option value="ECE" className="bg-white">ECE</option>
+                            <option value="ME" className="bg-white">ME</option>
+                            <option value="CE" className="bg-white">CE</option>
+                            <option value="EEE" className="bg-white">EEE</option>
+                            <option value="ISE" className="bg-white">ISE</option>
                           </select>
                         </FormControl>
                         <FormMessage />
@@ -548,11 +617,11 @@ export default function ProfileSetup() {
                   name="contactNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-brand-accent-light/80">Contact Number</FormLabel>
+                      <FormLabel className="text-[#333333]">Contact Number</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="+1234567890"
-                          className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                           {...field}
                         />
                       </FormControl>
@@ -566,11 +635,11 @@ export default function ProfileSetup() {
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-brand-accent-light/80">Location</FormLabel>
+                      <FormLabel className="text-[#333333]">Location</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="City, Country"
-                          className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                           {...field}
                         />
                       </FormControl>
@@ -584,12 +653,12 @@ export default function ProfileSetup() {
                   name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-brand-accent-light/80">Bio</FormLabel>
+                      <FormLabel className="text-[#333333]">Bio</FormLabel>
                       <FormControl>
                         <textarea
                           placeholder="Tell us about yourself..."
                           rows={4}
-                          className="flex w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                          className="flex w-full rounded-md border border-[#003366]/10 bg-[#F8F8F8] px-3 py-2 text-sm text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50"
                           {...field}
                         />
                       </FormControl>
@@ -604,12 +673,12 @@ export default function ProfileSetup() {
                     name="linkedinProfile"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-brand-accent-light/80">LinkedIn Profile</FormLabel>
+                        <FormLabel className="text-[#333333]">LinkedIn Profile</FormLabel>
                         <FormControl>
                           <Input
                             type="text"
                             placeholder="linkedin.com/in/yourprofile or https://linkedin.com/in/yourprofile"
-                            className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                            className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                             {...field}
                             onBlur={(e) => {
                               // Normalize URL on blur
@@ -630,12 +699,12 @@ export default function ProfileSetup() {
                     name="website"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-brand-accent-light/80">Website</FormLabel>
+                        <FormLabel className="text-[#333333]">Website</FormLabel>
                         <FormControl>
                           <Input
                             type="text"
                             placeholder="yourwebsite.com or https://yourwebsite.com"
-                            className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                            className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                             {...field}
                             onBlur={(e) => {
                               // Normalize URL on blur
@@ -654,10 +723,10 @@ export default function ProfileSetup() {
               </div>
 
               {/* Work Experiences Section */}
-              <div className="border-b border-white/10 pb-6">
+              <div className="border-b border-[#003366]/10 pb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white flex items-center">
-                    <Briefcase className="mr-2 h-5 w-5 text-brand-accent" />
+                  <h3 className="text-xl font-semibold text-[#333333] flex items-center">
+                    <Briefcase className="mr-2 h-5 w-5 text-[#003366]" />
                     Work Experience
                   </h3>
                   <Button
@@ -668,7 +737,7 @@ export default function ProfileSetup() {
                       const current = form.getValues('workExperiences') || [];
                       form.setValue('workExperiences', [...current, { company: '', jobTitle: '', date: '', descriptions: [] }]);
                     }}
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
                   >
                     <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
@@ -681,9 +750,9 @@ export default function ProfileSetup() {
                       <FormControl>
                         <div className="space-y-4">
                           {(field.value || []).map((exp, index) => (
-                            <div key={index} className="p-4 border border-white/10 rounded-lg bg-white/5">
+                            <div key={index} className="p-4 border border-[#003366]/10 rounded-lg bg-[#F8F8F8]">
                               <div className="flex justify-between items-start mb-3">
-                                <h4 className="text-white font-medium">Experience {index + 1}</h4>
+                                <h4 className="text-[#333333] font-medium">Experience {index + 1}</h4>
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -707,7 +776,7 @@ export default function ProfileSetup() {
                                       current[index].company = e.target.value;
                                       form.setValue('workExperiences', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
                                   <Input
                                     placeholder="Job Title"
@@ -717,7 +786,7 @@ export default function ProfileSetup() {
                                       current[index].jobTitle = e.target.value;
                                       form.setValue('workExperiences', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
                                   <Input
                                     placeholder="Date (e.g., Jan 2020 - Dec 2022)"
@@ -727,11 +796,11 @@ export default function ProfileSetup() {
                                       current[index].date = e.target.value;
                                       form.setValue('workExperiences', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white md:col-span-2"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] md:col-span-2"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-sm text-white/70 mb-1 block">Job Description / Responsibilities</label>
+                                  <label className="text-sm text-gray-600 mb-1 block">Job Description / Responsibilities</label>
                                   <textarea
                                     placeholder="Describe your responsibilities, achievements, and key contributions..."
                                     value={Array.isArray(exp.descriptions) ? exp.descriptions.join('\n') : (exp.descriptions || '')}
@@ -742,15 +811,107 @@ export default function ProfileSetup() {
                                       form.setValue('workExperiences', [...current]);
                                     }}
                                     rows={4}
-                                    className="w-full px-3 py-2 border border-white/10 rounded-md bg-white/5 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand-accent/50 resize-none"
+                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
                                   />
-                                  <p className="text-xs text-white/50 mt-1">Enter each bullet point on a new line</p>
+                                  <p className="text-xs text-gray-500 mt-1">Enter each bullet point on a new line</p>
                                 </div>
                               </div>
                             </div>
                           ))}
                           {(!field.value || field.value.length === 0) && (
-                            <p className="text-sm text-white/60 text-center py-4">No work experience added yet. Upload resume to auto-fill or add manually.</p>
+                            <p className="text-sm text-gray-600 text-center py-4">No work experience added yet. Upload resume to auto-fill or add manually.</p>
+                          )}
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Achievements Section */}
+              <div className="border-b border-[#003366]/10 pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-[#333333] flex items-center">
+                    <Award className="mr-2 h-5 w-5 text-[#003366]" />
+                    Achievements
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const current = form.getValues('achievements') || [];
+                      form.setValue('achievements', [...current, { title: '', description: '', date: '' }]);
+                    }}
+                    className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add
+                  </Button>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="achievements"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="space-y-4">
+                          {(field.value || []).map((achievement, index) => (
+                            <div key={index} className="p-4 border border-[#003366]/10 rounded-lg bg-[#F8F8F8]">
+                              <div className="flex justify-between items-start mb-3">
+                                <h4 className="text-[#333333] font-medium">Achievement {index + 1}</h4>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const current = form.getValues('achievements') || [];
+                                    form.setValue('achievements', current.filter((_, i) => i !== index));
+                                  }}
+                                  className="text-red-400 hover:text-red-300"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="space-y-3">
+                                <Input
+                                  placeholder="Achievement Title (e.g., Best Project Award)"
+                                  value={achievement.title || ''}
+                                  onChange={(e) => {
+                                    const current = form.getValues('achievements') || [];
+                                    current[index].title = e.target.value;
+                                    form.setValue('achievements', [...current]);
+                                  }}
+                                  className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
+                                />
+                                <Input
+                                  placeholder="Date (e.g., 2023, May 2023)"
+                                  value={achievement.date || ''}
+                                  onChange={(e) => {
+                                    const current = form.getValues('achievements') || [];
+                                    current[index].date = e.target.value;
+                                    form.setValue('achievements', [...current]);
+                                  }}
+                                  className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
+                                />
+                                <div>
+                                  <label className="text-sm text-gray-600 mb-1 block">Description</label>
+                                  <textarea
+                                    placeholder="Describe your achievement and its significance..."
+                                    value={achievement.description || ''}
+                                    onChange={(e) => {
+                                      const current = form.getValues('achievements') || [];
+                                      current[index].description = e.target.value;
+                                      form.setValue('achievements', [...current]);
+                                    }}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {(!field.value || field.value.length === 0) && (
+                            <p className="text-sm text-gray-600 text-center py-4">No achievements added yet. Add your awards, recognitions, and accomplishments.</p>
                           )}
                         </div>
                       </FormControl>
@@ -760,10 +921,10 @@ export default function ProfileSetup() {
               </div>
 
               {/* Education Section */}
-              <div className="border-b border-white/10 pb-6">
+              <div className="border-b border-[#003366]/10 pb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white flex items-center">
-                    <GradCap className="mr-2 h-5 w-5 text-brand-accent" />
+                  <h3 className="text-xl font-semibold text-[#333333] flex items-center">
+                    <GradCap className="mr-2 h-5 w-5 text-[#003366]" />
                     Education
                   </h3>
                   <Button
@@ -774,7 +935,7 @@ export default function ProfileSetup() {
                       const current = form.getValues('educations') || [];
                       form.setValue('educations', [...current, { school: '', degree: '', date: '', gpa: '', descriptions: [] }]);
                     }}
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
                   >
                     <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
@@ -787,9 +948,9 @@ export default function ProfileSetup() {
                       <FormControl>
                         <div className="space-y-4">
                           {(field.value || []).map((edu, index) => (
-                            <div key={index} className="p-4 border border-white/10 rounded-lg bg-white/5">
+                            <div key={index} className="p-4 border border-[#003366]/10 rounded-lg bg-[#F8F8F8]">
                               <div className="flex justify-between items-start mb-3">
-                                <h4 className="text-white font-medium">Education {index + 1}</h4>
+                                <h4 className="text-[#333333] font-medium">Education {index + 1}</h4>
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -813,7 +974,7 @@ export default function ProfileSetup() {
                                       current[index].school = e.target.value;
                                       form.setValue('educations', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
                                   <Input
                                     placeholder="Degree"
@@ -823,7 +984,7 @@ export default function ProfileSetup() {
                                       current[index].degree = e.target.value;
                                       form.setValue('educations', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
                                   <Input
                                     placeholder="Date (e.g., 2019 - 2023)"
@@ -833,7 +994,7 @@ export default function ProfileSetup() {
                                       current[index].date = e.target.value;
                                       form.setValue('educations', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
                                   <Input
                                     placeholder="GPA (optional)"
@@ -843,11 +1004,11 @@ export default function ProfileSetup() {
                                       current[index].gpa = e.target.value;
                                       form.setValue('educations', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-sm text-white/70 mb-1 block">Additional Details / Achievements</label>
+                                  <label className="text-sm text-gray-600 mb-1 block">Additional Details / Achievements</label>
                                   <textarea
                                     placeholder="Describe relevant coursework, achievements, honors, or activities..."
                                     value={Array.isArray(edu.descriptions) ? edu.descriptions.join('\n') : (edu.descriptions || '')}
@@ -858,15 +1019,15 @@ export default function ProfileSetup() {
                                       form.setValue('educations', [...current]);
                                     }}
                                     rows={3}
-                                    className="w-full px-3 py-2 border border-white/10 rounded-md bg-white/5 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand-accent/50 resize-none"
+                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
                                   />
-                                  <p className="text-xs text-white/50 mt-1">Enter each bullet point on a new line</p>
+                                  <p className="text-xs text-gray-500 mt-1">Enter each bullet point on a new line</p>
                                 </div>
                               </div>
                             </div>
                           ))}
                           {(!field.value || field.value.length === 0) && (
-                            <p className="text-sm text-white/60 text-center py-4">No education added yet. Upload resume to auto-fill or add manually.</p>
+                            <p className="text-sm text-gray-600 text-center py-4">No education added yet. Upload resume to auto-fill or add manually.</p>
                           )}
                         </div>
                       </FormControl>
@@ -876,10 +1037,10 @@ export default function ProfileSetup() {
               </div>
 
               {/* Projects Section */}
-              <div className="border-b border-white/10 pb-6">
+              <div className="border-b border-[#003366]/10 pb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white flex items-center">
-                    <FolderKanban className="mr-2 h-5 w-5 text-brand-accent" />
+                  <h3 className="text-xl font-semibold text-[#333333] flex items-center">
+                    <FolderKanban className="mr-2 h-5 w-5 text-[#003366]" />
                     Projects
                   </h3>
                   <Button
@@ -890,7 +1051,7 @@ export default function ProfileSetup() {
                       const current = form.getValues('projects') || [];
                       form.setValue('projects', [...current, { project: '', date: '', descriptions: [] }]);
                     }}
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
                   >
                     <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
@@ -903,9 +1064,9 @@ export default function ProfileSetup() {
                       <FormControl>
                         <div className="space-y-4">
                           {(field.value || []).map((proj, index) => (
-                            <div key={index} className="p-4 border border-white/10 rounded-lg bg-white/5">
+                            <div key={index} className="p-4 border border-[#003366]/10 rounded-lg bg-[#F8F8F8]">
                               <div className="flex justify-between items-start mb-3">
-                                <h4 className="text-white font-medium">Project {index + 1}</h4>
+                                <h4 className="text-[#333333] font-medium">Project {index + 1}</h4>
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -929,7 +1090,7 @@ export default function ProfileSetup() {
                                       current[index].project = e.target.value;
                                       form.setValue('projects', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
                                   <Input
                                     placeholder="Date (e.g., Jan 2023)"
@@ -939,13 +1100,13 @@ export default function ProfileSetup() {
                                       current[index].date = e.target.value;
                                       form.setValue('projects', [...current]);
                                     }}
-                                    className="border-white/10 bg-white/5 text-white"
+                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] md:col-span-2"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-sm text-white/70 mb-1 block">Description</label>
+                                  <label className="text-sm text-gray-600 mb-1 block">Project Description</label>
                                   <textarea
-                                    placeholder="Describe the project, technologies used, and your contributions..."
+                                    placeholder="Describe your project, technologies used, and key achievements..."
                                     value={Array.isArray(proj.descriptions) ? proj.descriptions.join('\n') : (proj.descriptions || '')}
                                     onChange={(e) => {
                                       const current = form.getValues('projects') || [];
@@ -954,15 +1115,15 @@ export default function ProfileSetup() {
                                       form.setValue('projects', [...current]);
                                     }}
                                     rows={3}
-                                    className="w-full px-3 py-2 border border-white/10 rounded-md bg-white/5 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand-accent/50 resize-none"
+                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
                                   />
-                                  <p className="text-xs text-white/50 mt-1">Enter each bullet point on a new line</p>
+                                  <p className="text-xs text-gray-500 mt-1">Enter each bullet point on a new line</p>
                                 </div>
                               </div>
                             </div>
                           ))}
                           {(!field.value || field.value.length === 0) && (
-                            <p className="text-sm text-white/60 text-center py-4">No projects added yet. Upload resume to auto-fill or add manually.</p>
+                            <p className="text-sm text-gray-600 text-center py-4">No projects added yet. Upload resume to auto-fill or add manually.</p>
                           )}
                         </div>
                       </FormControl>
@@ -972,9 +1133,9 @@ export default function ProfileSetup() {
               </div>
 
               {/* Skills Section */}
-              <div className="border-b border-white/10 pb-6">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Code className="mr-2 h-5 w-5 text-brand-accent" />
+              <div className="border-b border-[#003366]/10 pb-6">
+                <h3 className="text-xl font-semibold text-[#333333] mb-4 flex items-center">
+                  <Code className="mr-2 h-5 w-5 text-[#003366]" />
                   Skills
                 </h3>
                 <FormField
@@ -982,7 +1143,7 @@ export default function ProfileSetup() {
                   name="skills"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-brand-accent-light/80">Skills (comma-separated)</FormLabel>
+                      <FormLabel className="text-[#333333]">Skills (comma-separated)</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Java, Spring Boot, React, MongoDB"
@@ -995,7 +1156,7 @@ export default function ProfileSetup() {
                               .filter(s => s.length > 0 && s !== ',');
                             form.setValue('skills', skills);
                           }}
-                          className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-brand-accent/50"
+                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
                         />
                       </FormControl>
                       <FormMessage />
@@ -1007,7 +1168,7 @@ export default function ProfileSetup() {
               <div className="flex gap-4 pt-4">
                 <Button
                   type="submit"
-                  className="flex-1"
+                  className="flex-1 bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] font-semibold"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -1026,7 +1187,7 @@ export default function ProfileSetup() {
                   type="button"
                   variant="outline"
                   onClick={() => navigate('/dashboard')}
-                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
                 >
                   Skip for Now
                 </Button>
