@@ -13,7 +13,6 @@ const EditProfile = lazy(() => import('./pages/EditProfile'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Alumni = lazy(() => import('./pages/Alumni'));
-const AlumniProfileDetail = lazy(() => import('./pages/AlumniProfileDetail'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'));
 const Events = lazy(() => import('./pages/Events'));
@@ -58,7 +57,6 @@ function App() {
 
               {/* Public Routes */}
               <Route path="/alumni" element={<Alumni />} />
-              <Route path="/alumni/:id" element={<AlumniProfileDetail />} />
               <Route path="/gallery" element={<Gallery />} />
 
               {/* Protected Routes */}

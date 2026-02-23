@@ -10,10 +10,9 @@ import ConfirmDialog from './ConfirmDialog';
 interface JobCardProps {
     job: JobPostDTO;
     onDelete: (id: string) => void;
-    onApply?: (job: JobPostDTO) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onDelete, onApply }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
     const { user } = useAuth();
     const isOwner = user?.id === job.postedById || user?.role === 'ADMIN';
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -87,15 +86,15 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete, onApply }) => {
                             onClick={() => window.open(job.applicationLink, '_blank')}
                         >
                             <ExternalLink size={14} className="mr-2" />
-                            External Apply
+                            Apply Now
                         </Button>
                     ) : (
                         <Button
                             className="flex-1 bg-dsce-blue text-white hover:bg-dsce-blue/90 h-9 text-sm"
-                            onClick={() => onApply && onApply(job)}
+                            onClick={() => job.contactEmail && (window.location.href = `mailto:${job.contactEmail}`)}
                         >
-                            <Briefcase size={14} className="mr-2" />
-                            Easy Apply
+                            <Mail size={14} className="mr-2" />
+                            Email
                         </Button>
                     )}
 
