@@ -23,6 +23,8 @@ const Settings = lazy(() => import('./pages/Settings'));
 const ForumList = lazy(() => import('./pages/ForumList'));
 const ForumDetail = lazy(() => import('./pages/ForumDetail'));
 const TopicDetail = lazy(() => import('./pages/TopicDetail'));
+const AlumniDetail = lazy(() => import('./pages/AlumniDetail'));
+const JobDetail = lazy(() => import('./pages/JobDetail'));
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -60,6 +62,7 @@ function App() {
 
               {/* Public Routes */}
               <Route path="/alumni" element={<Alumni />} />
+              <Route path="/alumni/:id" element={<AlumniDetail />} />
               <Route path="/gallery" element={<Gallery />} />
 
               {/* Protected Routes */}
@@ -75,6 +78,7 @@ function App() {
                 <Route path="/dashboard/announcements" element={<Announcements />} />
                 <Route path="/dashboard/posts" element={<Posts />} />
                 <Route path="/jobs" element={<Jobs />} />
+                <Route path="/jobs/:id" element={<JobDetail />} />
                 <Route path="/dashboard/settings" element={<Settings />} />
                 <Route path="/dashboard/forums" element={<ForumList />} />
                 <Route path="/dashboard/forums/:groupId" element={<ForumDetail />} />

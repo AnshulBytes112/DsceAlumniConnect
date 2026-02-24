@@ -15,6 +15,10 @@ public class AlumniService {
     private UserRepository userRepository;
 
     public List<User> getAllAlumni() {
-return userRepository.findAll();
+        return userRepository.findAll();
+    }
+
+    public Optional<User> getAlumniById(String id) {
+        return userRepository.findById(id);
     }
 }

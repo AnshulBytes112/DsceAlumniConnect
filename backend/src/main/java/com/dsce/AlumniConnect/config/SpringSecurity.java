@@ -59,7 +59,7 @@ public class SpringSecurity {
                         .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers("/users/*/resume").authenticated()
                         .requestMatchers("/api/jobs/**").authenticated()
-                        .requestMatchers("/alumni/**", "/profiles/**").permitAll()
+                        .requestMatchers("/alumni/**", "/api/alumni/**", "/profiles/**").permitAll()
                         .anyRequest().authenticated());
 
         http.addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class);

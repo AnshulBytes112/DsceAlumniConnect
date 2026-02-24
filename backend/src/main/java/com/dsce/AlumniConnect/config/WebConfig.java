@@ -13,7 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
         public void addResourceHandlers(ResourceHandlerRegistry registry) {
                 // Get the current working directory (project root)
                 String projectPath = System.getProperty("user.dir");
-                
+
                 // Serve files from the profiles directory
                 registry.addResourceHandler("/profiles/**")
                                 .addResourceLocations("file:" + projectPath + "/profiles/");

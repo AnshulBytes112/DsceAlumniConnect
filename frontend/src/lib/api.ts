@@ -666,6 +666,17 @@ class ApiClient {
         return response.json();
     }
 
+    async getAlumniById(id: string): Promise<UserProfile | null> {
+        const response = await fetch(`${this.baseUrl}/alumni/${id}`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) return null;
+
+        return response.json();
+    }
+
     async uploadResume(resume: File, replaceExisting: boolean = false) {
         const formData = new FormData();
         formData.append('file', resume);
@@ -877,6 +888,10 @@ class ApiClient {
 
     async getAllJobs(): Promise<JobPostDTO[]> {
         return this.get<JobPostDTO[]>('/api/jobs');
+    }
+
+    async getJobById(id: string): Promise<JobPostDTO> {
+        return this.get<JobPostDTO>(`/api/jobs/${id}`);
     }
 
     async getMyJobs(): Promise<JobPostDTO[]> {

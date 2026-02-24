@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../lib/api';
 import type { JobPostDTO } from '../lib/api';
 import JobCard from '../components/JobCard';
+import { mockJobs } from '../data/mockData';
 import CreateJobModal from '../components/CreateJobModal';
 import MotionWrapper from '../components/ui/MotionWrapper';
 import { Button } from '../components/ui/Button';
@@ -29,7 +30,14 @@ const Jobs = () => {
             }
             // Sort by created date desc if not already
             data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setJobs(data);
+
+            // Fallback to mock data if no jobs found from API
+            if (data.length === 0 && filter === 'all') {
+                console.log('No jobs from API, using mock data');
+                setJobs(mockJobs as JobPostDTO[]);
+            } else {
+                setJobs(data);
+            }
         } catch (err) {
             setError('Failed to load jobs');
             console.error(err);

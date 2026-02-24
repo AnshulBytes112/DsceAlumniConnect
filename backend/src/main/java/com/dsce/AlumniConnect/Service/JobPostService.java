@@ -58,6 +58,12 @@ public class JobPostService {
                 .collect(Collectors.toList());
     }
 
+    public JobPostDTO getJobById(String id) {
+        JobPost jobPost = jobPostRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
+        return convertToDTO(jobPost);
+    }
+
     public void deleteJobPost(String id) {
         String email = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .getUsername();

@@ -155,11 +155,13 @@ export const mockCredentials = {
 
 export const mockAlumni = [
     {
-        id: 1,
+        id: '1',
         name: 'Archana BS',
         graduationYear: 2004,
         department: 'Computer Science',
         location: 'New Delhi',
+        lat: 28.6139,
+        lng: 77.2090,
         company: 'Central Reserve Police Force (C.R.P.F)',
         position: 'Asst. Commissioner of Police',
         achievements: ['First IPS Officer from DSCE Batch 2004', 'National Police Medal for Excellence'],
@@ -168,11 +170,13 @@ export const mockAlumni = [
         image: '/alumni1(archana bs).jpg'
     },
     {
-        id: 2,
+        id: '2',
         name: 'Avinash Chukka',
         graduationYear: 2008,
         department: 'Computer Science',
         location: 'United States',
+        lat: 33.7490,
+        lng: -84.3880,
         company: 'Cardlytics',
         position: 'Vice President of Products',
         achievements: ['Led Product Strategy for Fortune 500 Clients', 'Pioneered Data Analytics Platform'],
@@ -181,11 +185,13 @@ export const mockAlumni = [
         image: '/alumni2(avinashchukka).jpg'
     },
     {
-        id: 3,
+        id: '3',
         name: 'Ashutosh Pandey',
         graduationYear: 2019,
         department: 'Computer Science',
         location: 'Bangalore',
+        lat: 12.9716,
+        lng: 77.5946,
         company: 'AMD',
         position: 'Compiler Engineer',
         achievements: ['GSoC Contributor', 'LinkedIn Top Voice', 'SIH 2019 Winner', 'LLVM BLR Contributor'],
@@ -194,11 +200,13 @@ export const mockAlumni = [
         image: '/alumni3(ashutosh-pandey).jpg'
     },
     {
-        id: 4,
+        id: '4',
         name: 'Nosthush Kenjige',
         graduationYear: 2015,
         department: 'Mechanical',
         location: 'United States',
+        lat: 38.9072,
+        lng: -77.0369,
         company: 'USA Cricket',
         position: 'Professional Cricket Player',
         achievements: ['Team USA Cricket Player', 'International Cricket Debut 2021'],
@@ -207,11 +215,13 @@ export const mockAlumni = [
         image: '/alumni4(nosthush kenjige).webp'
     },
     {
-        id: 5,
+        id: '5',
         name: 'Vikram Singh',
         graduationYear: 2022,
         department: 'Civil',
         location: 'Delhi',
+        lat: 28.6690,
+        lng: 77.2300,
         company: 'L&T',
         position: 'Project Manager',
         achievements: ['Young Engineer Award 2023', 'Led Metro Project'],
@@ -220,11 +230,13 @@ export const mockAlumni = [
         image: null
     },
     {
-        id: 6,
+        id: '6',
         name: 'Neha Gupta',
         graduationYear: 2017,
         department: 'Computer Science',
         location: 'San Francisco',
+        lat: 37.7749,
+        lng: -122.4194,
         company: 'Meta',
         position: 'Engineering Manager',
         achievements: ['Meta Leadership Award', 'Women in Tech Speaker'],
@@ -411,7 +423,53 @@ export const dashboardPosts = [
         comments: 5,
         shares: 2,
         hashtags: ['Mentorship', 'CareerGrowth'],
-        mentions: [],
-        initialComments: []
+    }
+];
+
+export const mockJobs = [
+    {
+        id: '1',
+        title: 'Full Stack Developer',
+        company: 'Tech Solutions Inc.',
+        location: 'Bangalore, India',
+        type: 'Full-time',
+        description: 'We are looking for a skilled Full Stack Developer to join our dynamic team. You will be responsible for developing and maintaining web applications from front to back.',
+        requirements: '3+ years of experience with React, Node.js, and MongoDB. Strong problem-solving skills.',
+        contactEmail: 'careers@techsolutions.com',
+        applicationLink: 'https://careers.techsolutions.com/apply',
+        postedByName: 'Amit Patel',
+        postedById: '2',
+        createdAt: new Date().toISOString(),
+        active: true
+    },
+    {
+        id: '2',
+        title: 'Cloud Architect',
+        company: 'CloudNine Systems',
+        location: 'Remote',
+        type: 'Contract',
+        description: 'Join us in designing and implementing scalable cloud architectures. You will work with AWS and Azure to build robust solutions for our clients.',
+        requirements: 'Experience with AWS/Azure, Kubernetes, and Terraform. System design expertise.',
+        contactEmail: 'jobs@cloudnine.com',
+        applicationLink: 'https://cloudnine.com/careers/cloud-architect',
+        postedByName: 'Priya Sharma',
+        postedById: '1',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        active: true
+    },
+    {
+        id: '3',
+        title: 'UI/UX Designer',
+        company: 'Creative Labs',
+        location: 'Mumbai, India',
+        type: 'Internship',
+        description: 'We are seeking a creative UI/UX Design intern to help us craft beautiful and intuitive user experiences. You will work closely with our product team.',
+        requirements: 'Portfolio showcasing UI/UX skills. Proficiency in Figma or Adobe XD.',
+        contactEmail: '',
+        applicationLink: 'https://creativelabs.design/internships',
+        postedByName: 'Sarah Johnson',
+        postedById: '3',
+        createdAt: new Date(Date.now() - 172800000).toISOString(),
+        active: true
     }
 ];

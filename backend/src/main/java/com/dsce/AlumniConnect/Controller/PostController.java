@@ -70,14 +70,13 @@ public class PostController {
 
             PostResponse post = postService.createPost(request, authentication.getName());
 
-            
             // Handle media field - ensure it's not null
 
-//            post.setLikedBy(new ArrayList<>());
-//            post.setReportedBy(new ArrayList<>());
+            // post.setLikedBy(new ArrayList<>());
+            // post.setReportedBy(new ArrayList<>());
 
             log.info("Created new post by user: {}", authentication.getName());
-            
+
             // Convert to response object
             return ResponseEntity.status(HttpStatus.CREATED).body(post);
         } catch (Exception e) {
@@ -162,30 +161,30 @@ public class PostController {
     public ResponseEntity<?> uploadPostImage(@RequestParam("image") MultipartFile file, Authentication authentication) {
         try {
             log.info("Uploading image for user: {}", authentication.getName());
-            
+
             // Validate file
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("Image file is required"));
             }
-            
+
             // Check file type
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("Only image files are allowed"));
             }
-            
+
             // Check file size (max 10MB)
             if (file.getSize() > 10 * 1024 * 1024) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("Image size should not exceed 10MB"));
             }
-            
+
             // Generate unique filename
             String originalFilename = file.getOriginalFilename();
-            String extension = originalFilename != null ? 
-                originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
-            String filename = "post_" + System.currentTimeMillis() + "_" + 
-                (int)(Math.random() * 1000) + extension;
-            
+            String extension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String filename = "post_" + System.currentTimeMillis() + "_" +
+                    (int) (Math.random() * 1000) + extension;
+
             // Use absolute path to the project's uploads directory
             String projectPath = System.getProperty("user.dir");
             String uploadDir = projectPath + "/uploads/posts/";
@@ -193,17 +192,17 @@ public class PostController {
             if (!directory.exists()) {
                 directory.mkdirs();
             }
-            
+
             java.io.File destinationFile = new java.io.File(uploadDir + filename);
             file.transferTo(destinationFile);
-            
+
             // Return relative path for frontend to construct full URL
             String imageUrl = "uploads/posts/" + filename;
-            
+
             log.info("Successfully uploaded image: {} to directory: {}", filename, uploadDir);
-            
+
             return ResponseEntity.ok().body(java.util.Map.of("imageUrl", imageUrl));
-            
+
         } catch (Exception e) {
             log.error("Error uploading image: {}", e.getMessage());
             e.printStackTrace(); // Add stack trace for debugging
