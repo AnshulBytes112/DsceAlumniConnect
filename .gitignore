@@ -123,3 +123,4 @@ profiles/
 *.backup
 
 node_modules/
+uploads/
