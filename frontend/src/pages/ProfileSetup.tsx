@@ -17,12 +17,22 @@ const workExperienceSchema = z.object({
   company: z.string().optional(),
   jobTitle: z.string().optional(),
   date: z.string().optional(),
+  month: z.string().optional(),
+  year: z.string().optional(),
+  endMonth: z.string().optional(),
+  endYear: z.string().optional(),
+  currentlyWorking: z.boolean().optional(),
   descriptions: z.array(z.string()).optional(),
 });
 
 const educationSchema = z.object({
   school: z.string().optional(),
   degree: z.string().optional(),
+  month: z.string().optional(),
+  year: z.string().optional(),
+  endMonth: z.string().optional(),
+  endYear: z.string().optional(),
+  currentlyPursuing: z.boolean().optional(),
   date: z.string().optional(),
   gpa: z.string().optional(),
   descriptions: z.array(z.string()).optional(),
@@ -99,7 +109,7 @@ type ProfileSetupFormValues = z.infer<typeof profileSetupSchema>;
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
-  const { user, login } = useAuth();
+  const { user, setUser } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isParsingResume, setIsParsingResume] = useState(false);
@@ -155,8 +165,16 @@ export default function ProfileSetup() {
             location: profile.location || '',
             linkedinProfile: profile.linkedinProfile || '',
             website: profile.website || '',
-            workExperiences: profile.workExperiences || [],
-            educations: profile.educations || [],
+            workExperiences: profile.workExperiences?.map(we => ({
+              ...we,
+              year: we.year?.toString() || '',
+              endYear: we.endYear?.toString() || '',
+            })) || [],
+            educations: profile.educations?.map(ed => ({
+              ...ed,
+              year: ed.year?.toString() || '',
+              endYear: ed.endYear?.toString() || '',
+            })) || [],
             projects: profile.projects || [],
             achievements: profile.achievements || [],
             skills: profile.skills || [],
@@ -249,22 +267,68 @@ export default function ProfileSetup() {
         // Resume data fields - always update if backend has the data (flexible filling)
         if (updatedProfile.workExperiences && updatedProfile.workExperiences.length > 0) {
           console.log('Setting work experiences:', updatedProfile.workExperiences);
-          formData.workExperiences = updatedProfile.workExperiences.map((we: any) => ({
-            company: we.company || '',
-            jobTitle: we.jobTitle || '',
-            date: we.date || '',
-            descriptions: Array.isArray(we.descriptions) ? we.descriptions : (we.description ? [we.description] : []),
-          })).filter((we: any) => we.company || we.jobTitle || we.date || (we.descriptions && we.descriptions.length > 0)); // Only include if at least one field has data
+          formData.workExperiences = updatedProfile.workExperiences.map((we: any) => {
+            // Parse date to extract month and year if available
+            let month = '', year = '';
+            if (we.date) {
+              const dateMatch = we.date.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/i);
+              if (dateMatch) {
+                month = dateMatch[1];
+                year = dateMatch[2];
+              } else {
+                // Try to extract year if no month found
+                const yearMatch = we.date.match(/(\d{4})/);
+                if (yearMatch) {
+                  year = yearMatch[1];
+                }
+              }
+            }
+            
+            return {
+              company: we.company || '',
+              jobTitle: we.jobTitle || '',
+              month: month || we.month || '',
+              year: year || we.year?.toString() || '',
+              endMonth: we.endMonth || '',
+              endYear: we.endYear?.toString() || '',
+              date: we.date || '',
+              currentlyWorking: we.currentlyWorking || false,
+              descriptions: Array.isArray(we.descriptions) ? we.descriptions : (we.description ? [we.description] : []),
+            };
+          }).filter((we: any) => we.company || we.jobTitle || we.date || we.month || we.year || (we.descriptions && we.descriptions.length > 0)); // Only include if at least one field has data
         }
         if (updatedProfile.educations && updatedProfile.educations.length > 0) {
           console.log('Setting educations:', updatedProfile.educations);
-          formData.educations = updatedProfile.educations.map((ed: any) => ({
-            school: ed.school || '',
-            degree: ed.degree || '',
-            date: ed.date || '',
-            gpa: ed.gpa || '',
-            descriptions: Array.isArray(ed.descriptions) ? ed.descriptions : (ed.description ? [ed.description] : []),
-          })).filter((ed: any) => ed.school || ed.degree || ed.date || (ed.descriptions && ed.descriptions.length > 0)); // Only include if at least one field has data
+          formData.educations = updatedProfile.educations.map((ed: any) => {
+            // Parse date to extract month and year if available
+            let month = '', year = '';
+            if (ed.date) {
+              const dateMatch = ed.date.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/i);
+              if (dateMatch) {
+                month = dateMatch[1];
+                year = dateMatch[2];
+              } else {
+                // Try to extract year if no month found
+                const yearMatch = ed.date.match(/(\d{4})/);
+                if (yearMatch) {
+                  year = yearMatch[1];
+                }
+              }
+            }
+            
+            return {
+              school: ed.school || '',
+              degree: ed.degree || '',
+              month: month || ed.month || '',
+              year: year || ed.year?.toString() || '',
+              endMonth: ed.endMonth || '',
+              endYear: ed.endYear?.toString() || '',
+              date: ed.date || '',
+              gpa: ed.gpa || '',
+              currentlyPursuing: ed.currentlyPursuing || false,
+              descriptions: Array.isArray(ed.descriptions) ? ed.descriptions : (ed.description ? [ed.description] : []),
+            };
+          }).filter((ed: any) => ed.school || ed.degree || ed.date || ed.month || ed.year || (ed.descriptions && ed.descriptions.length > 0)); // Only include if at least one field has data
         }
         if (updatedProfile.projects && updatedProfile.projects.length > 0) {
           console.log('Setting projects:', updatedProfile.projects);
@@ -384,18 +448,9 @@ export default function ProfileSetup() {
 
       // Refresh user data
       const updatedProfile = await apiClient.getProfile();
-      if (user) {
-        const updatedUser = {
-          ...user,
-          profileComplete: updatedProfile.profileComplete || false,
-          firstName: updatedProfile.firstName || user.firstName,
-          lastName: updatedProfile.lastName || user.lastName,
-          profilePicture: updatedProfile.profilePicture || user.profilePicture,
-          resumeUrl: updatedProfile.resumeUrl || user.resumeUrl,
-        };
-        
-        // Update user context without affecting JWT token
-        login(updatedUser);
+      if (updatedProfile) {
+        // Update user context with the complete updated profile
+        setUser(updatedProfile);
       }
 
       toast({
@@ -735,7 +790,7 @@ export default function ProfileSetup() {
                     size="sm"
                     onClick={() => {
                       const current = form.getValues('workExperiences') || [];
-                      form.setValue('workExperiences', [...current, { company: '', jobTitle: '', date: '', descriptions: [] }]);
+                      form.setValue('workExperiences', [...current, { company: '', jobTitle: '', date: '', month: '', year: '', endMonth: '', endYear: '', currentlyWorking: false, descriptions: [] }]);
                     }}
                     className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
                   >
@@ -788,32 +843,179 @@ export default function ProfileSetup() {
                                     }}
                                     className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
-                                  <Input
-                                    placeholder="Date (e.g., Jan 2020 - Dec 2022)"
-                                    value={exp.date || ''}
-                                    onChange={(e) => {
-                                      const current = form.getValues('workExperiences') || [];
-                                      current[index].date = e.target.value;
-                                      form.setValue('workExperiences', [...current]);
-                                    }}
-                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] md:col-span-2"
-                                  />
                                 </div>
+                                
+                                {/* Date Fields Section */}
+                                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                  <h4 className="text-sm font-medium text-blue-900 mb-3">Employment Period</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Month *</label>
+                                      <select
+                                        value={exp.month || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('workExperiences') || [];
+                                          current[index].month = e.target.value;
+                                          form.setValue('workExperiences', [...current]);
+                                        }}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">Select Month</option>
+                                        <option value="Jan">January</option>
+                                        <option value="Feb">February</option>
+                                        <option value="Mar">March</option>
+                                        <option value="Apr">April</option>
+                                        <option value="May">May</option>
+                                        <option value="Jun">June</option>
+                                        <option value="Jul">July</option>
+                                        <option value="Aug">August</option>
+                                        <option value="Sep">September</option>
+                                        <option value="Oct">October</option>
+                                        <option value="Nov">November</option>
+                                        <option value="Dec">December</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Year *</label>
+                                      <input
+                                        type="number"
+                                        placeholder="2024"
+                                        value={exp.year || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('workExperiences') || [];
+                                          current[index].year = e.target.value;
+                                          form.setValue('workExperiences', [...current]);
+                                        }}
+                                        min="1950"
+                                        max={new Date().getFullYear() + 1}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {!exp.currentlyWorking && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Month</label>
+                                        <select
+                                          value={exp.endMonth || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('workExperiences') || [];
+                                            current[index].endMonth = e.target.value;
+                                            form.setValue('workExperiences', [...current]);
+                                          }}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                          <option value="">Select Month</option>
+                                          <option value="Jan">January</option>
+                                          <option value="Feb">February</option>
+                                          <option value="Mar">March</option>
+                                          <option value="Apr">April</option>
+                                          <option value="May">May</option>
+                                          <option value="Jun">June</option>
+                                          <option value="Jul">July</option>
+                                          <option value="Aug">August</option>
+                                          <option value="Sep">September</option>
+                                          <option value="Oct">October</option>
+                                          <option value="Nov">November</option>
+                                          <option value="Dec">December</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Year</label>
+                                        <input
+                                          type="number"
+                                          placeholder="2024"
+                                          value={exp.endYear || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('workExperiences') || [];
+                                            current[index].endYear = e.target.value;
+                                            form.setValue('workExperiences', [...current]);
+                                          }}
+                                          min="1950"
+                                          max={new Date().getFullYear() + 1}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      id={`currently-working-${index}`}
+                                      checked={exp.currentlyWorking || false}
+                                      onChange={(e) => {
+                                        const current = form.getValues('workExperiences') || [];
+                                        current[index].currentlyWorking = e.target.checked;
+                                        if (e.target.checked) {
+                                          current[index].endMonth = '';
+                                          current[index].endYear = '';
+                                        }
+                                        form.setValue('workExperiences', [...current]);
+                                      }}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor={`currently-working-${index}`} className="ml-2 text-sm text-blue-800">
+                                      Currently working here
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
                                 <div>
                                   <label className="text-sm text-gray-600 mb-1 block">Job Description / Responsibilities</label>
-                                  <textarea
-                                    placeholder="Describe your responsibilities, achievements, and key contributions..."
-                                    value={Array.isArray(exp.descriptions) ? exp.descriptions.join('\n') : (exp.descriptions || '')}
-                                    onChange={(e) => {
-                                      const current = form.getValues('workExperiences') || [];
-                                      // Split by newlines and filter empty strings
-                                      current[index].descriptions = e.target.value.split('\n').filter(line => line.trim().length > 0);
-                                      form.setValue('workExperiences', [...current]);
-                                    }}
-                                    rows={4}
-                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">Enter each bullet point on a new line</p>
+                                  <div className="space-y-2">
+                                    {Array.isArray(exp.descriptions) ? exp.descriptions.map((desc, descIndex) => (
+                                      <div key={descIndex} className="flex gap-2">
+                                        <Input
+                                          placeholder="Enter a responsibility or achievement..."
+                                          value={desc || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('workExperiences') || [];
+                                            if (!current[index].descriptions) {
+                                              current[index].descriptions = [];
+                                            }
+                                            current[index].descriptions[descIndex] = e.target.value;
+                                            form.setValue('workExperiences', [...current]);
+                                          }}
+                                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const current = form.getValues('workExperiences') || [];
+                                            if (current[index].descriptions) {
+                                              current[index].descriptions = current[index].descriptions.filter((_, i) => i !== descIndex);
+                                              form.setValue('workExperiences', [...current]);
+                                            }
+                                          }}
+                                          className="text-red-400 hover:text-red-300 px-2"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    )) : null}
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const current = form.getValues('workExperiences') || [];
+                                        if (!current[index].descriptions) {
+                                          current[index].descriptions = [];
+                                        }
+                                        current[index].descriptions.push('');
+                                        form.setValue('workExperiences', [...current]);
+                                      }}
+                                      className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
+                                    >
+                                      <Plus className="h-4 w-4 mr-1" />
+                                      Add Responsibility
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -933,7 +1135,7 @@ export default function ProfileSetup() {
                     size="sm"
                     onClick={() => {
                       const current = form.getValues('educations') || [];
-                      form.setValue('educations', [...current, { school: '', degree: '', date: '', gpa: '', descriptions: [] }]);
+                      form.setValue('educations', [...current, { school: '', degree: '', date: '', gpa: '', month: '', year: '', endMonth: '', endYear: '', currentlyPursuing: false, descriptions: [] }]);
                     }}
                     className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
                   >
@@ -986,16 +1188,125 @@ export default function ProfileSetup() {
                                     }}
                                     className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
                                   />
-                                  <Input
-                                    placeholder="Date (e.g., 2019 - 2023)"
-                                    value={edu.date || ''}
-                                    onChange={(e) => {
-                                      const current = form.getValues('educations') || [];
-                                      current[index].date = e.target.value;
-                                      form.setValue('educations', [...current]);
-                                    }}
-                                    className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
-                                  />
+                                </div>
+                                
+                                {/* Date Fields Section */}
+                                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                  <h4 className="text-sm font-medium text-blue-900 mb-3">Education Period</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Month *</label>
+                                      <select
+                                        value={edu.month || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('educations') || [];
+                                          current[index].month = e.target.value;
+                                          form.setValue('educations', [...current]);
+                                        }}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">Select Month</option>
+                                        <option value="Jan">January</option>
+                                        <option value="Feb">February</option>
+                                        <option value="Mar">March</option>
+                                        <option value="Apr">April</option>
+                                        <option value="May">May</option>
+                                        <option value="Jun">June</option>
+                                        <option value="Jul">July</option>
+                                        <option value="Aug">August</option>
+                                        <option value="Sep">September</option>
+                                        <option value="Oct">October</option>
+                                        <option value="Nov">November</option>
+                                        <option value="Dec">December</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Year *</label>
+                                      <input
+                                        type="number"
+                                        placeholder="2024"
+                                        value={edu.year || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('educations') || [];
+                                          current[index].year = e.target.value;
+                                          form.setValue('educations', [...current]);
+                                        }}
+                                        min="1950"
+                                        max={new Date().getFullYear() + 1}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {!edu.currentlyPursuing && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Month</label>
+                                        <select
+                                          value={edu.endMonth || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('educations') || [];
+                                            current[index].endMonth = e.target.value;
+                                            form.setValue('educations', [...current]);
+                                          }}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                          <option value="">Select Month</option>
+                                          <option value="Jan">January</option>
+                                          <option value="Feb">February</option>
+                                          <option value="Mar">March</option>
+                                          <option value="Apr">April</option>
+                                          <option value="May">May</option>
+                                          <option value="Jun">June</option>
+                                          <option value="Jul">July</option>
+                                          <option value="Aug">August</option>
+                                          <option value="Sep">September</option>
+                                          <option value="Oct">October</option>
+                                          <option value="Nov">November</option>
+                                          <option value="Dec">December</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Year</label>
+                                        <input
+                                          type="number"
+                                          placeholder="2024"
+                                          value={edu.endYear || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('educations') || [];
+                                            current[index].endYear = e.target.value;
+                                            form.setValue('educations', [...current]);
+                                          }}
+                                          min="1950"
+                                          max={new Date().getFullYear() + 1}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      id={`currently-pursuing-${index}`}
+                                      checked={edu.currentlyPursuing || false}
+                                      onChange={(e) => {
+                                        const current = form.getValues('educations') || [];
+                                        current[index].currentlyPursuing = e.target.checked;
+                                        if (e.target.checked) {
+                                          current[index].endMonth = '';
+                                          current[index].endYear = '';
+                                        }
+                                        form.setValue('educations', [...current]);
+                                      }}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor={`currently-pursuing-${index}`} className="ml-2 text-sm text-blue-800">
+                                      Currently pursuing this degree
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   <Input
                                     placeholder="GPA (optional)"
                                     value={edu.gpa || ''}
@@ -1009,19 +1320,57 @@ export default function ProfileSetup() {
                                 </div>
                                 <div>
                                   <label className="text-sm text-gray-600 mb-1 block">Additional Details / Achievements</label>
-                                  <textarea
-                                    placeholder="Describe relevant coursework, achievements, honors, or activities..."
-                                    value={Array.isArray(edu.descriptions) ? edu.descriptions.join('\n') : (edu.descriptions || '')}
-                                    onChange={(e) => {
-                                      const current = form.getValues('educations') || [];
-                                      // Split by newlines and filter empty strings
-                                      current[index].descriptions = e.target.value.split('\n').filter(line => line.trim().length > 0);
-                                      form.setValue('educations', [...current]);
-                                    }}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">Enter each bullet point on a new line</p>
+                                  <div className="space-y-2">
+                                    {Array.isArray(edu.descriptions) ? edu.descriptions.map((desc, descIndex) => (
+                                      <div key={descIndex} className="flex gap-2">
+                                        <Input
+                                          placeholder="Enter a detail, achievement, or honor..."
+                                          value={desc || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('educations') || [];
+                                            if (!current[index].descriptions) {
+                                              current[index].descriptions = [];
+                                            }
+                                            current[index].descriptions[descIndex] = e.target.value;
+                                            form.setValue('educations', [...current]);
+                                          }}
+                                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const current = form.getValues('educations') || [];
+                                            if (current[index].descriptions) {
+                                              current[index].descriptions = current[index].descriptions.filter((_, i) => i !== descIndex);
+                                              form.setValue('educations', [...current]);
+                                            }
+                                          }}
+                                          className="text-red-400 hover:text-red-300 px-2"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    )) : null}
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const current = form.getValues('educations') || [];
+                                        if (!current[index].descriptions) {
+                                          current[index].descriptions = [];
+                                        }
+                                        current[index].descriptions.push('');
+                                        form.setValue('educations', [...current]);
+                                      }}
+                                      className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
+                                    >
+                                      <Plus className="h-4 w-4 mr-1" />
+                                      Add Detail
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1105,19 +1454,57 @@ export default function ProfileSetup() {
                                 </div>
                                 <div>
                                   <label className="text-sm text-gray-600 mb-1 block">Project Description</label>
-                                  <textarea
-                                    placeholder="Describe your project, technologies used, and key achievements..."
-                                    value={Array.isArray(proj.descriptions) ? proj.descriptions.join('\n') : (proj.descriptions || '')}
-                                    onChange={(e) => {
-                                      const current = form.getValues('projects') || [];
-                                      // Split by newlines and filter empty strings
-                                      current[index].descriptions = e.target.value.split('\n').filter(line => line.trim().length > 0);
-                                      form.setValue('projects', [...current]);
-                                    }}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-[#003366]/10 rounded-md bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#003366]/50 resize-none"
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">Enter each bullet point on a new line</p>
+                                  <div className="space-y-2">
+                                    {Array.isArray(proj.descriptions) ? proj.descriptions.map((desc, descIndex) => (
+                                      <div key={descIndex} className="flex gap-2">
+                                        <Input
+                                          placeholder="Describe a project aspect, technology, or achievement..."
+                                          value={desc || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('projects') || [];
+                                            if (!current[index].descriptions) {
+                                              current[index].descriptions = [];
+                                            }
+                                            current[index].descriptions[descIndex] = e.target.value;
+                                            form.setValue('projects', [...current]);
+                                          }}
+                                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333]"
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const current = form.getValues('projects') || [];
+                                            if (current[index].descriptions) {
+                                              current[index].descriptions = current[index].descriptions.filter((_, i) => i !== descIndex);
+                                              form.setValue('projects', [...current]);
+                                            }
+                                          }}
+                                          className="text-red-400 hover:text-red-300 px-2"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    )) : null}
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const current = form.getValues('projects') || [];
+                                        if (!current[index].descriptions) {
+                                          current[index].descriptions = [];
+                                        }
+                                        current[index].descriptions.push('');
+                                        form.setValue('projects', [...current]);
+                                      }}
+                                      className="border-[#003366]/10 bg-white text-[#333333] hover:bg-[#F8F8F8] hover:border-[#00AEEF]/50"
+                                    >
+                                      <Plus className="h-4 w-4 mr-1" />
+                                      Add Description
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>

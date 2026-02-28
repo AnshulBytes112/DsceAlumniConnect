@@ -231,7 +231,9 @@ export default function Profile() {
                                 <div key={index}>
                                     <p className="font-semibold text-gray-800">{exp.jobTitle}</p>
                                     <p className="text-sm text-gray-600">{exp.company}</p>
-                                    <p className="text-xs text-gray-400">{exp.date}</p>
+                                    <p className="text-xs text-gray-400">
+                                        {exp.month && exp.year ? `${exp.month} ${exp.year}` : exp.date}
+                                    </p>
                                 </div>
                             ))
                         ) : (

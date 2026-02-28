@@ -69,6 +69,11 @@ public class ResumeService {
                             we.getCompany(),
                             we.getJobTitle(),
                             we.getDate(),
+                            we.getMonth(),
+                            we.getYear() != null ? Integer.parseInt(we.getYear()) : null,
+                            we.getEndMonth(),
+                            we.getEndYear() != null ? Integer.parseInt(we.getEndYear()) : null,
+                            we.getCurrentlyWorking(),
                             we.getDescriptions()))
                     .collect(Collectors.toList());
             user.setWorkExperiences(workExps);
@@ -82,6 +87,11 @@ public class ResumeService {
                             ed.getDegree(),
                             ed.getDate(),
                             ed.getGpa(),
+                            ed.getMonth(),
+                            ed.getYear() != null ? Integer.parseInt(ed.getYear()) : null,
+                            ed.getEndMonth(),
+                            ed.getEndYear() != null ? Integer.parseInt(ed.getEndYear()) : null,
+                            ed.getCurrentlyPursuing(),
                             ed.getDescriptions()))
                     .collect(Collectors.toList());
             user.setEducations(educations);

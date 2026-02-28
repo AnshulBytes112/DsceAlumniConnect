@@ -38,6 +38,7 @@ import MainLayout from './components/layout/MainLayout';
 import EventDetails from './pages/EventDetails';
 const AdminVerification = lazy(() => import('./pages/AdminVerification'));
 const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
+const AdminAlumniManagement = lazy(() => import('./pages/AdminAlumniManagement'));
 const AnnouncementManager = lazy(() => import('./pages/AnnouncementManager'));
 const AdminEventManagement = lazy(() => import('./pages/AdminEventManagement'));
 
@@ -89,6 +90,7 @@ function App() {
               <Route element={<AdminRoute />}>
                 <Route path="/admin/verification" element={<AdminVerification />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                <Route path="/admin/alumni" element={<AdminAlumniManagement />} />
                 <Route path="/admin/manager" element={<AnnouncementManager />} />
                 <Route path="/admin/events" element={<AdminEventManagement />} />
               </Route>

@@ -66,6 +66,11 @@ public class User {
         private String company;
         private String jobTitle;
         private String date;
+        private String month; // e.g., "Feb", "February", "02"
+        private Integer year; // e.g., 2026
+        private String endMonth;
+        private Integer endYear;
+        private Boolean currentlyWorking;
         private List<String> descriptions;
     }
 
@@ -78,6 +83,11 @@ public class User {
         private String degree;
         private String date;
         private String gpa;
+        private String month;
+        private Integer year;
+        private String endMonth;
+        private Integer endYear;
+        private Boolean currentlyPursuing;
         private List<String> descriptions;
     }
 

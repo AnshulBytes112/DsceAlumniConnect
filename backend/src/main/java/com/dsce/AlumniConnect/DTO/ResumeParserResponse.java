@@ -36,6 +36,11 @@ public class ResumeParserResponse {
     public static class ResumeWorkExperience {
         private String company;
         private String jobTitle;
+        private String month;
+        private String year;
+        private String endMonth;
+        private String endYear;
+        private Boolean currentlyWorking;
         private String date;
         private List<String> descriptions;
     }
@@ -46,6 +51,11 @@ public class ResumeParserResponse {
     public static class ResumeEducation {
         private String school;
         private String degree;
+        private String month;
+        private String year;
+        private String endMonth;
+        private String endYear;
+        private Boolean currentlyPursuing;
         private String date;
         private String gpa;
         private List<String> descriptions;

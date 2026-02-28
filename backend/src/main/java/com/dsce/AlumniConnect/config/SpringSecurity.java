@@ -55,6 +55,7 @@ public class SpringSecurity {
                         .requestMatchers("/ws-forum", "/ws-forum/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/resume/**").hasRole("ADMIN")
+                        .requestMatchers("/resumes/**").authenticated()
                         .requestMatchers("/dashboard/fundings", "/comments/**").authenticated()
                         .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers("/users/*/resume").authenticated()

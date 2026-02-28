@@ -120,7 +120,7 @@ const ForumList = () => {
                             placeholder="Search forums..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
+                            className="pl-10 bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
                         />
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-2">

@@ -27,13 +27,12 @@ public class FileController {
     @Autowired
     private UserRepository userRepository;
 
-    private Authentication authentication;
-
     @PostMapping("/users/{id}/resume")
     public ResponseEntity<String> uploadResume(@PathVariable String id,
-            @RequestParam("file") MultipartFile file) throws IOException {
+            @RequestParam("file") MultipartFile file, Authentication authentication) throws IOException {
         String uname = userRepository.findById(id).orElseThrow().getEmail();
-        if (!authentication.getName().equals(uname)) {
+        if (!authentication.getName().equals(uname) && !authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return ResponseEntity.status(403).body("You are not authorized to upload resume for this user.");
         }
 
@@ -44,15 +43,16 @@ public class FileController {
         return ResponseEntity.ok("Resume uploaded successfully");
     }
 
-    @PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/{id}/resume")
-    public ResponseEntity<Resource> getResume(@PathVariable String id) throws IOException {
-        String uname = userRepository.findById(id).orElseThrow().getEmail();
-        if (!authentication.getName().equals(uname) && !authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            return ResponseEntity.status(403).build();
-        }
+    public ResponseEntity<Resource> getResume(@PathVariable String id, Authentication authentication) throws IOException {
         User user = userRepository.findById(id).orElseThrow();
+        
+        // Check if user has resume
+        if (user.getResumeUrl() == null || user.getResumeUrl().isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
         Path path = fileStorageService.getFilePath(user.getResumeUrl());
         Resource resource = new UrlResource(path.toUri());
 

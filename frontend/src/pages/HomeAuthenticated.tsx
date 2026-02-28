@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/Button';
 import { Calendar, MoreHorizontal, Bell, Clock, Users, Briefcase, BookOpen, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiClient, type UserProfile } from '@/lib/api';
+import ImageModal from '@/components/ui/ImageModal';
 import { 
-  dashboardUser 
+  dashboardUser,
+  homePageGallery
 } from '@/data/mockData';
 
 import MotionWrapper from '@/components/ui/MotionWrapper';
@@ -18,7 +20,7 @@ interface DashboardStats {
 }
 
 interface Announcement {
-  id: number;
+  id: string;
   title: string;
   description: string;
   time: string;
@@ -48,6 +50,7 @@ interface ProjectFunding {
 
 export default function HomeAuthenticated() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<{
     stats: DashboardStats | null;
@@ -233,6 +236,33 @@ export default function HomeAuthenticated() {
           </div>
         </div>
 
+        {/* Campus Gallery Section */}
+        <section className="py-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">Campus Memories</h2>
+            <p className="text-lg text-brand-accent-light">Take a stroll down memory lane with these glimpses of our beautiful campus</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 max-w-6xl mx-auto">
+            {homePageGallery.map((image, index) => (
+              <div key={index} className="relative overflow-hidden rounded-xl group cursor-pointer" onClick={() => setSelectedImage(image)}>
+                <img 
+                  src={image} 
+                  alt={`Campus memory ${index + 1}`} 
+                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link to="/gallery">
+              <Button variant="outline" className="rounded-full px-6 py-3 border-white/20 hover:bg-white hover:text-black transition-all">
+                View Full Gallery
+              </Button>
+            </Link>
+          </div>
+        </section>
+
         {/* Call to Action Section */}
         <section className="text-center py-12">
           <h2 className="text-3xl font-bold mb-6">Ready to Engage More?</h2>
@@ -253,6 +283,14 @@ export default function HomeAuthenticated() {
           </div>
         </section>
       </MotionWrapper>
+
+      {/* Image Modal */}
+      <ImageModal
+        image={selectedImage || ''}
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        alt="DSCE Campus Memory"
+      />
     </div>
   );
 }

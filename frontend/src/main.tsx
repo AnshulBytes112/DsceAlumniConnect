@@ -1,7 +1,7 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
+import 'leaflet/dist/leaflet.css'
 import App from './App.tsx'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { Toaster } from '@/components/ui/toaster'
@@ -20,15 +20,15 @@ const queryClient = new QueryClient({
   },
 })
 
+// Note: StrictMode removed — Leaflet (via react-leaflet) is not compatible with
+// StrictMode's intentional double-mount behavior in development.
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <AuthProvider>
-          <App />
-          <Toaster />
-        </AuthProvider>
-      </GoogleOAuthProvider>
-    </QueryClientProvider>
-  </StrictMode>,
+  <QueryClientProvider client={queryClient}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <App />
+        <Toaster />
+      </AuthProvider>
+    </GoogleOAuthProvider>
+  </QueryClientProvider>,
 )

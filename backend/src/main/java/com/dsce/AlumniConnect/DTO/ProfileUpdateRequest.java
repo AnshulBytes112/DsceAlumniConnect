@@ -36,6 +36,11 @@ public class ProfileUpdateRequest {
         private String company;
         private String jobTitle;
         private String date;
+        private String month;
+        private Integer year;
+        private String endMonth;
+        private Integer endYear;
+        private Boolean currentlyWorking;
         private List<String> descriptions;
     }
 
@@ -47,6 +52,11 @@ public class ProfileUpdateRequest {
         private String degree;
         private String date;
         private String gpa;
+        private String month;
+        private Integer year;
+        private String endMonth;
+        private Integer endYear;
+        private Boolean currentlyPursuing;
         private List<String> descriptions;
     }
 

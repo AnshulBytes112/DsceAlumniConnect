@@ -18,6 +18,11 @@ const API_BASE_URL = 'http://localhost:8080';
 const workExperienceSchema = z.object({
   company: z.string().optional(),
   jobTitle: z.string().optional(),
+  month: z.string().optional(),
+  year: z.string().optional(),
+  endMonth: z.string().optional(),
+  endYear: z.string().optional(),
+  currentlyWorking: z.boolean().optional(),
   date: z.string().optional(),
   descriptions: z.array(z.string()).optional(),
 });
@@ -25,6 +30,11 @@ const workExperienceSchema = z.object({
 const educationSchema = z.object({
   school: z.string().optional(),
   degree: z.string().optional(),
+  month: z.string().optional(),
+  year: z.string().optional(),
+  endMonth: z.string().optional(),
+  endYear: z.string().optional(),
+  currentlyPursuing: z.boolean().optional(),
   date: z.string().optional(),
   gpa: z.string().optional(),
   descriptions: z.array(z.string()).optional(),
@@ -158,8 +168,16 @@ export default function EditProfile() {
             location: profile.location || '',
             linkedinProfile: profile.linkedinProfile || '',
             website: profile.website || '',
-            workExperiences: profile.workExperiences || [],
-            educations: profile.educations || [],
+            workExperiences: profile.workExperiences?.map(exp => ({
+              ...exp,
+              year: exp.year?.toString() || '',
+              endYear: exp.endYear?.toString() || ''
+            })) || [],
+            educations: profile.educations?.map(edu => ({
+              ...edu,
+              year: edu.year?.toString() || '',
+              endYear: edu.endYear?.toString() || ''
+            })) || [],
             projects: profile.projects || [],
             achievements: profile.achievements || [],
             skills: profile.skills || [],
@@ -177,7 +195,7 @@ export default function EditProfile() {
   const handleResumeUpload = async (file: File) => {
     setIsParsingResume(true);
     try {
-      const result = replaceExistingData 
+      const result = replaceExistingData
         ? await apiClient.uploadResumeAndReplace(file)
         : await apiClient.uploadResume(file, false);
       setParsedData(result);
@@ -330,16 +348,13 @@ export default function EditProfile() {
 
       const updatedProfile = await apiClient.getProfile();
       if (user) {
+        // Spread the full updated profile so ALL fields (location, headline, dept, etc.)
+        // are immediately reflected everywhere in the app
         const updatedUser = {
           ...user,
-          profileComplete: updatedProfile.profileComplete || false,
-          firstName: updatedProfile.firstName || user.firstName,
-          lastName: updatedProfile.lastName || user.lastName,
-          profilePicture: updatedProfile.profilePicture || user.profilePicture,
-          resumeUrl: updatedProfile.resumeUrl || user.resumeUrl,
+          ...updatedProfile,
+          // Preserve JWT token fields that aren't in UserProfile
         };
-        
-        // Update user context without affecting JWT token
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }
@@ -370,23 +385,23 @@ export default function EditProfile() {
 
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center">
-                <Button 
-                    variant="ghost" 
-                    onClick={() => navigate('/dashboard/profile')}
-                    className="mr-4 text-dsce-blue hover:bg-black/80 hover:text-dsce-gold-hover"
-                >
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-dsce-blue">
-                        Edit Profile
-                    </h2>
-                    <p className="mt-1 text-dsce-text-dark">
-                        Update your personal information and professional details
-                    </p>
-                </div>
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/dashboard/profile')}
+              className="mr-4 text-dsce-blue hover:bg-black/80 hover:text-dsce-gold-hover"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-dsce-blue">
+                Edit Profile
+              </h2>
+              <p className="mt-1 text-dsce-text-dark">
+                Update your personal information and professional details
+              </p>
             </div>
+          </div>
         </div>
 
         <div className="rounded-xl border border-dsce-blue/10 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -684,7 +699,7 @@ export default function EditProfile() {
                     size="sm"
                     onClick={() => {
                       const current = form.getValues('workExperiences') || [];
-                      form.setValue('workExperiences', [...current, { company: '', jobTitle: '', date: '', descriptions: [] }]);
+                      form.setValue('workExperiences', [...current, { company: '', jobTitle: '', month: '', year: '', endMonth: '', endYear: '', currentlyWorking: false, date: '', descriptions: [] }]);
                     }}
                     className="border-dsce-blue/10 bg-white text-dsce-text-dark hover:bg-dsce-bg-light hover:border-dsce-light-blue/50"
                   >
@@ -737,16 +752,123 @@ export default function EditProfile() {
                                     }}
                                     className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark"
                                   />
-                                  <Input
-                                    placeholder="Date (e.g., Jan 2020 - Dec 2022)"
-                                    value={exp.date || ''}
-                                    onChange={(e) => {
-                                      const current = form.getValues('workExperiences') || [];
-                                      current[index].date = e.target.value;
-                                      form.setValue('workExperiences', [...current]);
-                                    }}
-                                    className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark md:col-span-2"
-                                  />
+                                </div>
+                                
+                                {/* Date Fields Section */}
+                                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                  <h4 className="text-sm font-medium text-blue-900 mb-3">Employment Period</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Month *</label>
+                                      <select
+                                        value={exp.month || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('workExperiences') || [];
+                                          current[index].month = e.target.value;
+                                          form.setValue('workExperiences', [...current]);
+                                        }}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">Select Month</option>
+                                        <option value="Jan">January</option>
+                                        <option value="Feb">February</option>
+                                        <option value="Mar">March</option>
+                                        <option value="Apr">April</option>
+                                        <option value="May">May</option>
+                                        <option value="Jun">June</option>
+                                        <option value="Jul">July</option>
+                                        <option value="Aug">August</option>
+                                        <option value="Sep">September</option>
+                                        <option value="Oct">October</option>
+                                        <option value="Nov">November</option>
+                                        <option value="Dec">December</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Year *</label>
+                                      <input
+                                        type="number"
+                                        placeholder="2024"
+                                        value={exp.year || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('workExperiences') || [];
+                                          current[index].year = e.target.value;
+                                          form.setValue('workExperiences', [...current]);
+                                        }}
+                                        min="1950"
+                                        max={new Date().getFullYear() + 1}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {!exp.currentlyWorking && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Month</label>
+                                        <select
+                                          value={exp.endMonth || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('workExperiences') || [];
+                                            current[index].endMonth = e.target.value;
+                                            form.setValue('workExperiences', [...current]);
+                                          }}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                          <option value="">Select Month</option>
+                                          <option value="Jan">January</option>
+                                          <option value="Feb">February</option>
+                                          <option value="Mar">March</option>
+                                          <option value="Apr">April</option>
+                                          <option value="May">May</option>
+                                          <option value="Jun">June</option>
+                                          <option value="Jul">July</option>
+                                          <option value="Aug">August</option>
+                                          <option value="Sep">September</option>
+                                          <option value="Oct">October</option>
+                                          <option value="Nov">November</option>
+                                          <option value="Dec">December</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Year</label>
+                                        <input
+                                          type="number"
+                                          placeholder="2024"
+                                          value={exp.endYear || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('workExperiences') || [];
+                                            current[index].endYear = e.target.value;
+                                            form.setValue('workExperiences', [...current]);
+                                          }}
+                                          min="1950"
+                                          max={new Date().getFullYear() + 1}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      id={`currently-working-${index}`}
+                                      checked={exp.currentlyWorking || false}
+                                      onChange={(e) => {
+                                        const current = form.getValues('workExperiences') || [];
+                                        current[index].currentlyWorking = e.target.checked;
+                                        if (e.target.checked) {
+                                          current[index].endMonth = '';
+                                          current[index].endYear = '';
+                                        }
+                                        form.setValue('workExperiences', [...current]);
+                                      }}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor={`currently-working-${index}`} className="ml-2 text-sm text-blue-800">
+                                      Currently working here
+                                    </label>
+                                  </div>
                                 </div>
                                 <div>
                                   <label className="text-sm text-gray-600 mb-1 block">Job Description / Responsibilities</label>
@@ -789,7 +911,7 @@ export default function EditProfile() {
                     size="sm"
                     onClick={() => {
                       const current = form.getValues('educations') || [];
-                      form.setValue('educations', [...current, { school: '', degree: '', date: '', gpa: '', descriptions: [] }]);
+                      form.setValue('educations', [...current, { school: '', degree: '', month: '', year: '', endMonth: '', endYear: '', currentlyPursuing: false, date: '', gpa: '', descriptions: [] }]);
                     }}
                     className="border-dsce-blue/10 bg-white text-dsce-text-dark hover:bg-dsce-bg-light hover:border-dsce-light-blue/50"
                   >
@@ -842,16 +964,125 @@ export default function EditProfile() {
                                     }}
                                     className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark"
                                   />
-                                  <Input
-                                    placeholder="Date (e.g., 2018 - 2022)"
-                                    value={edu.date || ''}
-                                    onChange={(e) => {
-                                      const current = form.getValues('educations') || [];
-                                      current[index].date = e.target.value;
-                                      form.setValue('educations', [...current]);
-                                    }}
-                                    className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark"
-                                  />
+                                </div>
+                                
+                                {/* Date Fields Section */}
+                                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                  <h4 className="text-sm font-medium text-blue-900 mb-3">Education Period</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Month *</label>
+                                      <select
+                                        value={edu.month || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('educations') || [];
+                                          current[index].month = e.target.value;
+                                          form.setValue('educations', [...current]);
+                                        }}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">Select Month</option>
+                                        <option value="Jan">January</option>
+                                        <option value="Feb">February</option>
+                                        <option value="Mar">March</option>
+                                        <option value="Apr">April</option>
+                                        <option value="May">May</option>
+                                        <option value="Jun">June</option>
+                                        <option value="Jul">July</option>
+                                        <option value="Aug">August</option>
+                                        <option value="Sep">September</option>
+                                        <option value="Oct">October</option>
+                                        <option value="Nov">November</option>
+                                        <option value="Dec">December</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-blue-800 mb-1 block">Start Year *</label>
+                                      <input
+                                        type="number"
+                                        placeholder="2024"
+                                        value={edu.year || ''}
+                                        onChange={(e) => {
+                                          const current = form.getValues('educations') || [];
+                                          current[index].year = e.target.value;
+                                          form.setValue('educations', [...current]);
+                                        }}
+                                        min="1950"
+                                        max={new Date().getFullYear() + 1}
+                                        className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {!edu.currentlyPursuing && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Month</label>
+                                        <select
+                                          value={edu.endMonth || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('educations') || [];
+                                            current[index].endMonth = e.target.value;
+                                            form.setValue('educations', [...current]);
+                                          }}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                          <option value="">Select Month</option>
+                                          <option value="Jan">January</option>
+                                          <option value="Feb">February</option>
+                                          <option value="Mar">March</option>
+                                          <option value="Apr">April</option>
+                                          <option value="May">May</option>
+                                          <option value="Jun">June</option>
+                                          <option value="Jul">July</option>
+                                          <option value="Aug">August</option>
+                                          <option value="Sep">September</option>
+                                          <option value="Oct">October</option>
+                                          <option value="Nov">November</option>
+                                          <option value="Dec">December</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium text-blue-800 mb-1 block">End Year</label>
+                                        <input
+                                          type="number"
+                                          placeholder="2024"
+                                          value={edu.endYear || ''}
+                                          onChange={(e) => {
+                                            const current = form.getValues('educations') || [];
+                                            current[index].endYear = e.target.value;
+                                            form.setValue('educations', [...current]);
+                                          }}
+                                          min="1950"
+                                          max={new Date().getFullYear() + 1}
+                                          className="w-full border-blue-300 bg-white text-blue-900 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      id={`currently-pursuing-${index}`}
+                                      checked={edu.currentlyPursuing || false}
+                                      onChange={(e) => {
+                                        const current = form.getValues('educations') || [];
+                                        current[index].currentlyPursuing = e.target.checked;
+                                        if (e.target.checked) {
+                                          current[index].endMonth = '';
+                                          current[index].endYear = '';
+                                        }
+                                        form.setValue('educations', [...current]);
+                                      }}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor={`currently-pursuing-${index}`} className="ml-2 text-sm text-blue-800">
+                                      Currently pursuing this degree
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   <Input
                                     placeholder="GPA / Grade (Optional)"
                                     value={edu.gpa || ''}

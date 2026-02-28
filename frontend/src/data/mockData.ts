@@ -311,14 +311,58 @@ export const landingNotableAchievers = [
 ];
 
 export const campusMemories = [
-    "https://images.unsplash.com/photo-1562774053-701939374585?w=500&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=500&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1581078426770-6d336e5de7bf?w=500&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1569068348-f0b2e3a6482a?w=500&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1554469384-e58e5b4ce0e8?w=500&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&h=400&fit=crop"
+    'https://www.dsce.edu.in/images/Gallery/2.jpg',
+    'https://www.dsce.edu.in/images/Gallery/20.JPG',
+    'https://www.dsce.edu.in/images/Gallery/21.JPG',
+    'https://www.dsce.edu.in/images/Gallery/22.JPG',
+    'https://www.dsce.edu.in/images/Gallery/23.JPG',
+    'https://www.dsce.edu.in/images/Gallery/24.JPG',
+    'https://www.dsce.edu.in/images/Gallery/25.JPG',
+    'https://www.dsce.edu.in/images/Gallery/26.JPG',
+    'https://www.dsce.edu.in/images/Gallery/27.JPG',
+    'https://www.dsce.edu.in/images/Gallery/28.JPG',
+    'https://www.dsce.edu.in/images/Gallery/29.JPG',
+    'https://www.dsce.edu.in/images/Gallery/3.jpg',
+    'https://www.dsce.edu.in/images/Gallery/30.JPG',
+    'https://www.dsce.edu.in/images/Gallery/31.JPG',
+    'https://www.dsce.edu.in/images/Gallery/32.JPG',
+    'https://image-static.collegedunia.com/public/reviewPhotos/1138713/Mech.jpeg',
+    'https://image-static.collegedunia.com/public/reviewPhotos/1052623/1000053507.jpg',
+    'https://image-static.collegedunia.com/public/reviewPhotos/1138713/download.jpeg',
+    'https://image-static.collegedunia.com/public/reviewPhotos/1138713/Campus.jpeg',
+    'https://image-static.collegedunia.com/public/reviewPhotos/1049554/WhatsApp%20Image%202025-01-13%20at%2015.39.33_5528f4e8.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15676586023evnntt.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602eervnnt.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602eregvennnttttt.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602errevnt.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602ervent.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602evejntt.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/1567658602eventr.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531393.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531394.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531396.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531397.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531398.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531399.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/159015314010.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/159015314012.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/159015314013.jpg',
+];
+
+// Selective images for home page showcase (10-12 images)
+export const homePageGallery = [
+    'https://www.dsce.edu.in/images/Gallery/2.jpg',
+    'https://www.dsce.edu.in/images/Gallery/20.JPG',
+    'https://www.dsce.edu.in/images/Gallery/21.JPG',
+    'https://www.dsce.edu.in/images/Gallery/23.JPG',
+    'https://www.dsce.edu.in/images/Gallery/25.JPG',
+    'https://www.dsce.edu.in/images/Gallery/28.JPG',
+    'https://www.dsce.edu.in/images/Gallery/3.jpg',
+    'https://www.dsce.edu.in/images/Gallery/31.JPG',
+    'https://image-static.collegedunia.com/public/reviewPhotos/1138713/Campus.jpeg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531393.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/15901531396.jpg',
+    'https://image-static.collegedunia.com/public/college_data/images/campusimage/159015314010.jpg'
 ];
 
 export const landingFeatures = [

@@ -4,17 +4,20 @@ import { Button } from '@/components/ui/Button';
 import { ArrowRight, Users, BookOpen, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  landingTimelineEvents, 
-  landingTestimonials, 
-  campusMemories, 
-  landingFeatures, 
+import { useState } from 'react';
+import ImageModal from '@/components/ui/ImageModal';
+import {
+  landingTimelineEvents,
+  landingTestimonials,
+  homePageGallery,
+  landingFeatures,
   alumniActivities,
   mockAlumni
 } from '@/data/mockData';
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800">
@@ -28,7 +31,7 @@ export default function Landing() {
       <section className="relative h-screen flex flex-col justify-center items-center px-4 pt-20">
         {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden">
-          <img 
+          <img
             src="https://image-upload.getmycollege.com/new-uploads/college/gallery/dayananda-sagar-college-of-engineering1-gallery-image-968.jpg"
             alt="DSCE Campus"
             className="w-full h-full object-cover"
@@ -36,7 +39,7 @@ export default function Landing() {
           {/* Overlay for fade effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-dsce-bg-light/90 via-dsce-bg-cream/85 to-dsce-bg-light/90"></div>
         </div>
-        
+
         {/* Content */}
         <div className="relative z-10 text-center space-y-6 max-w-5xl mx-auto">
           <motion.div
@@ -49,7 +52,7 @@ export default function Landing() {
               <span className="block text-dsce-blue">CONNECT</span>
             </h1>
           </motion.div>
-          
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -159,7 +162,7 @@ export default function Landing() {
             ALUMNI <span className="text-dsce-blue">SUCCESS</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <motion.div 
+            <motion.div
               className="p-8 rounded-2xl bg-white border border-dsce-blue/10 shadow-lg hover:shadow-xl transition-all duration-300 text-center"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -170,8 +173,8 @@ export default function Landing() {
               <h3 className="text-xl font-bold text-dsce-text-dark mb-2">Global Leaders</h3>
               <p className="text-gray-600">Alumni in leadership positions across Fortune 500 companies</p>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className="p-8 rounded-2xl bg-white border border-dsce-blue/10 shadow-lg hover:shadow-xl transition-all duration-300 text-center"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -182,8 +185,8 @@ export default function Landing() {
               <h3 className="text-xl font-bold text-dsce-text-dark mb-2">Entrepreneurs</h3>
               <p className="text-gray-600">Successful startup founders and business owners worldwide</p>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className="p-8 rounded-2xl bg-white border border-dsce-blue/10 shadow-lg hover:shadow-xl transition-all duration-300 text-center"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -207,7 +210,7 @@ export default function Landing() {
           <div className="relative">
             {/* Timeline Line */}
             <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-dsce-blue to-dsce-light-blue"></div>
-            
+
             {/* Timeline Events */}
             <div className="space-y-12">
               {landingTimelineEvents.map((event, i) => (
@@ -256,17 +259,17 @@ export default function Landing() {
                   <div className="absolute top-4 right-4 text-dsce-gold/20">
                     <Star className="h-8 w-8 fill-current" />
                   </div>
-                  
+
                   {/* Rating */}
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, j) => (
                       <Star key={j} className="h-5 w-5 text-dsce-gold fill-current" />
                     ))}
                   </div>
-                  
+
                   {/* Quote */}
                   <p className="text-lg text-dsce-text-dark mb-6 italic">"{testimonial.quote}"</p>
-                  
+
                   {/* Author Info */}
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-r from-dsce-blue to-dsce-light-blue flex items-center justify-center">
@@ -291,7 +294,7 @@ export default function Landing() {
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             ALUMNI <span className="text-dsce-blue">GALLERY</span>
           </h2>
-          
+
           {/* Notable Alumni Showcase */}
           <div className="mb-20">
             <h3 className="text-2xl font-bold mb-12 text-center">NOTABLE <span className="text-dsce-blue">ACHIEVERS</span></h3>
@@ -309,8 +312,8 @@ export default function Landing() {
                     <div className="aspect-square relative">
                       {alumni.image ? (
                         <div className="w-full h-full p-4 flex items-center justify-center">
-                          <img 
-                            src={alumni.image} 
+                          <img
+                            src={alumni.image}
                             alt={alumni.name}
                             className="w-full h-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-500"
                           />
@@ -323,14 +326,14 @@ export default function Landing() {
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                      
+
                       {/* Achievement Badge */}
                       <div className="absolute top-4 right-4">
                         <div className="w-12 h-12 rounded-full bg-dsce-gold flex items-center justify-center shadow-lg">
                           <Star className="h-6 w-6 text-dsce-blue" />
                         </div>
                       </div>
-                      
+
                       {/* Alumni Info */}
                       <div className="absolute bottom-0 left-0 right-0 p-6">
                         <h4 className="text-xl font-bold mb-1 text-white">{alumni.name}</h4>
@@ -349,7 +352,7 @@ export default function Landing() {
           <div>
             <h3 className="text-2xl font-bold mb-12 text-center">CAMPUS <span className="text-dsce-blue">MEMORIES</span></h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {campusMemories.map((image, i) => (
+              {homePageGallery.map((image, i) => (
                 <motion.div
                   key={i}
                   className="relative overflow-hidden rounded-xl group cursor-pointer"
@@ -357,9 +360,10 @@ export default function Landing() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.05 }}
+                  onClick={() => setSelectedImage(image)}
                 >
-                  <img 
-                    src={image} 
+                  <img
+                    src={image}
                     alt={`DSCE Campus ${i + 1}`}
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -391,7 +395,7 @@ export default function Landing() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {landingFeatures.map((feature, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 className="p-8 rounded-2xl bg-white border border-dsce-blue/10 shadow-lg hover:shadow-xl group cursor-pointer transition-all duration-300 hover:scale-105 hover:border-dsce-light-blue/80"
                 initial={{ opacity: 0, y: 20 }}
@@ -416,7 +420,7 @@ export default function Landing() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {alumniActivities.map((activity, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 className="p-8 rounded-2xl bg-gradient-to-br from-dsce-blue/5 to-dsce-light-blue/5 border border-dsce-blue/10 shadow-lg hover:shadow-xl transition-all duration-300"
                 initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
@@ -481,7 +485,7 @@ export default function Landing() {
       <footer className="py-16 border-t border-dsce-blue/20 bg-dsce-bg-light text-center">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img 
+            <img
               src="https://www.eduopinions.com/wp-content/uploads/2021/12/dayananda-sagar-college-of-engineering-1-350x334.jpg"
               alt="DSCE Logo"
               className="h-10 w-auto rounded-lg"
@@ -493,6 +497,14 @@ export default function Landing() {
           <p className="text-gray-600">© 2025 DSCE Alumni Association. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Image Modal */}
+      <ImageModal
+        image={selectedImage || ''}
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        alt="DSCE Campus Memory"
+      />
     </div>
   );
 }

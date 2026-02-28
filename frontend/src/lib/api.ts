@@ -35,12 +35,19 @@ export interface UserProfile {
     contactNumber?: string;
     bio?: string;
     location?: string;
+    lat?: number;
+    lng?: number;
     linkedinProfile?: string;
     website?: string;
     workExperiences?: Array<{
         company?: string;
         jobTitle?: string;
         date?: string;
+        month?: string;
+        year?: number;
+        endMonth?: string;
+        endYear?: number;
+        currentlyWorking?: boolean;
         descriptions?: string[];
     }>;
     educations?: Array<{
@@ -48,6 +55,11 @@ export interface UserProfile {
         degree?: string;
         date?: string;
         gpa?: string;
+        month?: string;
+        year?: number;
+        endMonth?: string;
+        endYear?: number;
+        currentlyPursuing?: boolean;
         descriptions?: string[];
     }>;
     projects?: Array<{
@@ -709,6 +721,32 @@ class ApiClient {
         const result = await response.json();
         console.log('Resume upload and replace response:', result);
         return result;
+    }
+
+    async getAnalytics(): Promise<any> {
+        const response = await fetch(`${this.baseUrl}/api/admin/analytics`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch analytics: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    async downloadResume(userId: string): Promise<Blob> {
+        const response = await fetch(`${this.baseUrl}/api/files/users/${userId}/resume`, {
+            method: 'GET',
+            headers: this.getHeaders(true),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to download resume: ${response.statusText}`);
+        }
+
+        return response.blob();
     }
 
     // POSTS API --------------------------------------------------------

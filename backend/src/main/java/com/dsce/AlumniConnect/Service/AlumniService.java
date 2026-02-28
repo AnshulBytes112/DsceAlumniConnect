@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AlumniService {
@@ -15,7 +16,9 @@ public class AlumniService {
     private UserRepository userRepository;
 
     public List<User> getAllAlumni() {
-        return userRepository.findAll();
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole() != User.Role.ADMIN )
+                .collect(Collectors.toList());
     }
 
     public Optional<User> getAlumniById(String id) {
