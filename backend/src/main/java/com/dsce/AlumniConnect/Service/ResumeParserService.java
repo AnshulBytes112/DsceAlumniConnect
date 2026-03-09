@@ -21,7 +21,6 @@ public class ResumeParserService {
 
     private final ObjectMapper objectMapper;
 
-    // TODO : Need to use S3 bucket
     private static final String OPEN_RESUME_DIR = "open_resume";
     private static final int PROCESS_TIMEOUT_SECONDS = 30;
 

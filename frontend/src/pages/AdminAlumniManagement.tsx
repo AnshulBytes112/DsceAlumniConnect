@@ -52,8 +52,11 @@ export default function AdminAlumniManagement() {
     const [selectedDepartment, setSelectedDepartment] = useState('all');
     const [selectedGraduationYear, setSelectedGraduationYear] = useState('all');
     const [selectedExperience, setSelectedExperience] = useState('all');
-    const [selectedCompany, setSelectedCompany] = useState('all');
+    const [selectedCurrentCompany, setSelectedCurrentCompany] = useState('all');
+    const [selectedPastCompany, setSelectedPastCompany] = useState('all');
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    const [skillSearchTerm, setSkillSearchTerm] = useState('');
+    const [showSkillDropdown, setShowSkillDropdown] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [showContactModal, setShowContactModal] = useState(false);
     const [contactMessage, setContactMessage] = useState('');
@@ -65,7 +68,25 @@ export default function AdminAlumniManagement() {
 
     useEffect(() => {
         filterAlumni();
-    }, [alumni, searchTerm, selectedDepartment, selectedGraduationYear, selectedExperience, selectedCompany, selectedSkills]);
+    }, [alumni, searchTerm, selectedDepartment, selectedGraduationYear, selectedExperience, selectedCurrentCompany, selectedPastCompany, selectedSkills]);
+
+    // Close skill dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!target.closest('.skill-filter-container')) {
+                setShowSkillDropdown(false);
+            }
+        };
+
+        if (showSkillDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showSkillDropdown]);
 
     const fetchAlumniAndAnalytics = async () => {
         try {
@@ -166,14 +187,44 @@ export default function AdminAlumniManagement() {
     const filterAlumni = () => {
         let filtered = alumni;
 
-        // Search filter
+        // Search filter - comprehensive search through all fields
         if (searchTerm) {
-            filtered = filtered.filter(alum => 
-                `${alum.firstName} ${alum.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                alum.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                alum.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                alum.workExperiences?.[0]?.company?.toLowerCase().includes(searchTerm.toLowerCase())
-            );
+            const searchLower = searchTerm.toLowerCase();
+            filtered = filtered.filter(alum => {
+                // Basic info search
+                const basicMatch = 
+                    `${alum.firstName} ${alum.lastName}`.toLowerCase().includes(searchLower) ||
+                    alum.email?.toLowerCase().includes(searchLower) ||
+                    alum.department?.toLowerCase().includes(searchLower) ||
+                    alum.bio?.toLowerCase().includes(searchLower) ||
+                    alum.location?.toLowerCase().includes(searchLower);
+
+                // All work experiences search (current and past)
+                const workMatch = alum.workExperiences?.some(exp => 
+                    exp.company?.toLowerCase().includes(searchLower) ||
+                    exp.jobTitle?.toLowerCase().includes(searchLower) ||
+                    exp.descriptions?.some(desc => desc.toLowerCase().includes(searchLower))
+                );
+
+                // Skills search
+                const skillsMatch = 
+                    alum.skills?.some(skill => skill.toLowerCase().includes(searchLower)) ||
+                    alum.featuredSkills?.some(fs => fs.skill?.toLowerCase().includes(searchLower));
+
+                // Education search
+                const educationMatch = alum.educations?.some(edu =>
+                    edu.school?.toLowerCase().includes(searchLower) ||
+                    edu.degree?.toLowerCase().includes(searchLower)
+                );
+
+                // Projects search
+                const projectsMatch = alum.projects?.some(proj =>
+                    proj.project?.toLowerCase().includes(searchLower) ||
+                    proj.descriptions?.some(desc => desc.toLowerCase().includes(searchLower))
+                );
+
+                return basicMatch || workMatch || skillsMatch || educationMatch || projectsMatch;
+            });
         }
 
         // Department filter
@@ -201,11 +252,27 @@ export default function AdminAlumniManagement() {
             });
         }
 
-        // Company filter
-        if (selectedCompany !== 'all') {
+        // Current Company filter
+        if (selectedCurrentCompany !== 'all') {
             filtered = filtered.filter(alum => 
-                alum.workExperiences?.some(exp => exp.company === selectedCompany)
+                alum.workExperiences?.some(exp => exp.company === selectedCurrentCompany && exp.currentlyWorking === true)
             );
+        }
+
+        // Past Company filter (includes false and null/undefined)
+        if (selectedPastCompany !== 'all') {
+            console.log('Filtering by past company:', selectedPastCompany);
+            filtered = filtered.filter(alum => {
+                const hasPastCompany = alum.workExperiences?.some(exp => {
+                    const isPast = exp.company === selectedPastCompany && (exp.currentlyWorking === false || exp.currentlyWorking !== true);
+                    if (isPast) {
+                        console.log('Found past company match:', alum.firstName, exp.company, exp.currentlyWorking);
+                    }
+                    return isPast;
+                });
+                return hasPastCompany;
+            });
+            console.log('Results after past company filter:', filtered.length);
         }
 
         // Skills filter
@@ -222,8 +289,55 @@ export default function AdminAlumniManagement() {
 
     const departments = [...new Set(alumni.map(alum => alum.department).filter((dept): dept is string => Boolean(dept)))];
     const graduationYears = [...new Set(alumni.map(alum => alum.graduationYear).filter((year): year is number => Boolean(year)))].sort((a: number, b: number) => b - a);
-    const companies = [...new Set(alumni.flatMap(alum => alum.workExperiences?.map(exp => exp.company).filter((company): company is string => Boolean(company)) || []))].sort();
-    const allSkills = [...new Set(alumni.flatMap(alum => [...(alum.skills || []), ...(alum.featuredSkills?.map(fs => fs.skill) || [])]))].sort();
+    
+    // Extract current companies (where currentlyWorking is true)
+    const currentCompanies = [...new Set(alumni.flatMap(alum => 
+        alum.workExperiences?.filter(exp => exp.currentlyWorking === true)
+            .map(exp => exp.company).filter((company): company is string => Boolean(company)) || []
+    ))].sort();
+    
+    // Extract past companies (where currentlyWorking is false or null/undefined)
+    const pastCompanies = [...new Set(alumni.flatMap(alum => {
+        const pastExps = alum.workExperiences?.filter(exp => exp.currentlyWorking === false || exp.currentlyWorking !== true) || [];
+        // Debug: Log past work experiences
+        if (pastExps.length > 0) {
+            console.log('Past work experiences for', alum.firstName, alum.lastName, ':', pastExps);
+        }
+        return pastExps.map(exp => exp.company).filter((company): company is string => Boolean(company));
+    }))].sort();
+    
+    const allSkills = [...new Set(alumni.flatMap(alum => [...(alum.skills || []), ...(alum.featuredSkills?.map(fs => fs.skill) || [])])
+        .filter((skill): skill is string => Boolean(skill)))]
+        .sort();
+
+    // Filter skills based on search term
+    const filteredSkills = allSkills.filter((skill: string) => 
+        skill.toLowerCase().includes(skillSearchTerm.toLowerCase()) &&
+        !selectedSkills.includes(skill)
+    );
+
+    // Skill management functions
+    const handleAddSkill = (skill: string) => {
+        if (!selectedSkills.includes(skill)) {
+            setSelectedSkills([...selectedSkills, skill]);
+        }
+        setSkillSearchTerm('');
+    };
+
+    const handleRemoveSkill = (skillToRemove: string) => {
+        setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
+    };
+
+    const handleSkillSearchKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && skillSearchTerm.trim()) {
+            const exactMatch = allSkills.find((skill: string) => 
+                skill.toLowerCase() === skillSearchTerm.toLowerCase().trim()
+            );
+            if (exactMatch) {
+                handleAddSkill(exactMatch);
+            }
+        }
+    };
 
     const handleSelectAlumni = (alum: UserProfile) => {
         if (selectedAlumni.find((a: UserProfile) => a.id === alum.id)) {
@@ -542,32 +656,89 @@ export default function AdminAlumniManagement() {
                                 </select>
 
                                 <select
-                                    value={selectedCompany}
-                                    onChange={(e) => setSelectedCompany(e.target.value)}
+                                    value={selectedCurrentCompany}
+                                    onChange={(e) => setSelectedCurrentCompany(e.target.value)}
                                     className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
                                 >
-                                    <option value="all">All Companies</option>
-                                    {companies.map(company => (
+                                    <option value="all">All Current Companies</option>
+                                    {currentCompanies.map(company => (
                                         <option key={company} value={company}>{company}</option>
                                     ))}
                                 </select>
 
-                                <div className="relative">
-                                    <select
-                                        multiple
-                                        value={selectedSkills}
-                                        onChange={(e) => {
-                                            const selected = Array.from(e.target.selectedOptions, option => option.value);
-                                            setSelectedSkills(selected);
-                                        }}
-                                        className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue/20 min-h-[80px]"
-                                        size={3}
-                                    >
-                                        {allSkills.map(skill => (
-                                            <option key={skill} value={skill}>{skill}</option>
-                                        ))}
-                                    </select>
-                                    <div className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple skills</div>
+                                <select
+                                    value={selectedPastCompany}
+                                    onChange={(e) => setSelectedPastCompany(e.target.value)}
+                                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                >
+                                    <option value="all">All Past Companies</option>
+                                    {pastCompanies.map(company => (
+                                        <option key={company} value={company}>{company}</option>
+                                    ))}
+                                </select>
+
+                                {/* Enhanced Skills Filter */}
+                                <div className="relative min-w-[280px] skill-filter-container">
+                                    <div className="space-y-3">
+                                        {/* Skill Search Input */}
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search skills..."
+                                                value={skillSearchTerm}
+                                                onChange={(e) => setSkillSearchTerm(e.target.value)}
+                                                onKeyDown={handleSkillSearchKeyDown}
+                                                onFocus={() => setShowSkillDropdown(true)}
+                                                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                            />
+                                        </div>
+
+                                        {/* Selected Skills Display */}
+                                        {selectedSkills.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedSkills.map(skill => (
+                                                    <span
+                                                        key={skill}
+                                                        className="inline-flex items-center gap-1 px-3 py-1 bg-dsce-blue text-white text-sm rounded-full"
+                                                    >
+                                                        {skill}
+                                                        <button
+                                                            onClick={() => handleRemoveSkill(skill)}
+                                                            className="hover:bg-dsce-blue/80 rounded-full p-0.5 transition-colors"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Skills Dropdown */}
+                                        {showSkillDropdown && (skillSearchTerm || filteredSkills.length > 0) && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                {skillSearchTerm && !filteredSkills.length && (
+                                                    <div className="px-4 py-3 text-gray-500 text-sm">
+                                                        No skills found matching "{skillSearchTerm}"
+                                                    </div>
+                                                )}
+                                                {filteredSkills.slice(0, 8).map(skill => (
+                                                    <button
+                                                        key={skill}
+                                                        onClick={() => handleAddSkill(skill)}
+                                                        className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-sm"
+                                                    >
+                                                        {skill}
+                                                    </button>
+                                                ))}
+                                                {filteredSkills.length > 8 && (
+                                                    <div className="px-4 py-2 text-gray-500 text-xs text-center">
+                                                        ... and {filteredSkills.length - 8} more
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
