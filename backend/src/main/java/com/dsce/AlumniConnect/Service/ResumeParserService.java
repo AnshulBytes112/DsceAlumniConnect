@@ -33,7 +33,10 @@ public class ResumeParserService {
         try {
             // Load open-resume directory
             Path baseDir = Paths.get(baseUploadDir);
-            Path openResumePath = baseDir.resolve("Alumni-Connect-backend").resolve(OPEN_RESUME_DIR);
+            // baseUploadDir is already configured as the backend root directory,
+            // and the open_resume project lives directly under that directory.
+            // So we resolve the open_resume folder directly from baseDir.
+            Path openResumePath = baseDir.resolve(OPEN_RESUME_DIR);
             Path scriptPath = openResumePath.resolve("parse-resume.ts");
 
             // Check if script exists
@@ -42,15 +45,28 @@ public class ResumeParserService {
             }
 
             // Check if PDF file exists
-            if (!Paths.get(pdfFilePath).toFile().exists()) {
-                throw new RuntimeException("PDF file not found at: " + pdfFilePath);
+            Path pdfPath = Paths.get(pdfFilePath);
+            if (!pdfPath.toFile().exists()) {
+                throw new RuntimeException("PDF file not found: " + pdfFilePath);
             }
 
-            // Build command to run the TypeScript parser
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    "C:\\Program Files\\nodejs\\npx.cmd", "tsx", scriptPath.toString(), pdfFilePath);
+            // Use local tsx CLI with Node to run the TypeScript script
+            Path tsxCliPath = openResumePath.resolve("node_modules")
+                    .resolve("tsx")
+                    .resolve("dist")
+                    .resolve("cli.mjs");
 
-            // Set working directory to open-resume directory
+            if (!tsxCliPath.toFile().exists()) {
+                throw new RuntimeException("tsx CLI not found at: " + tsxCliPath +
+                        ". Make sure dependencies are installed with `npm install` in the open_resume directory.");
+            }
+
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "node",
+                    tsxCliPath.toAbsolutePath().toString(),
+                    "parse-resume.ts",
+                    pdfFilePath
+            );
             processBuilder.directory(openResumePath.toFile());
 
             // Merge error stream into output stream

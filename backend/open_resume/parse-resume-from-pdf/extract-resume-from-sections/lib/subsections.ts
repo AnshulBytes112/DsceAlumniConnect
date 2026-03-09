@@ -19,13 +19,13 @@ export const divideSectionIntoSubsections = (lines: Lines): Subsections => {
 
   let subsections = createSubsections(lines, isLineNewSubsectionByLineGap);
 
-  // Fallback heuristic if the main heuristic doesn't apply to check if the text item is bolded
+  // Fallback heuristic if the main heuristic doesn't apply: use bold headings
   if (subsections.length === 1) {
     const isLineNewSubsectionByBold = (line: Line, prevLine: Line) => {
       if (
         !isBold(prevLine[0]) &&
         isBold(line[0]) &&
-        // Ignore bullet points that sometimes being marked as bolded
+        // Ignore bullet points that sometimes are marked as bolded
         !BULLET_POINTS.includes(line[0].text)
       ) {
         return true;
@@ -34,6 +34,29 @@ export const divideSectionIntoSubsections = (lines: Lines): Subsections => {
     };
 
     subsections = createSubsections(lines, isLineNewSubsectionByBold);
+  }
+
+  // Second fallback: split on lines that look like date headers (e.g. "Jan 2020 - Present")
+  // This helps when multiple experiences are stacked with similar line gaps and no bold titles.
+  if (subsections.length === 1) {
+    const yearRegex = /(19|20)\d{2}/;
+    const presentRegex = /present|current|ongoing/i;
+
+    const lineHasDateClue = (line: Line) => {
+      const text = line.map((i) => i.text).join(" ");
+      return yearRegex.test(text) || presentRegex.test(text);
+    };
+
+    const isLineNewSubsectionByDate = (line: Line, prevLine: Line) => {
+      // Treat a line that contains a year/present marker as a new subsection
+      // when the previous line did not contain such a marker.
+      return lineHasDateClue(line) && !lineHasDateClue(prevLine);
+    };
+
+    const dateBasedSubsections = createSubsections(lines, isLineNewSubsectionByDate);
+    if (dateBasedSubsections.length > 1) {
+      subsections = dateBasedSubsections;
+    }
   }
 
   return subsections;

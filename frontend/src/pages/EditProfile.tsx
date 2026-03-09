@@ -225,21 +225,100 @@ export default function EditProfile() {
 
         // Resume data fields
         if (updatedProfile.workExperiences && updatedProfile.workExperiences.length > 0) {
-          formData.workExperiences = updatedProfile.workExperiences.map((we: any) => ({
-            company: we.company || '',
-            jobTitle: we.jobTitle || '',
-            date: we.date || '',
-            descriptions: Array.isArray(we.descriptions) ? we.descriptions : (we.description ? [we.description] : []),
-          })).filter((we: any) => we.company || we.jobTitle || we.date || (we.descriptions && we.descriptions.length > 0));
+          formData.workExperiences = updatedProfile.workExperiences.map((we: any) => {
+            // Try to infer month/year from the combined date string if backend didn't send structured fields
+            let month = we.month || '';
+            let year = we.year ? we.year.toString() : '';
+            let endMonth = we.endMonth || '';
+            let endYear = we.endYear ? we.endYear.toString() : '';
+
+            if (we.date) {
+              const dateMatch = we.date.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/i);
+              if (dateMatch) {
+                if (!month) month = dateMatch[1];
+                if (!year) year = dateMatch[2];
+              } else {
+                const yearMatch = we.date.match(/(19|20)\d{2}/);
+                if (yearMatch && !year) {
+                  year = yearMatch[0];
+                }
+              }
+            }
+
+            // If we have a year but no month, provide a sensible default
+            if (!month && (we.month || year || we.year)) {
+              month = we.month || 'Jan';
+            }
+
+            return {
+              company: we.company || '',
+              jobTitle: we.jobTitle || '',
+              month,
+              year,
+              endMonth: endMonth,
+              endYear: endYear,
+              date: we.date || '',
+              currentlyWorking: we.currentlyWorking || false,
+              descriptions: Array.isArray(we.descriptions)
+                ? we.descriptions
+                : (we.description ? [we.description] : []),
+            };
+          }).filter((we: any) =>
+            we.company ||
+            we.jobTitle ||
+            we.date ||
+            we.month ||
+            we.year ||
+            (we.descriptions && we.descriptions.length > 0)
+          );
         }
         if (updatedProfile.educations && updatedProfile.educations.length > 0) {
-          formData.educations = updatedProfile.educations.map((ed: any) => ({
-            school: ed.school || '',
-            degree: ed.degree || '',
-            date: ed.date || '',
-            gpa: ed.gpa || '',
-            descriptions: Array.isArray(ed.descriptions) ? ed.descriptions : (ed.description ? [ed.description] : []),
-          })).filter((ed: any) => ed.school || ed.degree || ed.date || (ed.descriptions && ed.descriptions.length > 0));
+          formData.educations = updatedProfile.educations.map((ed: any) => {
+            let month = ed.month || '';
+            let year = ed.year ? ed.year.toString() : '';
+            let endMonth = ed.endMonth || '';
+            let endYear = ed.endYear ? ed.endYear.toString() : '';
+
+            if (ed.date) {
+              const dateMatch = ed.date.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/i);
+              if (dateMatch) {
+                if (!month) month = dateMatch[1];
+                if (!year) year = dateMatch[2];
+              } else {
+                const yearMatch = ed.date.match(/(19|20)\d{2}/);
+                if (yearMatch && !year) {
+                  year = yearMatch[0];
+                }
+              }
+            }
+
+            // If we have a year but no month, provide a sensible default
+            if (!month && (ed.month || year || ed.year)) {
+              month = ed.month || 'Jan';
+            }
+
+            return {
+              school: ed.school || '',
+              degree: ed.degree || '',
+              month,
+              year,
+              endMonth,
+              endYear,
+              currentlyPursuing: ed.currentlyPursuing || false,
+              date: ed.date || '',
+              gpa: ed.gpa || '',
+              descriptions: Array.isArray(ed.descriptions)
+                ? ed.descriptions
+                : (ed.description ? [ed.description] : []),
+            };
+          }).filter((ed: any) =>
+            ed.school ||
+            ed.degree ||
+            ed.date ||
+            ed.month ||
+            ed.year ||
+            (ed.descriptions && ed.descriptions.length > 0)
+          );
         }
         if (updatedProfile.projects && updatedProfile.projects.length > 0) {
           formData.projects = updatedProfile.projects.map((proj: any) => ({

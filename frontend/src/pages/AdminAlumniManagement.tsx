@@ -12,10 +12,14 @@ import {
     Download,
     Eye,
     MessageSquare,
-    ChevronDown
+    ChevronDown,
+    FileSpreadsheet,
+    X,
+    Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient, type UserProfile } from '@/lib/api';
+import { exportAlumniToExcel } from '@/utils/excelExport';
 
 interface ProfessionalAnalytics {
     totalAlumni: number;
@@ -42,6 +46,8 @@ export default function AdminAlumniManagement() {
         seniorAlumni: 0
     });
     const [selectedAlumni, setSelectedAlumni] = useState<UserProfile[]>([]);
+    const [selectedAlumniDetail, setSelectedAlumniDetail] = useState<UserProfile | null>(null);
+    const [showAlumniDetailModal, setShowAlumniDetailModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState('all');
     const [selectedGraduationYear, setSelectedGraduationYear] = useState('all');
@@ -227,6 +233,11 @@ export default function AdminAlumniManagement() {
         }
     };
 
+    const handleViewAlumniDetails = (alum: UserProfile) => {
+        setSelectedAlumniDetail(alum);
+        setShowAlumniDetailModal(true);
+    };
+
     const handleSelectAll = () => {
         if (selectedAlumni.length === filteredAlumni.length) {
             setSelectedAlumni([]);
@@ -306,6 +317,17 @@ export default function AdminAlumniManagement() {
         } catch (error) {
             console.error('Failed to download resumes:', error);
             alert('Failed to download resumes. Please try again.');
+        }
+    };
+
+    const exportToExcel = async () => {
+        try {
+            const alumniToExport = selectedAlumni.length > 0 ? selectedAlumni : filteredAlumni;
+            const message = await exportAlumniToExcel(alumniToExport);
+            alert(message);
+        } catch (error) {
+            console.error('Failed to export Excel:', error);
+            alert('Failed to export Excel. Please try again.');
         }
     };
 
@@ -453,6 +475,15 @@ export default function AdminAlumniManagement() {
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Resumes
+                            </Button>
+                            
+                            <Button
+                                onClick={exportToExcel}
+                                disabled={filteredAlumni.length === 0}
+                                className="bg-green-600 text-white hover:bg-green-700"
+                            >
+                                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                                Export to Excel
                             </Button>
                             
                             {selectedAlumni.length > 0 && (
@@ -618,9 +649,21 @@ export default function AdminAlumniManagement() {
                                                         {alum.firstName?.[0]}{alum.lastName?.[0]}
                                                     </div>
                                                 )}
-                                                <div>
-                                                    <div className="font-medium text-gray-900">
-                                                        {alum.firstName} {alum.lastName}
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleViewAlumniDetails(alum)}
+                                                            className="font-medium text-gray-900 hover:text-dsce-blue hover:underline transition-colors"
+                                                        >
+                                                            {alum.firstName} {alum.lastName}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleViewAlumniDetails(alum)}
+                                                            className="text-gray-400 hover:text-dsce-blue transition-colors"
+                                                            title="View full profile"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                     <div className="text-sm text-gray-500">
                                                         {alum.email}
@@ -811,6 +854,274 @@ export default function AdminAlumniManagement() {
                                 >
                                     {sendingMessage ? 'Sending...' : 'Send Message'}
                                 </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Alumni Detail Modal */}
+            <AnimatePresence>
+                {showAlumniDetailModal && selectedAlumniDetail && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                        onClick={() => setShowAlumniDetailModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="p-8">
+                                {/* Header */}
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-4">
+                                        {selectedAlumniDetail.profilePicture ? (
+                                            <img 
+                                                src={`http://localhost:8080/${selectedAlumniDetail.profilePicture}`}
+                                                alt={selectedAlumniDetail.firstName}
+                                                className="w-16 h-16 rounded-full object-cover border-4 border-dsce-blue/20"
+                                            />
+                                        ) : (
+                                            <div className="w-16 h-16 rounded-full bg-dsce-blue flex items-center justify-center text-white text-2xl font-bold">
+                                                {selectedAlumniDetail.firstName?.[0]}{selectedAlumniDetail.lastName?.[0]}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-900">
+                                                {selectedAlumniDetail.firstName} {selectedAlumniDetail.lastName}
+                                            </h2>
+                                            <p className="text-gray-600">{selectedAlumniDetail.email}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {selectedAlumniDetail.department} • Class of {selectedAlumniDetail.graduationYear}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        onClick={() => setShowAlumniDetailModal(false)}
+                                        variant="ghost"
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </Button>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                                    <div className="space-y-4">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <Phone className="w-5 h-5 text-gray-400" />
+                                                <span>{selectedAlumniDetail.contactNumber || 'Not provided'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <Mail className="w-5 h-5 text-gray-400" />
+                                                <span>{selectedAlumniDetail.email}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <Globe className="w-5 h-5 text-gray-400" />
+                                                <a href={selectedAlumniDetail.linkedinProfile} target="_blank" rel="noopener noreferrer" 
+                                                   className="text-dsce-blue hover:underline">
+                                                    LinkedIn Profile
+                                                </a>
+                                            </div>
+                                            {selectedAlumniDetail.website && (
+                                                <div className="flex items-center gap-3">
+                                                    <Globe className="w-5 h-5 text-gray-400" />
+                                                    <a href={selectedAlumniDetail.website} target="_blank" rel="noopener noreferrer" 
+                                                       className="text-dsce-blue hover:underline">
+                                                        Personal Website
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">About</h3>
+                                        <p className="text-gray-700">
+                                            {selectedAlumniDetail.bio || 'No bio provided'}
+                                        </p>
+                                        {selectedAlumniDetail.location && (
+                                            <div className="flex items-center gap-2 text-gray-600">
+                                                <span className="font-medium">Location:</span> {selectedAlumniDetail.location}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Work Experience Timeline */}
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Professional Experience</h3>
+                                    {selectedAlumniDetail.workExperiences && selectedAlumniDetail.workExperiences.length > 0 ? (
+                                        <div className="relative">
+                                            {/* Timeline Line */}
+                                            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                                            
+                                            <div className="space-y-6">
+                                                {selectedAlumniDetail.workExperiences
+                                                    .sort((a, b) => {
+                                                        // Sort by year (most recent first)
+                                                        const yearA = a.endYear || a.year || 0;
+                                                        const yearB = b.endYear || b.year || 0;
+                                                        return yearB - yearA;
+                                                    })
+                                                    .map((exp, index) => (
+                                                        <div key={index} className="relative flex items-start gap-4">
+                                                            {/* Timeline Dot */}
+                                                            <div className="relative z-10 w-4 h-4 bg-dsce-blue rounded-full border-4 border-white shadow"></div>
+                                                            
+                                                            {/* Experience Card */}
+                                                            <div className="flex-1 bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
+                                                                <div className="flex items-start justify-between mb-3">
+                                                                    <div>
+                                                                        <h4 className="font-semibold text-gray-900 text-lg">
+                                                                            {exp.jobTitle}
+                                                                        </h4>
+                                                                        <p className="text-dsce-blue font-medium">
+                                                                            {exp.company}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <p className="text-sm text-gray-600">
+                                                                            {exp.year && exp.endYear 
+                                                                                ? `${exp.year} - ${exp.endYear}`
+                                                                                : exp.year 
+                                                                                    ? `${exp.year} - Present`
+                                                                                    : 'Duration not specified'
+                                                                            }
+                                                                        </p>
+                                                                        {exp.month && exp.endMonth && (
+                                                                            <p className="text-xs text-gray-500">
+                                                {exp.month} - {exp.endMonth}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {exp.descriptions && exp.descriptions.length > 0 && (
+                                    <ul className="mt-3 space-y-2">
+                                        {exp.descriptions.map((desc, descIndex) => (
+                                            <li key={descIndex} className="flex items-start gap-2 text-gray-700">
+                                                <span className="w-1.5 h-1.5 bg-dsce-blue rounded-full mt-2 flex-shrink-0"></span>
+                                                <span>{desc}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                
+                                {exp.currentlyWorking && (
+                                    <div className="mt-3">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Currently Working
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 text-center py-8">
+                                            No work experience information available
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Education */}
+                                {selectedAlumniDetail.educations && selectedAlumniDetail.educations.length > 0 && (
+                                    <div className="mb-8">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-6">Education</h3>
+                                        <div className="space-y-4">
+                                            {selectedAlumniDetail.educations.map((edu, index) => (
+                                                <div key={index} className="bg-gray-50 rounded-xl p-6">
+                                                    <h4 className="font-semibold text-gray-900">{edu.degree}</h4>
+                                                    <p className="text-dsce-blue font-medium">{edu.school}</p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {edu.year && edu.endYear 
+                                                            ? `${edu.year} - ${edu.endYear}`
+                                                            : edu.year 
+                                                                ? `${edu.year} - Present`
+                                                                : 'Duration not specified'
+                                                        }
+                                                    </p>
+                                                    {edu.gpa && (
+                                                        <p className="text-sm text-gray-600">GPA: {edu.gpa}</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Skills */}
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Skills & Expertise</h3>
+                                    <div className="space-y-4">
+                                        {selectedAlumniDetail.featuredSkills && selectedAlumniDetail.featuredSkills.length > 0 && (
+                                            <div>
+                                                <h4 className="font-medium text-gray-700 mb-3">Featured Skills</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedAlumniDetail.featuredSkills.map((skill, index) => (
+                                                        <span key={index} 
+                                                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-dsce-blue text-white">
+                                                            {skill.skill}
+                                                            {skill.rating && (
+                                                                <span className="ml-1 text-xs">({skill.rating}/5)</span>
+                                                            )}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {selectedAlumniDetail.skills && selectedAlumniDetail.skills.length > 0 && (
+                                            <div>
+                                                <h4 className="font-medium text-gray-700 mb-3">Other Skills</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedAlumniDetail.skills.map((skill, index) => (
+                                                        <span key={index} 
+                                                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-700">
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Projects */}
+                                {selectedAlumniDetail.projects && selectedAlumniDetail.projects.length > 0 && (
+                                    <div className="mb-8">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-6">Projects</h3>
+                                        <div className="space-y-4">
+                                            {selectedAlumniDetail.projects.map((project, index) => (
+                                                <div key={index} className="bg-gray-50 rounded-xl p-6">
+                                                    <h4 className="font-semibold text-gray-900">{project.project}</h4>
+                                                    {project.date && (
+                                                        <p className="text-sm text-gray-600 mb-2">{project.date}</p>
+                                                    )}
+                                                    {project.descriptions && project.descriptions.length > 0 && (
+                                                        <ul className="space-y-1">
+                                                            {project.descriptions.map((desc, descIndex) => (
+                                                                <li key={descIndex} className="text-gray-700 text-sm">
+                                                                    • {desc}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </motion.div>

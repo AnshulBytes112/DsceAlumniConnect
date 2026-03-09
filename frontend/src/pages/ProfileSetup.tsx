@@ -284,6 +284,11 @@ export default function ProfileSetup() {
               }
             }
             
+            // If we have a year but no month, provide a sensible default
+            if (!month && (we.month || year || we.year)) {
+              month = we.month || 'Jan';
+            }
+
             return {
               company: we.company || '',
               jobTitle: we.jobTitle || '',
@@ -316,6 +321,11 @@ export default function ProfileSetup() {
               }
             }
             
+            // If we have a year but no month, provide a sensible default
+            if (!month && (ed.month || year || ed.year)) {
+              month = ed.month || 'Jan';
+            }
+
             return {
               school: ed.school || '',
               degree: ed.degree || '',

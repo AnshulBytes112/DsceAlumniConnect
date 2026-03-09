@@ -12,6 +12,12 @@ export interface ResumeWorkExperience {
   jobTitle: string;
   date: string;
   descriptions: string[];
+  // Optional, structured date fields for better integration with consumers
+  month?: string;
+  year?: string;
+  endMonth?: string;
+  endYear?: string;
+  currentlyWorking?: boolean;
 }
 
 export interface ResumeEducation {
@@ -20,6 +26,12 @@ export interface ResumeEducation {
   date: string;
   gpa: string;
   descriptions: string[];
+  // Optional, structured date fields for better integration with consumers
+  month?: string;
+  year?: string;
+  endMonth?: string;
+  endYear?: string;
+  currentlyPursuing?: boolean;
 }
 
 export interface ResumeProject {
