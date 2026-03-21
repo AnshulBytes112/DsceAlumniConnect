@@ -30,15 +30,10 @@ public class ResumeParserService {
 
     public ResumeParserResponse parseResume(String pdfFilePath) throws Exception {
         try {
-            // Load open-resume directory
             Path baseDir = Paths.get(baseUploadDir);
-            // baseUploadDir is already configured as the backend root directory,
-            // and the open_resume project lives directly under that directory.
-            // So we resolve the open_resume folder directly from baseDir.
             Path openResumePath = baseDir.resolve(OPEN_RESUME_DIR);
             Path scriptPath = openResumePath.resolve("parse-resume.ts");
 
-            // Check if script exists
             if (!scriptPath.toFile().exists()) {
                 throw new RuntimeException("Resume parser script not found at: " + scriptPath);
             }
@@ -64,18 +59,34 @@ public class ResumeParserService {
                     "node",
                     tsxCliPath.toAbsolutePath().toString(),
                     "parse-resume.ts",
-                    pdfFilePath
-            );
+                    pdfFilePath);
             processBuilder.directory(openResumePath.toFile());
 
-            // Merge error stream into output stream
-            processBuilder.redirectErrorStream(true);
+            // Do NOT merge error stream - read them separately
+            // so debug logs on stderr don't corrupt the JSON on stdout
+            processBuilder.redirectErrorStream(false);
 
             log.info("Executing resume parser for file: {}", pdfFilePath);
             Process process = processBuilder.start();
 
-            // Read all output (stdout + stderr merged)
+            // Read stdout (JSON output) on the main thread
             StringBuilder output = new StringBuilder();
+            StringBuilder errorOutput = new StringBuilder();
+
+            // Read stderr on a separate thread to prevent deadlocks
+            Thread stderrThread = new Thread(() -> {
+                try (BufferedReader errReader = new BufferedReader(
+                        new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = errReader.readLine()) != null) {
+                        errorOutput.append(line).append("\n");
+                    }
+                } catch (Exception e) {
+                    log.warn("Error reading stderr: {}", e.getMessage());
+                }
+            });
+            stderrThread.start();
+
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -83,6 +94,8 @@ public class ResumeParserService {
                     output.append(line).append("\n");
                 }
             }
+
+            stderrThread.join(PROCESS_TIMEOUT_SECONDS * 1000L);
 
             // Wait for process to complete with timeout
             boolean finished = process.waitFor(PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -94,9 +107,17 @@ public class ResumeParserService {
 
             int exitCode = process.exitValue();
             String rawOutput = output.toString().trim();
+            String stderrOutput = errorOutput.toString().trim();
 
             // Log the raw output for debugging
-            log.debug("Parser raw output (exit code {}): {}", exitCode, rawOutput);
+            log.info("Parser exit code: {}", exitCode);
+            if (!stderrOutput.isEmpty()) {
+                log.info("Parser stderr output:\n{}", stderrOutput);
+            }
+            
+            // Log first 500 chars of raw output for debugging
+            String truncatedOutput = rawOutput.length() > 500 ? rawOutput.substring(0, 500) + "..." : rawOutput;
+            log.info("Parser raw output preview:\n{}", truncatedOutput);
 
             // Check for errors
             if (exitCode != 0 || rawOutput.contains("\"error\"")) {

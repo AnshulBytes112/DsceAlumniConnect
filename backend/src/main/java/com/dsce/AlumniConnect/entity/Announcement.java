@@ -15,9 +15,15 @@ import java.time.LocalDateTime;
 public class Announcement {
     @Id
     private String id;
-
     private String title;
     private String description;
     private String time;
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    public Announcement(String title, String description, String time, LocalDateTime createdAt) {
+        this.title = title;
+        this.description = description;
+        this.time = time;
+        this.createdAt = createdAt;
+    }
 }

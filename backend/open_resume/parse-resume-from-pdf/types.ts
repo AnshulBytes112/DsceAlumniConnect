@@ -1,6 +1,7 @@
 import type { ResumeKey } from "../lib/redux/types";
 
 export interface TextItem {
+  [x: string]: unknown;
   text: string;
   x: number;
   y: number;
@@ -8,6 +9,7 @@ export interface TextItem {
   height: number;
   fontName: string;
   hasEOL: boolean;
+  bold?: boolean;
 }
 export type TextItems = TextItem[];
 

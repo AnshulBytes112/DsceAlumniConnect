@@ -2,21 +2,21 @@ import type {
   TextItem,
   FeatureSet,
   ResumeSectionToLines,
-} from "lib/parse-resume-from-pdf/types";
-import type { ResumeEducation } from "lib/redux/types";
-import { getSectionLinesByKeywords } from "lib/parse-resume-from-pdf/extract-resume-from-sections/lib/get-section-lines";
-import { divideSectionIntoSubsections } from "lib/parse-resume-from-pdf/extract-resume-from-sections/lib/subsections";
+} from "../types";
+import type { ResumeEducation } from "../../lib/redux/types";
+import { getSectionLinesByKeywordsEnhanced } from "./lib/enhanced-get-section-lines";
+import { divideSectionIntoSubsections } from "./lib/subsections";
 import {
   DATE_FEATURE_SETS,
   hasComma,
   hasLetter,
   hasNumber,
-} from "lib/parse-resume-from-pdf/extract-resume-from-sections/lib/common-features";
-import { getTextWithHighestFeatureScore } from "lib/parse-resume-from-pdf/extract-resume-from-sections/lib/feature-scoring-system";
+} from "./lib/common-features";
+import { getTextWithHighestFeatureScore } from "./lib/feature-scoring-system";
 import {
   getBulletPointsFromLines,
   getDescriptionsLineIdx,
-} from "lib/parse-resume-from-pdf/extract-resume-from-sections/lib/bullet-points";
+} from "./lib/bullet-points";
 
 /**
  *              Unique Attribute
@@ -180,7 +180,7 @@ const parseEduDateRange = (date: string): EduParsedDateRange => {
 export const extractEducation = (sections: ResumeSectionToLines) => {
   const educations: ResumeEducation[] = [];
   const educationsScores = [];
-  const lines = getSectionLinesByKeywords(sections, ["education"]);
+  const lines = getSectionLinesByKeywordsEnhanced(sections, ["education"], false);
   const subsections = divideSectionIntoSubsections(lines);
   for (const subsectionLines of subsections) {
     const textItems = subsectionLines.flat();
@@ -231,7 +231,7 @@ export const extractEducation = (sections: ResumeSectionToLines) => {
   }
 
   if (educations.length !== 0) {
-    const coursesLines = getSectionLinesByKeywords(sections, ["course"]);
+    const coursesLines = getSectionLinesByKeywordsEnhanced(sections, ["course"], false);
     if (coursesLines.length !== 0) {
       educations[0].descriptions.push(
         "Courses: " +

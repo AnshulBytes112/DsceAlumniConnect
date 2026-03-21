@@ -4,7 +4,7 @@ import type {
   FeatureSet,
   ResumeSectionToLines,
 } from "../types";
-import { getSectionLinesByKeywords } from "./lib/get-section-lines";
+import { getSectionLinesByKeywordsEnhanced } from "./lib/enhanced-get-section-lines";
 import {
   DATE_FEATURE_SETS,
   hasNumber,
@@ -58,16 +58,67 @@ const hasJobTitle = (item: TextItem) =>
   );
 const hasMoreThan5Words = (item: TextItem) => item.text.split(/\s/).length > 5;
 
-// Job title detection:
-// - Strongly reward known job-title words
-// - Slightly penalize very long lines (likely descriptions)
-// - Only lightly penalize numbers, since many resumes put dates on the same line
-// - Reward bold text, as titles are often bolded
+// Tech/keyword patterns that indicate description lines
+const TECH_KEYWORDS = [
+  'Terraform', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Docker', 'Git',
+  'Python', 'Java', 'Go', 'Golang', 'JavaScript', 'TypeScript',
+  'PostgreSQL', 'MongoDB', 'Redis', 'MySQL', 'Kafka', 'API', 'REST',
+  'CI/CD', 'DevOps', 'Backend', 'Frontend', 'Microservices', 'Cloud'
+];
+
+const isDescriptionLine = (item: TextItem): boolean => {
+  const text = item.text;
+  // Check for tech keywords
+  const hasTechKeywords = TECH_KEYWORDS.some(kw => text.includes(kw));
+  // Check for dashes with dates or descriptions
+  const hasDashDate = /\d{4}\s*[-–]\s*\d{4}/.test(text) || /[-–]\s*(Present|Current)/.test(text);
+  // Check for bullet points
+  const hasBullet = /^[–\-•\*]\s/.test(text);
+  // Check for common action verbs that start descriptions
+  const hasActionVerb = /^(Built|Developed|Designed|Implemented|Created|Architected|Led|Integrated|Managed|Deployed|Setup|Migrated)/.test(text);
+  
+  return hasTechKeywords || hasDashDate || hasBullet || hasActionVerb;
+};
+
+const isLikelyCompanyName = (item: TextItem): boolean => {
+  const text = item.text.trim();
+  // Skip if too long (likely not a company name)
+  if (text.length > 60) return false;
+  // Skip if contains tech keywords
+  if (isDescriptionLine(item)) return false;
+  // Skip if it's just a date
+  if (/^\d{4}\s*[-–]\s*/.test(text)) return false;
+  // Skip if it starts with dash or bullet
+  if (/^[–\-•\*]\s/.test(text)) return false;
+  // Good signs: short, contains letters, not too many numbers
+  return true;
+};
+
+// Job title detection with improved filtering
 const JOB_TITLE_FEATURE_SET: FeatureSet[] = [
   [hasJobTitle, 4],
   [isBold, 2],
   [hasNumber, -1],
   [hasMoreThan5Words, -2],
+  // Penalize lines that look like descriptions
+  [(item: TextItem) => isDescriptionLine(item), -5],
+  // Reward shorter lines
+  [(item: TextItem) => item.text.split(/\s/).length <= 4, 2],
+];
+
+// Company name detection with improved filtering
+const getCompanyFeatureSet = (date: string, jobTitle: string): FeatureSet[] => [
+  [isBold, 2],
+  // Penalize if contains date info
+  [getHasText(date), -4],
+  // Penalize if contains job title info
+  [getHasText(jobTitle), -4],
+  // NEW: Penalize description-like lines
+  [(item: TextItem) => isDescriptionLine(item), -10],
+  // NEW: Reward likely company names
+  [(item: TextItem) => isLikelyCompanyName(item), 3],
+  // Penalize long lines
+  [(item: TextItem) => item.text.length > 50, -3],
 ];
 
 // Helper to parse common date-range formats like:
@@ -191,9 +242,10 @@ const parseDateRange = (date: string): ParsedDateRange => {
 export const extractWorkExperience = (sections: ResumeSectionToLines) => {
   const workExperiences: ResumeWorkExperience[] = [];
   const workExperiencesScores = [];
-  const lines = getSectionLinesByKeywords(
+  const lines = getSectionLinesByKeywordsEnhanced(
     sections,
-    WORK_EXPERIENCE_KEYWORDS_LOWERCASE
+    WORK_EXPERIENCE_KEYWORDS_LOWERCASE,
+    false
   );
   const subsections = divideSectionIntoSubsections(lines);
 
@@ -229,11 +281,7 @@ export const extractWorkExperience = (sections: ResumeSectionToLines) => {
       subsectionInfoTextItems,
       JOB_TITLE_FEATURE_SET
     );
-    const COMPANY_FEATURE_SET: FeatureSet[] = [
-      [isBold, 2],
-      [getHasText(date), -4],
-      [getHasText(jobTitle), -4],
-    ];
+    const COMPANY_FEATURE_SET = getCompanyFeatureSet(date, jobTitle);
     const [company, companyScores] = getTextWithHighestFeatureScore(
       subsectionInfoTextItems,
       COMPANY_FEATURE_SET,

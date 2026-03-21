@@ -90,9 +90,9 @@ const urlSchema = z.string()
   );
 
 const profileSetupSchema = z.object({
-  graduationYear: z.string().regex(/^\d{4}$/, 'Please enter a valid year').optional(),
-  department: z.string().min(1, 'Please select a department').optional(),
-  contactNumber: z.string().min(10, 'Phone number must be at least 10 characters').optional(),
+  graduationYear: z.string().optional().or(z.literal('')).refine(val => !val || val === '' || /^\d{4}$/.test(val), { message: 'Please enter a valid year' }),
+  department: z.string().optional().or(z.literal('')),
+  contactNumber: z.string().optional().refine(val => !val || val.trim() === '' || val.trim().length >= 10, { message: 'Phone number must be at least 10 characters' }),
   bio: z.string().optional(),
   location: z.string().optional(),
   linkedinProfile: urlSchema,
@@ -403,24 +403,24 @@ export default function EditProfile() {
   const onSubmit = async (data: ProfileSetupFormValues) => {
     setIsSubmitting(true);
     try {
-      const profileData: any = {};
-
-      if (data.graduationYear) profileData.graduationYear = parseInt(data.graduationYear);
-      if (data.department) profileData.department = data.department;
-      if (data.contactNumber) profileData.contactNumber = data.contactNumber;
-      if (data.bio) profileData.bio = data.bio;
-      if (data.location) profileData.location = data.location;
-      if (data.linkedinProfile) profileData.linkedinProfile = normalizeUrl(data.linkedinProfile);
-      if (data.website) profileData.website = normalizeUrl(data.website);
-      if (data.workExperiences && data.workExperiences.length > 0) profileData.workExperiences = data.workExperiences;
-      if (data.educations && data.educations.length > 0) profileData.educations = data.educations;
-      if (data.projects && data.projects.length > 0) profileData.projects = data.projects;
-      if (data.achievements && data.achievements.length > 0) profileData.achievements = data.achievements;
-      if (data.skills && data.skills.length > 0) profileData.skills = data.skills;
-      if (data.featuredSkills && data.featuredSkills.length > 0) profileData.featuredSkills = data.featuredSkills;
+      const profileData: any = {
+        graduationYear: data.graduationYear ? parseInt(data.graduationYear) : null,
+        department: data.department ?? '',
+        contactNumber: data.contactNumber ?? '',
+        bio: data.bio ?? '',
+        location: data.location ?? '',
+        linkedinProfile: data.linkedinProfile ? normalizeUrl(data.linkedinProfile) : '',
+        website: data.website ? normalizeUrl(data.website) : '',
+        workExperiences: data.workExperiences ?? [],
+        educations: data.educations ?? [],
+        projects: data.projects ?? [],
+        achievements: data.achievements ?? [],
+        skills: data.skills ?? [],
+        featuredSkills: data.featuredSkills ?? [],
+      };
 
       await apiClient.setupProfile({
-        profileData: Object.keys(profileData).length > 0 ? profileData : undefined,
+        profileData,
         profilePicture: data.profilePicture instanceof File ? data.profilePicture : undefined,
         resume: data.resume instanceof File ? data.resume : undefined,
       });
@@ -485,7 +485,7 @@ export default function EditProfile() {
 
         <div className="rounded-xl border border-dsce-blue/10 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.error('Form validation errors:', errors))} className="space-y-6">
               {/* Resume Upload Section */}
               <div className="border-b border-dsce-blue/10 pb-6">
                 <h3 className="text-xl font-semibold text-dsce-text-dark mb-4 flex items-center">
@@ -832,7 +832,7 @@ export default function EditProfile() {
                                     className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark"
                                   />
                                 </div>
-                                
+
                                 {/* Date Fields Section */}
                                 <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                                   <h4 className="text-sm font-medium text-blue-900 mb-3">Employment Period</h4>
@@ -880,7 +880,7 @@ export default function EditProfile() {
                                       />
                                     </div>
                                   </div>
-                                  
+
                                   {!exp.currentlyWorking && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                       <div>
@@ -927,7 +927,7 @@ export default function EditProfile() {
                                       </div>
                                     </div>
                                   )}
-                                  
+
                                   <div className="flex items-center">
                                     <input
                                       type="checkbox"
@@ -1044,7 +1044,7 @@ export default function EditProfile() {
                                     className="border-dsce-blue/10 bg-dsce-bg-light text-dsce-text-dark"
                                   />
                                 </div>
-                                
+
                                 {/* Date Fields Section */}
                                 <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                                   <h4 className="text-sm font-medium text-blue-900 mb-3">Education Period</h4>
@@ -1092,7 +1092,7 @@ export default function EditProfile() {
                                       />
                                     </div>
                                   </div>
-                                  
+
                                   {!edu.currentlyPursuing && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                       <div>
@@ -1139,7 +1139,7 @@ export default function EditProfile() {
                                       </div>
                                     </div>
                                   )}
-                                  
+
                                   <div className="flex items-center">
                                     <input
                                       type="checkbox"

@@ -5,6 +5,7 @@ import { extractEducation } from "./extract-education";
 import { extractWorkExperience } from "./extract-work-experience";
 import { extractProject } from "./extract-project";
 import { extractSkills } from "./extract-skills";
+import { classifyAndReorganizeSections } from "./lib/enhanced-section-detector";
 
 /**
  * Step 4. Extract resume from sections.
@@ -19,10 +20,14 @@ import { extractSkills } from "./extract-skills";
  * all its feature sets and sum up the matching feature scores. This process is carried
  * out for all text items within the section, and the text item with the highest computed
  * feature score is identified as the extracted resume attribute.
+ *
+ * Enhanced Version: Uses intelligent section detection and reorganization to handle
+ * various resume formats more robustly.
  */
 export const extractResumeFromSections = (
   sections: ResumeSectionToLines
 ): Resume => {
+  // Use conservative approach first - enhanced detection can be too aggressive
   const { profile } = extractProfile(sections);
   const { educations } = extractEducation(sections);
   const { workExperiences } = extractWorkExperience(sections);

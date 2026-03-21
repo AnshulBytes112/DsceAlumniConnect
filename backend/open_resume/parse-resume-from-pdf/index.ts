@@ -2,24 +2,41 @@ import { readPdf } from "./read-pdf";
 import { groupTextItemsIntoLines } from "./group-text-items-into-lines";
 import { groupLinesIntoSections } from "./group-lines-into-sections";
 import { extractResumeFromSections } from "./extract-resume-from-sections";
+import { parseResumeFromPdf as parseResumeOptimized, type ParserOptions, type ParseResult } from "./parse-resume-optimized";
+import { parseDateRange, formatDateRange, type ParsedDateRange } from "./utils/date-parser";
+import { 
+  ParserError, 
+  ParserErrorCode, 
+  type ParseResult as ParserResult, 
+  createSuccessResult, 
+  createErrorResult 
+} from "./utils/error-handling";
+import type { Resume } from "../lib/redux/types";
 
-/**
- * Resume parser util that parses a resume from a resume pdf file
- *
- * Note: The parser algorithm only works for single column resume in English language
- */
-export const parseResumeFromPdf = async (fileUrl: string) => {
-  // Step 1. Read a pdf resume file into text items to prepare for processing
-  const textItems = await readPdf(fileUrl);
+export { validatePdf, readPdfMetadata } from "./read-pdf-optimized";
+export { groupLinesIntoSections, detectResumeFormat, type SectionDetectionOptions } from "./section-detector";
+export { parserCache, type ResumeParserCache } from "./utils/cache";
+export { 
+  ParserError, 
+  ParserErrorCode, 
+  type ParseResult as ParserResult, 
+  createSuccessResult, 
+  createErrorResult
+} from "./utils/error-handling";
+export { parseDateRange, formatDateRange, type ParsedDateRange } from "./utils/date-parser";
 
-  // Step 2. Group text items into lines
-  const lines = groupTextItemsIntoLines(textItems);
+export { parseResumeFromPdfWithTimeout, parseMultipleResumes, invalidateCache, getCacheStats } from "./parse-resume-optimized";
 
-  // Step 3. Group lines into sections
-  const sections = groupLinesIntoSections(lines);
+export interface ResumeParserResult extends ParseResult<Resume> {}
 
-  // Step 4. Extract resume from sections
-  const resume = extractResumeFromSections(sections);
-
-  return resume;
+const parseResumeFromPdf = async (fileUrl: string): Promise<Resume> => {
+  const result = await parseResumeOptimized(fileUrl);
+  if (!result.success || !result.data) {
+    throw new Error(result.error?.message || 'Failed to parse resume');
+  }
+  return result.data;
 };
+
+export { parseResumeFromPdf, type ParserOptions };
+
+export { readPdf, groupTextItemsIntoLines, extractResumeFromSections };

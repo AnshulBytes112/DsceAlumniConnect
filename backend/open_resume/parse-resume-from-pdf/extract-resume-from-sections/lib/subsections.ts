@@ -12,50 +12,120 @@ import type { Lines, Line, Subsections } from "lib/parse-resume-from-pdf/types";
  * process each subsection to retrieve each's resume attributes and append the results.
  */
 export const divideSectionIntoSubsections = (lines: Lines): Subsections => {
+  // 1. Preprocessing: Split lines that likely contain merged headers (Description + Title)
+  // This is common when PDF extraction fails to catch an EOL and merges everything into one TextItem.
+  const processedLines: Lines = [];
+
+  // Regex to detect a project title pattern preceded by other text:
+  // (something) (Title § Date/Year)
+  const mergedHeaderRegex = /^(.*?)([\w\s\-\.\(\)]{3,50}§\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|20\d{2}).*)$/i;
+
+  for (const line of lines) {
+    let currentSegment: Line = [];
+    for (let i = 0; i < line.length; i++) {
+      const item = line[i];
+      const match = item.text.match(mergedHeaderRegex);
+
+      if (match && match[1].trim() !== "" && match[2].trim() !== "") {
+        // Log the split for debugging
+        console.error(`[DEBUG subsections] Splitting merged item: "${match[1]}" | "${match[2]}"`);
+
+        // Split this item into two separate segments
+        if (currentSegment.length > 0) {
+          currentSegment.push({ ...item, text: match[1] });
+          processedLines.push(currentSegment);
+        } else {
+          processedLines.push([{ ...item, text: match[1] }]);
+        }
+        currentSegment = [{ ...item, text: match[2] }];
+      } else if (i > 0 && (item.text.includes("§") || /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|20\d{2})/i.test(item.text.trim()))) {
+        if (currentSegment.length > 0) processedLines.push(currentSegment);
+        currentSegment = [item];
+      } else {
+        currentSegment.push(item);
+      }
+    }
+    if (currentSegment.length > 0) processedLines.push(currentSegment);
+  }
+
   // The main heuristic to determine a subsection is to check if its vertical line gap
   // is larger than the typical line gap * 1.4
   const isLineNewSubsectionByLineGap =
-    createIsLineNewSubsectionByLineGap(lines);
+    createIsLineNewSubsectionByLineGap(processedLines);
 
-  let subsections = createSubsections(lines, isLineNewSubsectionByLineGap);
+  let subsections = createSubsections(processedLines, isLineNewSubsectionByLineGap);
 
-  // Fallback heuristic if the main heuristic doesn't apply: use bold headings
+  // Fallback 1: use bold headings
   if (subsections.length === 1) {
     const isLineNewSubsectionByBold = (line: Line, prevLine: Line) => {
       if (
         !isBold(prevLine[0]) &&
         isBold(line[0]) &&
-        // Ignore bullet points that sometimes are marked as bolded
         !BULLET_POINTS.includes(line[0].text)
       ) {
         return true;
       }
       return false;
     };
-
-    subsections = createSubsections(lines, isLineNewSubsectionByBold);
+    subsections = createSubsections(processedLines, isLineNewSubsectionByBold);
   }
 
-  // Second fallback: split on lines that look like date headers (e.g. "Jan 2020 - Present")
-  // This helps when multiple experiences are stacked with similar line gaps and no bold titles.
+  // Fallback 2: split on lines that look like date headers or project titles (especially with "§")
   if (subsections.length === 1) {
     const yearRegex = /(19|20)\d{2}/;
     const presentRegex = /present|current|ongoing/i;
 
     const lineHasDateClue = (line: Line) => {
       const text = line.map((i) => i.text).join(" ");
-      return yearRegex.test(text) || presentRegex.test(text);
+      return text.includes("§") || yearRegex.test(text) || presentRegex.test(text);
     };
 
     const isLineNewSubsectionByDate = (line: Line, prevLine: Line) => {
-      // Treat a line that contains a year/present marker as a new subsection
-      // when the previous line did not contain such a marker.
+      const text = line.map((i) => i.text).join(" ");
+      // Direct hit on "§" separator
+      if (text.includes("§")) return true;
       return lineHasDateClue(line) && !lineHasDateClue(prevLine);
     };
 
-    const dateBasedSubsections = createSubsections(lines, isLineNewSubsectionByDate);
+    const dateBasedSubsections = createSubsections(processedLines, isLineNewSubsectionByDate);
     if (dateBasedSubsections.length > 1) {
       subsections = dateBasedSubsections;
+    }
+  }
+
+  // Fallback 3: Pattern-based splitting (Short lines followed by bullets)
+  if (subsections.length === 1) {
+    const isLineNewSubsectionByPattern = (line: Line, prevLine: Line, nextLine?: Line) => {
+      const text = line.map((i) => i.text).join(" ").trim();
+      const prevText = prevLine.map((i) => i.text).join(" ").trim();
+      const isBullet = (t: string) => BULLET_POINTS.some(bp => t.startsWith(bp));
+
+      if (!isBullet(text) && nextLine) {
+        const nextText = nextLine.map((i) => i.text).join(" ").trim();
+        if (isBullet(nextText) && text.length < 80 && prevText.length > 0) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const createSubsectionsWithNext = (lines: Lines) => {
+      const results: Subsections = [];
+      let sub: Lines = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (i > 0 && isLineNewSubsectionByPattern(lines[i], lines[i - 1], lines[i + 1])) {
+          results.push(sub);
+          sub = [];
+        }
+        sub.push(lines[i]);
+      }
+      if (sub.length > 0) results.push(sub);
+      return results;
+    };
+
+    const patternBasedSubsections = createSubsectionsWithNext(processedLines);
+    if (patternBasedSubsections.length > 1) {
+      subsections = patternBasedSubsections;
     }
   }
 
