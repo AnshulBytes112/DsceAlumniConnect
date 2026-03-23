@@ -10,12 +10,15 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true) // Ignore unknown fields like "custom" from parser
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ResumeParserResponse {
+
     private ResumeProfile profile;
     private List<ResumeWorkExperience> workExperiences;
     private List<ResumeEducation> educations;
     private List<ResumeProject> projects;
+
+    // ✅ FIXED: matches Node JSON
     private ResumeSkills skills;
 
     @Data
@@ -70,19 +73,20 @@ public class ResumeParserResponse {
         private List<String> descriptions;
     }
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class FeaturedSkill {
-        private String skill;
-        private Integer rating;
-    }
-
+    // ✅ ADD THIS BACK
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ResumeSkills {
         private List<FeaturedSkill> featuredSkills;
         private List<String> descriptions;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FeaturedSkill {
+        private String skill;
+        private Integer rating;
     }
 }

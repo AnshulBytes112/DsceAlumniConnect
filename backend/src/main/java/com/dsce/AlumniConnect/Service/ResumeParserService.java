@@ -1,15 +1,19 @@
 package com.dsce.AlumniConnect.Service;
 
 import com.dsce.AlumniConnect.DTO.ResumeParserResponse;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -21,59 +25,49 @@ public class ResumeParserService {
 
     private final ObjectMapper objectMapper;
 
-    private static final String OPEN_RESUME_DIR = "open_resume";
-    private static final int PROCESS_TIMEOUT_SECONDS = 30;
+    private static final int PROCESS_TIMEOUT_SECONDS = 120;
 
     public ResumeParserService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+
+        // ✅ PRODUCTION SAFE CONFIG
+        this.objectMapper.configure(
+                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false
+        );
     }
 
+    // ===========================
+    // 🔥 PDF PARSER (FIXED)
+    // ===========================
     public ResumeParserResponse parseResume(String pdfFilePath) throws Exception {
         try {
-            Path baseDir = Paths.get(baseUploadDir);
-            Path openResumePath = baseDir.resolve(OPEN_RESUME_DIR);
-            Path scriptPath = openResumePath.resolve("parse-resume.ts");
+            File openResumeDir = new File(
+                "C:\\Users\\ankit\\OneDrive\\Desktop\\alumni_dev\\DsceAlumniConnect\\backend\\open_resume"
+            );
 
-            if (!scriptPath.toFile().exists()) {
-                throw new RuntimeException("Resume parser script not found at: " + scriptPath);
+            if (!openResumeDir.exists()) {
+                throw new RuntimeException(
+                        "open_resume directory NOT FOUND: " + openResumeDir.getAbsolutePath()
+                );
             }
 
-            // Check if PDF file exists
-            Path pdfPath = Paths.get(pdfFilePath);
-            if (!pdfPath.toFile().exists()) {
-                throw new RuntimeException("PDF file not found: " + pdfFilePath);
-            }
-
-            // Use local tsx CLI with Node to run the TypeScript script
-            Path tsxCliPath = openResumePath.resolve("node_modules")
-                    .resolve("tsx")
-                    .resolve("dist")
-                    .resolve("cli.mjs");
-
-            if (!tsxCliPath.toFile().exists()) {
-                throw new RuntimeException("tsx CLI not found at: " + tsxCliPath +
-                        ". Make sure dependencies are installed with `npm install` in the open_resume directory.");
-            }
-
+            // ✅ FIX: Proper ProcessBuilder
             ProcessBuilder processBuilder = new ProcessBuilder(
                     "node",
-                    tsxCliPath.toAbsolutePath().toString(),
-                    "parse-resume.ts",
-                    pdfFilePath);
-            processBuilder.directory(openResumePath.toFile());
+                    "node_modules/tsx/dist/cli.mjs",
+                    "parse-resume-ollama.ts",
+                    pdfFilePath
+            );
 
-            // Do NOT merge error stream - read them separately
-            // so debug logs on stderr don't corrupt the JSON on stdout
+            processBuilder.directory(openResumeDir);
             processBuilder.redirectErrorStream(false);
 
-            log.info("Executing resume parser for file: {}", pdfFilePath);
             Process process = processBuilder.start();
 
-            // Read stdout (JSON output) on the main thread
             StringBuilder output = new StringBuilder();
             StringBuilder errorOutput = new StringBuilder();
 
-            // Read stderr on a separate thread to prevent deadlocks
+            // stderr thread
             Thread stderrThread = new Thread(() -> {
                 try (BufferedReader errReader = new BufferedReader(
                         new InputStreamReader(process.getErrorStream()))) {
@@ -81,12 +75,11 @@ public class ResumeParserService {
                     while ((line = errReader.readLine()) != null) {
                         errorOutput.append(line).append("\n");
                     }
-                } catch (Exception e) {
-                    log.warn("Error reading stderr: {}", e.getMessage());
-                }
+                } catch (Exception ignored) {}
             });
             stderrThread.start();
 
+            // stdout
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -95,119 +88,166 @@ public class ResumeParserService {
                 }
             }
 
-            stderrThread.join(PROCESS_TIMEOUT_SECONDS * 1000L);
-
-            // Wait for process to complete with timeout
             boolean finished = process.waitFor(PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!finished) {
                 process.destroyForcibly();
-                throw new RuntimeException("Resume parsing timed out after " + PROCESS_TIMEOUT_SECONDS + " seconds");
+                throw new RuntimeException("Process timeout");
             }
 
-            int exitCode = process.exitValue();
+            if (process.exitValue() != 0) {
+                throw new RuntimeException("Node error: " + errorOutput);
+            }
+
             String rawOutput = output.toString().trim();
-            String stderrOutput = errorOutput.toString().trim();
+            log.info("NODE RAW OUTPUT:\n{}", rawOutput);
 
-            // Log the raw output for debugging
-            log.info("Parser exit code: {}", exitCode);
-            if (!stderrOutput.isEmpty()) {
-                log.info("Parser stderr output:\n{}", stderrOutput);
-            }
-            
-            // Log first 500 chars of raw output for debugging
-            String truncatedOutput = rawOutput.length() > 500 ? rawOutput.substring(0, 500) + "..." : rawOutput;
-            log.info("Parser raw output preview:\n{}", truncatedOutput);
+            String jsonOutput = extractJson(rawOutput);
 
-            // Check for errors
-            if (exitCode != 0 || rawOutput.contains("\"error\"")) {
-                // Try to parse error message from JSON
-                String errorMessage = rawOutput;
-                try {
-                    if (rawOutput.contains("\"error\"")) {
-                        var errorNode = objectMapper.readTree(rawOutput);
-                        if (errorNode.has("error")) {
-                            errorMessage = errorNode.get("error").asText();
-                        }
-                    }
-                } catch (Exception e) {
-                    // If we can't parse the error JSON, use the raw output
-                    log.debug("Could not parse error JSON, using raw output", e);
-                }
-
-                log.error("Resume parser failed with exit code: {}\nOutput: {}", exitCode, errorMessage);
-                throw new RuntimeException("Resume parsing failed: " + errorMessage);
-            }
-
-            // Check if we got valid output
-            if (rawOutput.isEmpty()) {
-                throw new RuntimeException("Resume parser produced no output");
-            }
-
-            // CRITICAL FIX: Extract JSON from output (skip PDF.js warnings)
-            String jsonOutput = extractJsonFromOutput(rawOutput);
-
-            if (jsonOutput.isEmpty()) {
-                log.error("No valid JSON found in parser output: {}", rawOutput);
-                throw new RuntimeException("Resume parser produced no valid JSON output");
-            }
-
-            // Parse JSON response
-            ResumeParserResponse response;
-            try {
-                response = objectMapper.readValue(jsonOutput, ResumeParserResponse.class);
-            } catch (Exception e) {
-                log.error("Failed to parse resume parser JSON output. JSON: {}", jsonOutput);
-                throw new RuntimeException("Invalid JSON output from resume parser: " + e.getMessage(), e);
-            }
-
-            log.info("Resume parsed successfully. Profile: {}, WorkExps: {}, Educations: {}, Projects: {}, Skills: {}",
-                    response.getProfile() != null ? "present" : "null",
-                    response.getWorkExperiences() != null ? response.getWorkExperiences().size() : 0,
-                    response.getEducations() != null ? response.getEducations().size() : 0,
-                    response.getProjects() != null ? response.getProjects().size() : 0,
-                    response.getSkills() != null ? "present" : "null");
-
-            return response;
+            return objectMapper.readValue(jsonOutput, ResumeParserResponse.class);
 
         } catch (Exception e) {
-            log.error("Error parsing resume: {}", e.getMessage(), e);
+            log.error("PDF parsing failed: {}", e.getMessage(), e);
             throw new Exception("Failed to parse resume: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * Extracts valid JSON from parser output by filtering out PDF.js warnings.
-     * PDF.js writes warnings to stdout which contaminate the JSON output.
-     */
-    private String extractJsonFromOutput(String rawOutput) {
-        // Find the first line that starts with '{' (start of JSON)
-        String[] lines = rawOutput.split("\n");
-        StringBuilder jsonBuilder = new StringBuilder();
-        boolean jsonStarted = false;
+    // ===========================
+    // 🔥 TEXT PARSER (OLLAMA)
+    // ===========================
+    public ResumeParserResponse parseResumeText(String text) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:11434/api/generate";
 
-        for (String line : lines) {
-            String trimmedLine = line.trim();
+            String prompt = """
+You are a resume parsing engine.
 
-            // Skip warning lines
-            if (trimmedLine.startsWith("Warning:")) {
-                continue;
+Return STRICT JSON ONLY.
+Fix this resume text with strict requirements:
+     SECTION IDENTIFICATION:
+        - Lines starting with "Description", "Experience", etc. are section headers
+        - ALL lines in Description section must start with bullet points
+        - Only text after a blank line following section headers can be bullet points
+
+     1. BULLET POINTS (•, *, -):
+        - NEVER split any bullet point across lines
+        - Combine any bullet fragments into complete single-line bullets
+        - Preserve the original bullet character (•, *, or -)
+        - Only fix spacing BETWEEN words, never within proper nouns/technical terms
+        - If the first point in regular text does not start with a bullet, add a bullet point at the start of the first line.
+        - If a bullet point is missing a bullet character, add it at the start of the line.
+        - ALL the points under DESCRIPTION should START with a BULLET character.
+
+     2. LINE BREAKS:
+        - Remove ALL mid-sentence line breaks
+        - Keep exactly one line break between distinct bullet points
+        - Keep exactly two line breaks between sections
+
+     3. SPACING:
+        - Add missing spaces between words ("ImplementedAES-200" → "Implemented AES-200")
+        - Also add a space when a lowercase letter is immediately followed by an uppercase letter in all sections of the resume.
+        - Never modify: 
+          * Technical terms ("RESTful", "CRUD")
+          * Proper nouns ("GLibC", "PBKDF2")
+          * Numbers/dates ("2000+", "2023-2024")
+          * Project names ("ELISA project")
+
+     4. SPECIAL CASES:
+        - Preserve all hyphenated terms as-is ("end-to-end")
+        - Keep all acronyms intact ("APIs" not "A P Is")
+        - Maintain exact company/product names ("Intel/Mobileye")
+
+     REQUIRED OUTPUT FORMAT:
+     - Each bullet point exactly one line
+     - Add bullet to first point.
+     - No trailing spaces
+     - No empty lines between bullets
+     - Exactly one blank line between sections
+
+      Examples:
+      - "VSCodeand" should become "VSCode and"
+      - "developingcross-platform" should become "developing cross-platform" 
+      - "Serverusing" should become "Server using"
+
+      Text to fix:
+      ${text}
+
+      Return only the corrected text with proper spacing, no additional commentary.
+
+Schema:
+{
+  "profile": {
+    "name": "",
+    "email": "",
+    "phone": "",
+    "url": "",
+    "summary": "",
+    "location": ""
+  },
+  "workExperiences": [],
+  "educations": [],
+  "projects": [],
+  "skills": []
+}
+
+Resume:
+""" + text;
+
+            Map<String, Object> request = new HashMap<>();
+            request.put("model", "gemma:2b"); // ✅ YOUR CURRENT MODEL
+            request.put("prompt", prompt);
+            request.put("stream", false);
+            request.put("format", "json"); // ✅ CRITICAL
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> entity =
+                    new HttpEntity<>(request, headers);
+
+            ResponseEntity<Map> response =
+                    restTemplate.postForEntity(url, entity, Map.class);
+
+            if (response.getBody() == null) {
+                throw new RuntimeException("Empty response from LLM");
             }
 
-            // Start collecting from the first line that begins with '{'
-            if (!jsonStarted && trimmedLine.startsWith("{")) {
-                jsonStarted = true;
-            }
+            String modelOutput = (String) response.getBody().get("response");
 
-            // Collect all lines after JSON starts
-            if (jsonStarted) {
-                jsonBuilder.append(line).append("\n");
-            }
+            log.info("LLM RAW OUTPUT:\n{}", modelOutput);
+
+            String json = extractJson(modelOutput);
+
+            return objectMapper.readValue(json, ResumeParserResponse.class);
+
+        } catch (Exception e) {
+            log.error("Ollama parsing failed: {}", e.getMessage(), e);
+            throw new RuntimeException("LLM parsing failed: " + e.getMessage(), e);
         }
-
-        return jsonBuilder.toString().trim();
     }
 
+    // ===========================
+    // 🔥 JSON CLEANER
+    // ===========================
+    private String extractJson(String text) {
+        if (text == null || text.isEmpty()) {
+            throw new RuntimeException("Empty response from model");
+        }
+
+        int start = text.indexOf("{");
+        int end = text.lastIndexOf("}");
+
+        if (start != -1 && end != -1 && end > start) {
+            return text.substring(start, end + 1);
+        }
+
+        throw new RuntimeException("Invalid JSON from model: " + text);
+    }
+
+    // ===========================
+    // 🔥 RELATIVE PATH SUPPORT
+    // ===========================
     public ResumeParserResponse parseResumeFromRelativePath(String relativePath) throws Exception {
         Path fullPath = Paths.get(baseUploadDir, relativePath);
         return parseResume(fullPath.toAbsolutePath().toString());

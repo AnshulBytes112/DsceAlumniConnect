@@ -1,0 +1,45 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.dsce:AlumniConnect >-----------------------
+[INFO] Building AlumniConnect 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ AlumniConnect ---
+[INFO] Deleting C:\Users\ankit\OneDrive\Desktop\alumni_dev\DsceAlumniConnect\backend\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ AlumniConnect ---
+[INFO] skip non existing resourceDirectory C:\Users\ankit\OneDrive\Desktop\alumni_dev\DsceAlumniConnect\backend\src\main\resources
+[INFO] skip non existing resourceDirectory C:\Users\ankit\OneDrive\Desktop\alumni_dev\DsceAlumniConnect\backend\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ AlumniConnect ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 80 source files with javac [debug release 17] to target\classes
+[INFO] /C:/Users/ankit/OneDrive/Desktop/alumni_dev/DsceAlumniConnect/backend/src/main/java/com/dsce/AlumniConnect/config/SpringSecurity.java: C:\Users\ankit\OneDrive\Desktop\alumni_dev\DsceAlumniConnect\backend\src\main\java\com\dsce\AlumniConnect\config\SpringSecurity.java uses or overrides a deprecated API.
+[INFO] /C:/Users/ankit/OneDrive/Desktop/alumni_dev/DsceAlumniConnect/backend/src/main/java/com/dsce/AlumniConnect/config/SpringSecurity.java: Recompile with -Xlint:deprecation for details.
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/ankit/OneDrive/Desktop/alumni_dev/DsceAlumniConnect/backend/src/main/java/com/dsce/AlumniConnect/Service/ResumeService.java:[73,24] cannot find symbol
+  symbol:   method extractProjectsFromWorkExperiences(java.util.List<com.dsce.AlumniConnect.DTO.ResumeParserResponse.ResumeWorkExperience>)
+  location: class com.dsce.AlumniConnect.Service.ResumeService
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.573 s
+[INFO] Finished at: 2026-03-22T22:11:24+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project AlumniConnect: Compilation failure
+[ERROR] /C:/Users/ankit/OneDrive/Desktop/alumni_dev/DsceAlumniConnect/backend/src/main/java/com/dsce/AlumniConnect/Service/ResumeService.java:[73,24] cannot find symbol
+[ERROR]   symbol:   method extractProjectsFromWorkExperiences(java.util.List<com.dsce.AlumniConnect.DTO.ResumeParserResponse.ResumeWorkExperience>)
+[ERROR]   location: class com.dsce.AlumniConnect.Service.ResumeService
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

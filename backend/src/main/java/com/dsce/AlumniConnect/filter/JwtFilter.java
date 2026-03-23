@@ -27,13 +27,25 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain chain)
+                                    HttpServletResponse response,
+                                    FilterChain chain)
             throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // 🔥 STEP 1: BYPASS PUBLIC ENDPOINTS
+        if (path.startsWith("/api/resumes/parse") ||
+            path.startsWith("/api/auth") ||
+            path.startsWith("/auth") ||
+            path.startsWith("/api/public")) {
+
+            chain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
 
-        // 1. If missing or not starting with Bearer → skip token processing
+        // STEP 2: No token → continue (Spring Security will decide)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
@@ -41,45 +53,46 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String jwt = authHeader.substring(7);
 
-        // 2. JWT must contain exactly 2 dots → otherwise skip
+        // STEP 3: Basic validation
         if (jwt == null || !jwt.contains(".")) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 3. Extract username safely
         String username = null;
+
         try {
             username = jwtUtil.extractUsername(jwt);
-            System.out.println("[JWT DEBUG] Successfully extracted username: " + username);
+            System.out.println("[JWT DEBUG] Username: " + username);
         } catch (Exception e) {
-            // invalid token → skip authentication
-            System.out.println("[JWT DEBUG] Failed to extract username: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("[JWT DEBUG] Invalid token: " + e.getMessage());
             chain.doFilter(request, response);
             return;
         }
 
-        // 4. If username is valid and no existing authentication
+        // STEP 4: Authenticate if valid
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            System.out.println(
-                    "[JWT DEBUG] Loaded user for: " + username + ", authorities: " + userDetails.getAuthorities());
 
             if (jwtUtil.validateToken(jwt)) {
-                System.out.println("[JWT DEBUG] ✓ Token VALID for: " + username);
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
                 SecurityContextHolder.getContext().setAuthentication(auth);
+
+                System.out.println("[JWT DEBUG] ✅ Authenticated: " + username);
+
             } else {
-                System.out.println("[JWT DEBUG] ✗ Token INVALID for: " + username);
+                System.out.println("[JWT DEBUG] ❌ Invalid token for: " + username);
             }
-        } else {
-            System.out.println("[JWT DEBUG] Skip auth - user: " + username + ", hasAuth: "
-                    + (SecurityContextHolder.getContext().getAuthentication() != null));
         }
 
         chain.doFilter(request, response);

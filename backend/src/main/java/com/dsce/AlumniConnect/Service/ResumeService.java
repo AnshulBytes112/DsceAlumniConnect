@@ -67,12 +67,12 @@ public class ResumeService {
 
         // Process projects with splitting
         List<User.Project> projects = processProjects(parsedResume.getProjects());
-        
+
         // If no projects found, try to extract from work experience descriptions
         if (projects.isEmpty() && parsedResume.getWorkExperiences() != null) {
             projects = extractProjectsFromWorkExperiences(parsedResume.getWorkExperiences());
         }
-        
+
         if (!projects.isEmpty()) {
             user.setProjects(projects);
         }
@@ -127,7 +127,8 @@ public class ResumeService {
         }
     }
 
-    private List<User.WorkExperience> processWorkExperiences(List<ResumeParserResponse.ResumeWorkExperience> rawWorkExps) {
+    private List<User.WorkExperience> processWorkExperiences(
+            List<ResumeParserResponse.ResumeWorkExperience> rawWorkExps) {
         if (rawWorkExps == null || rawWorkExps.isEmpty()) {
             return new ArrayList<>();
         }
@@ -135,7 +136,8 @@ public class ResumeService {
         List<User.WorkExperience> cleaned = new ArrayList<>();
 
         for (ResumeParserResponse.ResumeWorkExperience we : rawWorkExps) {
-            // Skip entries that look like descriptions (contain keywords like "Designing", "Contributing", etc.)
+            // Skip entries that look like descriptions (contain keywords like "Designing",
+            // "Contributing", etc.)
             if (isGarbageWorkExperience(we)) {
                 continue;
             }
@@ -161,52 +163,56 @@ public class ResumeService {
         String company = we.getCompany() != null ? we.getCompany() : "";
         String jobTitle = we.getJobTitle() != null ? we.getJobTitle() : "";
         String date = we.getDate() != null ? we.getDate() : "";
-        
+
         // Skip if company is empty
         if (company == null || company.trim().isEmpty()) {
             return true;
         }
-        
-        // Check for description-like company names (contains keywords that shouldn't be in company name)
+
+        // Check for description-like company names (contains keywords that shouldn't be
+        // in company name)
         String lowerCompany = company.toLowerCase();
-        if (lowerCompany.contains("designing") || lowerCompany.contains("contributing") || 
-            lowerCompany.contains("built") || lowerCompany.contains("implemented") ||
-            lowerCompany.contains("developed") || lowerCompany.contains("created") ||
-            lowerCompany.contains("using") || lowerCompany.contains("and") ||
-            lowerCompany.contains("architecture") || lowerCompany.contains("microservice") ||
-            lowerCompany.contains("backend") || lowerCompany.contains("frontend") ||
-            company.length() > 100) {
+        if (lowerCompany.contains("designing") || lowerCompany.contains("contributing") ||
+                lowerCompany.contains("built") || lowerCompany.contains("implemented") ||
+                lowerCompany.contains("developed") || lowerCompany.contains("created") ||
+                lowerCompany.contains("using") || lowerCompany.contains("and") ||
+                lowerCompany.contains("architecture") || lowerCompany.contains("microservice") ||
+                lowerCompany.contains("backend") || lowerCompany.contains("frontend") ||
+                company.length() > 100) {
             return true;
         }
-        
+
         // Check if company looks like a date range (e.g., "March 2025 - May 2025")
-        if (company.matches(".*\\d{4}.*[-–].*\\d{4}.*") || 
-            company.matches(".*(January|February|March|April|May|June|July|August|September|October|November|December).*\\d{4}.*")) {
+        if (company.matches(".*\\d{4}.*[-–].*\\d{4}.*") ||
+                company.matches(
+                        ".*(January|February|March|April|May|June|July|August|September|October|November|December).*\\d{4}.*")) {
             return true;
         }
-        
+
         // Check if it's just a year range
         if (company.matches("\\d{4}\\s*[-–]\\s*\\d{4}\\s*")) {
             return true;
         }
-        
+
         // Check for garbage job titles
         if (jobTitle.equals("–") || jobTitle.equals("-") || jobTitle.trim().isEmpty()) {
-            // If job title is garbage but company is valid, that's okay - we'll use company as title
+            // If job title is garbage but company is valid, that's okay - we'll use company
+            // as title
             return false;
         }
-        
-        // Check if job title contains tech keywords (which means it's not really a job title)
-        if (jobTitle.toLowerCase().contains("terraform") || 
-            jobTitle.toLowerCase().contains("kubernetes") ||
-            jobTitle.toLowerCase().contains("aws") ||
-            jobTitle.toLowerCase().contains("docker") ||
-            jobTitle.toLowerCase().contains("golang") ||
-            jobTitle.length() > 80) {
+
+        // Check if job title contains tech keywords (which means it's not really a job
+        // title)
+        if (jobTitle.toLowerCase().contains("terraform") ||
+                jobTitle.toLowerCase().contains("kubernetes") ||
+                jobTitle.toLowerCase().contains("aws") ||
+                jobTitle.toLowerCase().contains("docker") ||
+                jobTitle.toLowerCase().contains("golang") ||
+                jobTitle.length() > 80) {
             // This is actually a description line, not a proper work experience
             return true;
         }
-        
+
         return false;
     }
 
@@ -258,7 +264,7 @@ public class ResumeService {
                 }
             }
         }
-        
+
         if (current != null && (current.getSchool() != null || current.getDegree() != null)) {
             merged.add(current);
         }
@@ -301,7 +307,8 @@ public class ResumeService {
 
             int nameIndex = 0;
             for (String name : projectNames) {
-                if (name.trim().isEmpty()) continue;
+                if (name.trim().isEmpty())
+                    continue;
 
                 User.Project p = new User.Project();
                 p.setProject(name.trim());
@@ -332,7 +339,7 @@ public class ResumeService {
     private String[] splitProjectNames(String combined) {
         // Split by common separators like " – ", " | ", " GitHub", etc.
         if (combined == null || combined.isEmpty()) {
-            return new String[]{};
+            return new String[] {};
         }
 
         // Try to split by " – " or " | " first
@@ -344,7 +351,7 @@ public class ResumeService {
         }
 
         // If no separator, check for project patterns
-        String[] projectIndicators = {"GitHub", "Git", "–"};
+        String[] projectIndicators = { "GitHub", "Git", "–" };
         for (String indicator : projectIndicators) {
             int idx = combined.lastIndexOf(indicator);
             if (idx > 30) { // Only split if indicator is not at the beginning
@@ -355,6 +362,30 @@ public class ResumeService {
             }
         }
 
-        return new String[]{combined};
+        return new String[] { combined };
+    }
+
+    private List<User.Project> extractProjectsFromWorkExperiences(
+            List<ResumeParserResponse.ResumeWorkExperience> workExps) {
+        List<User.Project> extractedProjects = new ArrayList<>();
+        if (workExps == null)
+            return extractedProjects;
+
+        for (ResumeParserResponse.ResumeWorkExperience we : workExps) {
+            if (isGarbageWorkExperience(we)) {
+                User.Project proj = new User.Project();
+                // If it was rejected as work exp, the company field usually contains the
+                // project name
+                proj.setProject(
+                        we.getCompany() != null && !we.getCompany().isEmpty() ? we.getCompany() : we.getJobTitle());
+                proj.setDate(we.getDate());
+                proj.setDescriptions(we.getDescriptions());
+
+                if (proj.getProject() != null && !proj.getProject().trim().isEmpty()) {
+                    extractedProjects.add(proj);
+                }
+            }
+        }
+        return extractedProjects;
     }
 }
