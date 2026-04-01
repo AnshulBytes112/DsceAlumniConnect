@@ -32,17 +32,14 @@ export const getSectionLinesByKeywordsEnhanced = (
     }
   }
 
-  // Only use enhanced detection if original approach fails
   const reorganizedSections = classifyAndReorganizeSections(sections);
   
-  // Try to find exact matches first
   for (const keyword of keywords) {
     if (reorganizedSections[keyword]) {
       return reorganizedSections[keyword];
     }
   }
   
-  // Try partial matches
   for (const [sectionName, lines] of Object.entries(reorganizedSections)) {
     const hasKeyword = keywords.some((keyword) =>
       sectionName.toLowerCase().includes(keyword.toLowerCase())

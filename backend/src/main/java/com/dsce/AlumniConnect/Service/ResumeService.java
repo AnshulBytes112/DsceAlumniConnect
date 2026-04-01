@@ -357,4 +357,35 @@ public class ResumeService {
 
         return new String[]{combined};
     }
+
+    private List<User.Project> extractProjectsFromWorkExperiences(List<ResumeParserResponse.ResumeWorkExperience> workExperiences) {
+        if (workExperiences == null || workExperiences.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<User.Project> projects = new ArrayList<>();
+
+        for (ResumeParserResponse.ResumeWorkExperience we : workExperiences) {
+            if (we.getDescriptions() != null && !we.getDescriptions().isEmpty()) {
+                // Look for project-like descriptions in work experience
+                for (String desc : we.getDescriptions()) {
+                    if (desc != null && !desc.trim().isEmpty() && !desc.equals("–")) {
+                        // Check if this looks like a project (common project keywords)
+                        String lowerDesc = desc.toLowerCase();
+                        if (lowerDesc.contains("project") || lowerDesc.contains("built") || 
+                            lowerDesc.contains("developed") || lowerDesc.contains("created")) {
+                            
+                            User.Project proj = new User.Project();
+                            proj.setProject(desc.trim());
+                            proj.setDate(we.getDate());
+                            proj.setDescriptions(new ArrayList<>());
+                            projects.add(proj);
+                        }
+                    }
+                }
+            }
+        }
+
+        return projects;
+    }
 }
