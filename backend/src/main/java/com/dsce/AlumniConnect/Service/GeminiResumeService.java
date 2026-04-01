@@ -14,12 +14,18 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Service
 public class GeminiResumeService {
 
-    @Value("${gemini.api.key}")
+    @Value("${resume.ai.provider:gemini}")
+    private String resumeAiProvider;
+
+    @Value("${gemini.api.key:}")
     private String geminiApiKey;
 
     @Value("${gemini.api.model:gemini-2.5-flash}")
@@ -27,6 +33,15 @@ public class GeminiResumeService {
 
     @Value("${gemini.api.version:v1}")
     private String apiVersion;
+
+    @Value("${groq.api.key:}")
+    private String groqApiKey;
+
+    @Value("${groq.api.model:llama-3.3-70b-versatile}")
+    private String groqModel;
+
+    @Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
+    private String groqApiUrl;
 
     private final ObjectMapper objectMapper;
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent";
@@ -48,7 +63,7 @@ public class GeminiResumeService {
      */
     public ResumeParserResponse parseResumeWithGemini(String pdfFilePath) throws Exception {
         try {
-            log.info("Starting resume parsing with Gemini API for file: {}", pdfFilePath);
+            log.info("Starting resume parsing with provider '{}' for file: {}", resumeAiProvider, pdfFilePath);
 
             // Extract text from PDF
             String pdfText = extractTextFromPDF(pdfFilePath);
@@ -58,11 +73,14 @@ public class GeminiResumeService {
 
             log.info("Extracted {} characters from PDF", pdfText.length());
 
-            // Call Gemini API
-            String jsonResponse = callGeminiAPI(pdfText);
+            // Call selected AI provider
+            String jsonResponse = callAIProvider(pdfText);
+
+            // Normalize provider output to a stable DTO shape expected by downstream profile mapping.
+            String normalizedJson = normalizeResumeJsonForDto(jsonResponse);
 
             // Parse the response
-            ResumeParserResponse response = objectMapper.readValue(jsonResponse, ResumeParserResponse.class);
+            ResumeParserResponse response = objectMapper.readValue(normalizedJson, ResumeParserResponse.class);
 
             log.info("Resume parsed successfully. Profile: {}, WorkExps: {}, Educations: {}, Projects: {}, Skills: {}",
                     response.getProfile() != null ? "present" : "null",
@@ -74,8 +92,8 @@ public class GeminiResumeService {
             return response;
 
         } catch (Exception e) {
-            log.error("Error parsing resume with Gemini: {}", e.getMessage(), e);
-            throw new Exception("Failed to parse resume with Gemini: " + e.getMessage(), e);
+            log.error("Error parsing resume with provider '{}': {}", resumeAiProvider, e.getMessage(), e);
+            throw new Exception("Failed to parse resume with provider " + resumeAiProvider + ": " + e.getMessage(), e);
         }
     }
 
@@ -114,6 +132,14 @@ public class GeminiResumeService {
     /**
      * Call Gemini API with retry logic
      */
+    private String callAIProvider(String resumeText) throws Exception {
+        String provider = resumeAiProvider == null ? "gemini" : resumeAiProvider.trim().toLowerCase(Locale.ROOT);
+        if ("groq".equals(provider)) {
+            return callGroqAPI(resumeText);
+        }
+        return callGeminiAPI(resumeText);
+    }
+
     private String callGeminiAPI(String resumeText) throws Exception {
         String prompt = buildPrompt(resumeText);
 
@@ -123,7 +149,37 @@ public class GeminiResumeService {
                 return makeGeminiRequest(prompt);
             } catch (Exception e) {
                 log.warn("Attempt {} failed: {}", attempt, e.getMessage());
+
+                // Quota and rate-limit errors are not recoverable with immediate retries.
+                if (isQuotaOrRateLimitError(e)) {
+                    throw new RuntimeException("Gemini API quota exceeded. Please retry later or update API billing/quota.");
+                }
                 
+                if (attempt < MAX_RETRIES) {
+                    Thread.sleep(RETRY_DELAY_MS * attempt);
+                } else {
+                    throw e;
+                }
+            }
+        }
+
+        throw new RuntimeException("Failed to parse resume after " + MAX_RETRIES + " attempts");
+    }
+
+    private String callGroqAPI(String resumeText) throws Exception {
+        String prompt = buildPrompt(resumeText);
+
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                log.info("Calling Groq API (attempt {}/{})", attempt, MAX_RETRIES);
+                return makeGroqRequest(prompt);
+            } catch (Exception e) {
+                log.warn("Groq attempt {} failed: {}", attempt, e.getMessage());
+
+                if (isQuotaOrRateLimitError(e)) {
+                    throw new RuntimeException("Groq API quota exceeded. Please retry later or update API billing/quota.");
+                }
+
                 if (attempt < MAX_RETRIES) {
                     Thread.sleep(RETRY_DELAY_MS * attempt);
                 } else {
@@ -173,6 +229,15 @@ public class GeminiResumeService {
         }
     }
 
+    private String makeGroqRequest(String prompt) throws Exception {
+        if (groqApiKey == null || groqApiKey.isEmpty()) {
+            throw new RuntimeException("Groq API key not configured. Set GROQ_API_KEY environment variable.");
+        }
+
+        String requestBody = buildGroqRequestJson(prompt);
+        return executeGroqRequest(groqApiUrl, requestBody, groqModel);
+    }
+
     private String buildGenerateContentUrl(String model) {
         return GEMINI_API_URL
                 .replace("{version}", apiVersion)
@@ -181,6 +246,19 @@ public class GeminiResumeService {
 
     private boolean isNotFoundError(RuntimeException ex) {
         return ex.getMessage() != null && ex.getMessage().contains("404");
+    }
+
+    private boolean isQuotaOrRateLimitError(Exception ex) {
+        String message = ex.getMessage();
+        if (message == null) {
+            return false;
+        }
+
+        String lowerMessage = message.toLowerCase(Locale.ROOT);
+        return lowerMessage.contains("429")
+                || lowerMessage.contains("resource_exhausted")
+                || lowerMessage.contains("quota")
+                || lowerMessage.contains("rate limit");
     }
 
     private String normalizeModelName(String configuredModel) {
@@ -209,10 +287,42 @@ public class GeminiResumeService {
 
         if (response.statusCode() != 200) {
             log.error("Gemini API returned status code: {}. Response: {}", response.statusCode(), response.body());
+
+            if (response.statusCode() == 429) {
+                throw new RuntimeException("Gemini API quota exceeded (429): RESOURCE_EXHAUSTED");
+            }
+
             throw new RuntimeException("Gemini API error: " + response.statusCode() + " - " + response.body());
         }
 
         return extractJsonFromGeminiResponse(response.body());
+    }
+
+    private String executeGroqRequest(String url, String requestBody, String modelForLog) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+
+        log.debug("Sending request to Groq API with model: {}", modelForLog);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + groqApiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            log.error("Groq API returned status code: {}. Response: {}", response.statusCode(), response.body());
+
+            if (response.statusCode() == 429) {
+                throw new RuntimeException("Groq API quota exceeded (429): RATE_LIMIT_EXCEEDED");
+            }
+
+            throw new RuntimeException("Groq API error: " + response.statusCode() + " - " + response.body());
+        }
+
+        return extractJsonFromGroqResponse(response.body());
     }
 
     /**
@@ -221,6 +331,19 @@ public class GeminiResumeService {
     private String buildRequestJson(String prompt) throws Exception {
         return "{\"contents\": [{\"parts\": [{\"text\": " + 
                objectMapper.writeValueAsString(prompt) + "}]}]}";
+    }
+
+    private String buildGroqRequestJson(String prompt) throws Exception {
+        String escapedModel = objectMapper.writeValueAsString(groqModel);
+        String escapedPrompt = objectMapper.writeValueAsString(prompt);
+
+        return "{" +
+                "\"model\":" + escapedModel + "," +
+                "\"temperature\":0.1," +
+                "\"messages\":[" +
+                "{\"role\":\"user\",\"content\":" + escapedPrompt + "}" +
+                "]" +
+                "}";
     }
 
     /**
@@ -243,6 +366,23 @@ public class GeminiResumeService {
         return extractJsonFromText(textContent);
     }
 
+    private String extractJsonFromGroqResponse(String apiResponse) throws Exception {
+        var responseNode = objectMapper.readTree(apiResponse);
+
+        if (!responseNode.has("choices") || responseNode.get("choices").isEmpty()) {
+            throw new RuntimeException("Invalid Groq API response: no choices");
+        }
+
+        var choices = responseNode.get("choices");
+        var message = choices.get(0).get("message");
+        if (message == null || message.get("content") == null) {
+            throw new RuntimeException("Invalid Groq API response: missing message content");
+        }
+
+        String textContent = message.get("content").asText();
+        return extractJsonFromText(textContent);
+    }
+
     /**
      * Extract JSON from text that might contain markdown code blocks
      */
@@ -257,6 +397,150 @@ public class GeminiResumeService {
         }
 
         return json;
+    }
+
+    private String normalizeResumeJsonForDto(String rawJson) throws Exception {
+        var root = objectMapper.readTree(rawJson);
+        var normalized = objectMapper.createObjectNode();
+
+        var profileNode = root.path("profile");
+        var normalizedProfile = objectMapper.createObjectNode();
+        normalizedProfile.put("name", readText(profileNode, root, "name", "fullName"));
+        normalizedProfile.put("email", readText(profileNode, root, "email"));
+        normalizedProfile.put("phone", readText(profileNode, root, "phone", "contactNumber", "mobile"));
+        normalizedProfile.put("url", readText(profileNode, root, "url", "website", "linkedinProfile", "linkedin"));
+        normalizedProfile.put("summary", readText(profileNode, root, "summary", "bio", "headline"));
+        normalizedProfile.put("location", readText(profileNode, root, "location", "address"));
+        normalized.set("profile", normalizedProfile);
+
+        normalized.set("workExperiences", readArray(root, "workExperiences", "workExperience", "experiences", "experience"));
+        normalized.set("educations", readArray(root, "educations", "education"));
+        normalized.set("projects", readArray(root, "projects", "project"));
+        normalized.set("achievements", normalizeAchievementsArray(root));
+
+        var normalizedSkills = objectMapper.createObjectNode();
+        var sourceSkills = root.path("skills");
+        var featuredSkills = readArray(root, "featuredSkills");
+        var descriptions = objectMapper.createArrayNode();
+
+        if (sourceSkills.isObject()) {
+            var objFeatured = sourceSkills.path("featuredSkills");
+            if (featuredSkills.isEmpty() && objFeatured.isArray()) {
+                featuredSkills = objFeatured;
+            }
+            var objDescriptions = sourceSkills.path("descriptions");
+            if (objDescriptions.isArray()) {
+                descriptions = objDescriptions.deepCopy();
+            }
+        } else if (sourceSkills.isArray()) {
+            for (var node : sourceSkills) {
+                if (node != null && node.isTextual() && !node.asText().isBlank()) {
+                    descriptions.add(node.asText().trim());
+                }
+            }
+        } else if (sourceSkills.isTextual() && !sourceSkills.asText().isBlank()) {
+            List<String> splitSkills = splitCsvValues(sourceSkills.asText());
+            for (String skill : splitSkills) {
+                descriptions.add(skill);
+            }
+        }
+
+        normalizedSkills.set("featuredSkills", featuredSkills.isArray() ? featuredSkills : objectMapper.createArrayNode());
+        normalizedSkills.set("descriptions", descriptions);
+        normalized.set("skills", normalizedSkills);
+
+        return objectMapper.writeValueAsString(normalized);
+    }
+
+    private com.fasterxml.jackson.databind.JsonNode normalizeAchievementsArray(com.fasterxml.jackson.databind.JsonNode root) {
+        var achievementsNode = readArray(root, "achievements", "awards", "certifications", "honors");
+        var normalized = objectMapper.createArrayNode();
+
+        if (!achievementsNode.isArray()) {
+            return normalized;
+        }
+
+        for (var node : achievementsNode) {
+            if (node == null || node.isNull()) {
+                continue;
+            }
+
+            var item = objectMapper.createObjectNode();
+            if (node.isTextual()) {
+                String text = node.asText("").trim();
+                if (text.isEmpty()) {
+                    continue;
+                }
+                item.put("title", text);
+                item.put("description", "");
+                item.put("date", "");
+                normalized.add(item);
+                continue;
+            }
+
+            String title = readText(node, root, "title", "name", "award", "achievement");
+            String description = readText(node, root, "description", "details", "summary");
+            String date = readText(node, root, "date", "year", "issued", "awardedOn");
+
+            if (title.isEmpty() && description.isEmpty()) {
+                continue;
+            }
+
+            item.put("title", title);
+            item.put("description", description);
+            item.put("date", date);
+            normalized.add(item);
+        }
+
+        return normalized;
+    }
+
+    private String readText(com.fasterxml.jackson.databind.JsonNode primary,
+                            com.fasterxml.jackson.databind.JsonNode fallback,
+                            String... keys) {
+        for (String key : keys) {
+            if (primary != null && primary.has(key) && !primary.get(key).isNull()) {
+                String value = primary.get(key).asText("").trim();
+                if (!value.isEmpty()) {
+                    return value;
+                }
+            }
+            if (fallback != null && fallback.has(key) && !fallback.get(key).isNull()) {
+                String value = fallback.get(key).asText("").trim();
+                if (!value.isEmpty()) {
+                    return value;
+                }
+            }
+        }
+        return "";
+    }
+
+    private com.fasterxml.jackson.databind.JsonNode readArray(com.fasterxml.jackson.databind.JsonNode root,
+                                                              String... keys) {
+        for (String key : keys) {
+            if (root.has(key) && root.get(key).isArray()) {
+                return root.get(key).deepCopy();
+            }
+        }
+        return objectMapper.createArrayNode();
+    }
+
+    private List<String> splitCsvValues(String value) {
+        List<String> parts = new ArrayList<>();
+        if (value == null || value.isBlank()) {
+            return parts;
+        }
+
+        String[] tokens = value.split(",");
+        for (String token : tokens) {
+            if (token != null) {
+                String trimmed = token.trim();
+                if (!trimmed.isEmpty()) {
+                    parts.add(trimmed);
+                }
+            }
+        }
+        return parts;
     }
 
     /**
@@ -309,6 +593,13 @@ public class GeminiResumeService {
                       "descriptions": ["string"]
                     }
                   ],
+                                    "achievements": [
+                                        {
+                                            "title": "string",
+                                            "description": "string",
+                                            "date": "string"
+                                        }
+                                    ],
                   "skills": {
                     "featuredSkills": [
                       {

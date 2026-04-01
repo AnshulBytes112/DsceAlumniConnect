@@ -176,7 +176,11 @@ export default function ProfileSetup() {
               endYear: ed.endYear?.toString() || '',
             })) || [],
             projects: profile.projects || [],
-            achievements: profile.achievements || [],
+            achievements: profile.achievements?.map((ach: any) => ({
+              title: ach.title || ach.Title || ach.name || '',
+              description: ach.description || ach.Description || '',
+              date: ach.date || ach.Date || ach.year || '',
+            })) || [],
             skills: profile.skills || [],
             featuredSkills: profile.featuredSkills || [],
           });
@@ -366,9 +370,9 @@ export default function ProfileSetup() {
         if (updatedProfile.achievements && updatedProfile.achievements.length > 0) {
           console.log('Setting achievements:', updatedProfile.achievements);
           formData.achievements = updatedProfile.achievements.map((ach: any) => ({
-            title: ach.title || ach.name || '',
-            description: ach.description || '',
-            date: ach.date || ach.year || '',
+            title: ach.title || ach.Title || ach.name || '',
+            description: ach.description || ach.Description || '',
+            date: ach.date || ach.Date || ach.year || '',
           }));
         }
 

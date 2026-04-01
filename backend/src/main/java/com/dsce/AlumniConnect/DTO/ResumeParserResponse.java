@@ -16,6 +16,7 @@ public class ResumeParserResponse {
     private List<ResumeWorkExperience> workExperiences;
     private List<ResumeEducation> educations;
     private List<ResumeProject> projects;
+    private List<ResumeAchievement> achievements;
     private ResumeSkills skills;
 
     @Data
@@ -68,6 +69,15 @@ public class ResumeParserResponse {
         private String project;
         private String date;
         private List<String> descriptions;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResumeAchievement {
+        private String title;
+        private String description;
+        private String date;
     }
 
     @Data
