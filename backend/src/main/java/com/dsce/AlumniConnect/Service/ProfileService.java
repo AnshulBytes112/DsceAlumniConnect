@@ -255,6 +255,9 @@ public class ProfileService {
     // Update user fields from parsed resume data
     private void updateUserFromParsedResume(User user, ResumeParserResponse parsedResume, boolean replaceExisting) {
         ResumeParserResponse.ResumeProfile profile = parsedResume.getProfile();
+        if (profile == null) {
+            profile = new ResumeParserResponse.ResumeProfile();
+        }
 
         // Update name
         if (replaceExisting || user.getFirstName() == null || user.getFirstName().isEmpty()) {
@@ -309,9 +312,9 @@ public class ProfileService {
                             we.getJobTitle(),
                             we.getDate(),
                             we.getMonth(),
-                            we.getYear() != null ? Integer.parseInt(we.getYear()) : null,
+                    safeParseInteger(we.getYear()),
                             we.getEndMonth(),
-                            we.getEndYear() != null ? Integer.parseInt(we.getEndYear()) : null,
+                    safeParseInteger(we.getEndYear()),
                             we.getCurrentlyWorking(),
                             we.getDescriptions()))
                     .collect(Collectors.toList());
@@ -327,9 +330,9 @@ public class ProfileService {
                             ed.getDate(),
                             ed.getGpa(),
                             ed.getMonth(),
-                            ed.getYear() != null ? Integer.parseInt(ed.getYear()) : null,
+                    safeParseInteger(ed.getYear()),
                             ed.getEndMonth(),
-                            ed.getEndYear() != null ? Integer.parseInt(ed.getEndYear()) : null,
+                    safeParseInteger(ed.getEndYear()),
                             ed.getCurrentlyPursuing(),
                             ed.getDescriptions()))
                     .collect(Collectors.toList());
@@ -350,6 +353,23 @@ public class ProfileService {
                 user.setProjects(projects);
             }
         }
+
+            // Update achievements - always update when new resume is uploaded
+            if (parsedResume.getAchievements() != null && !parsedResume.getAchievements().isEmpty()) {
+                List<User.Achievement> achievements = parsedResume.getAchievements().stream()
+                    .filter(ach -> (ach.getTitle() != null && !ach.getTitle().trim().isEmpty())
+                        || (ach.getDescription() != null && !ach.getDescription().trim().isEmpty())
+                        || (ach.getDate() != null && !ach.getDate().trim().isEmpty()))
+                    .map(ach -> new User.Achievement(
+                        ach.getTitle() != null ? ach.getTitle().trim() : "",
+                        ach.getDescription() != null ? ach.getDescription().trim() : "",
+                        ach.getDate() != null ? ach.getDate().trim() : ""))
+                    .collect(Collectors.toList());
+
+                if (!achievements.isEmpty()) {
+                user.setAchievements(achievements);
+                }
+            }
 
         // Update skills - always update when new resume is uploaded
         if (parsedResume.getSkills() != null) {
@@ -402,6 +422,33 @@ public class ProfileService {
                     .filter(skill -> !skill.isEmpty() && !skill.equals(","))
                     .collect(Collectors.toList());
             user.setSkills(uniqueSkills);
+        }
+    }
+
+    private Integer safeParseInteger(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        StringBuilder digits = new StringBuilder();
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (Character.isDigit(c)) {
+                digits.append(c);
+            } else if (digits.length() >= 4) {
+                break;
+            }
+        }
+
+        if (digits.length() < 4) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(digits.substring(0, 4));
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 

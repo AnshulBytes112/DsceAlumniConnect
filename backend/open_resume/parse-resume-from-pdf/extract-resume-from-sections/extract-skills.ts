@@ -1,7 +1,7 @@
 import type { ResumeSkills } from "../../lib/redux/types";
 import type { ResumeSectionToLines } from "../types";
 import { deepClone } from "../../lib/deep-clone";
-import { getSectionLinesByKeywords } from "./lib/get-section-lines";
+import { getSectionLinesByKeywordsEnhanced } from "./lib/enhanced-get-section-lines";
 import { initialFeaturedSkills } from "../../lib/redux/resumeSlice";
 import {
   getBulletPointsFromLines,
@@ -9,7 +9,7 @@ import {
 } from "./lib/bullet-points";
 
 export const extractSkills = (sections: ResumeSectionToLines) => {
-  const lines = getSectionLinesByKeywords(sections, ["skill"]);
+  const lines = getSectionLinesByKeywordsEnhanced(sections, ["skill"], false);
   const descriptionsLineIdx = getDescriptionsLineIdx(lines) ?? 0;
   const descriptionsLines = lines.slice(descriptionsLineIdx);
   const descriptions = getBulletPointsFromLines(descriptionsLines);

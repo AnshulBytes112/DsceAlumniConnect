@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Locale;
 
 @Slf4j
 @RestController
@@ -23,6 +24,19 @@ public class ResumeParserController {
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    private boolean isGeminiQuotaError(Exception e) {
+        String message = e.getMessage();
+        if (message == null) {
+            return false;
+        }
+
+        String lowerMessage = message.toLowerCase(Locale.ROOT);
+        return lowerMessage.contains("429")
+                || lowerMessage.contains("resource_exhausted")
+                || lowerMessage.contains("quota")
+                || lowerMessage.contains("rate limit");
+    }
 
     // Parse resume from uploaded PDF file
     @PostMapping("/parse")
@@ -66,9 +80,15 @@ public class ResumeParserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(e.getMessage()));
         } catch (Exception e) {
+            if (isGeminiQuotaError(e)) {
+            log.warn("Gemini quota/rate-limit reached during resume parsing: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(new ErrorResponse("Resume parsing service is temporarily unavailable due to API quota limits. Please try again later."));
+            }
+
             log.error("Error parsing resume: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Failed to parse resume: " + e.getMessage()));
+                .body(new ErrorResponse("Failed to parse resume: " + e.getMessage()));
         }
     }
 
@@ -82,6 +102,12 @@ public class ResumeParserController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            if (isGeminiQuotaError(e)) {
+                log.warn("Gemini quota/rate-limit reached during resume parsing: {}", e.getMessage());
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(new ErrorResponse("Resume parsing service is temporarily unavailable due to API quota limits. Please try again later."));
+            }
+
             log.error("Error parsing resume: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Failed to parse resume: " + e.getMessage()));
