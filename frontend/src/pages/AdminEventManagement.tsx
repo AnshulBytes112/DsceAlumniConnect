@@ -11,8 +11,6 @@ import {
   Trash2, 
   Calendar, 
   MapPin, 
-  Clock, 
-  Users, 
   Loader2,
   Crown,
   Search,

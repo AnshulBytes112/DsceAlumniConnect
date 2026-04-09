@@ -56,5 +56,7 @@ public class Post {
 
     private List<String> likedBy; // User IDs who liked this post
 
+    private List<String> bookmarkedBy; // User IDs who bookmarked this post
+
     private List<String> reportedBy; // User IDs who reported this post
 }

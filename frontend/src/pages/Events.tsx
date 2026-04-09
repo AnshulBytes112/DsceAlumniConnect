@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar, Plus, Clock, MapPin, Users, Loader2, X, Check, HelpCircle, FileText, Search, TrendingUp, Eye, Heart, MessageCircle } from 'lucide-react';
 import { apiClient, type EventDTO } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
-import { Crown, Star, Trash2 } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 const Events = () => {
   const [events, setEvents] = useState<EventDTO[]>([]);
@@ -104,41 +104,6 @@ const Events = () => {
       fetchEvents();
     } catch (error) {
       toast({ title: "Error", description: "Failed to create event.", variant: "destructive" });
-    }
-  };
-
-  const handleFeatureEvent = async (eventId: string) => {
-    try {
-      await apiClient.featureEvent(eventId);
-      toast({ title: "Success", description: "Event featured successfully!" });
-      fetchEvents();
-    } catch (error) {
-      console.error('Failed to feature event', error);
-      toast({ title: "Error", description: "Failed to feature event.", variant: "destructive" });
-    }
-  };
-
-  const handleUnfeatureEvent = async (eventId: string) => {
-    try {
-      await apiClient.unfeatureEvent(eventId);
-      toast({ title: "Success", description: "Event unfeatured successfully!" });
-      fetchEvents();
-    } catch (error) {
-      console.error('Failed to unfeature event', error);
-      toast({ title: "Error", description: "Failed to unfeature event.", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteEvent = async (eventId: string) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
-    
-    try {
-      await apiClient.deleteEvent(eventId);
-      toast({ title: "Success", description: "Event deleted successfully!" });
-      fetchEvents();
-    } catch (error) {
-      console.error('Failed to delete event', error);
-      toast({ title: "Error", description: "Failed to delete event.", variant: "destructive" });
     }
   };
 

@@ -3,8 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Megaphone, Plus, Search, Edit, Trash2,
-  Clock, AlertCircle, CheckCircle2, MoreVertical,
-  Calendar, RefreshCw, X
+  Clock, AlertCircle,
+  RefreshCw, X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient, type AnnouncementDTO } from '@/lib/api';

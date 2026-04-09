@@ -6,34 +6,20 @@ import com.dsce.AlumniConnect.DTO.ErrorResponse;
 import com.dsce.AlumniConnect.DTO.GoogleSignUpRequest;
 import com.dsce.AlumniConnect.DTO.LogInRequest;
 import com.dsce.AlumniConnect.DTO.SignUpRequest;
-import com.dsce.AlumniConnect.Repository.UserRepository;
 import com.dsce.AlumniConnect.Service.AuthService;
-import com.dsce.AlumniConnect.entity.User;
-import com.dsce.AlumniConnect.utils.JwtUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
 @RequestMapping({ "/api/auth", "/auth" })
 @RequiredArgsConstructor
 public class AuthController {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private AuthService authService;
-
-    private final ObjectMapper objectMapper;
-
-    @Autowired
-    private JwtUtils jwtUtil;
+    private final AuthService authService;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignUpRequest signUpRequest) {

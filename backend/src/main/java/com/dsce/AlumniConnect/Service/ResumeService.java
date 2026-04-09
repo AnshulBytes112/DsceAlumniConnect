@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -160,7 +159,6 @@ public class ResumeService {
     private boolean isGarbageWorkExperience(ResumeParserResponse.ResumeWorkExperience we) {
         String company = we.getCompany() != null ? we.getCompany() : "";
         String jobTitle = we.getJobTitle() != null ? we.getJobTitle() : "";
-        String date = we.getDate() != null ? we.getDate() : "";
         
         // Skip if company is empty
         if (company == null || company.trim().isEmpty()) {
