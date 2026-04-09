@@ -81,6 +81,7 @@ public class PostService {
         post.setComments(0);
         post.setShares(0);
         post.setLikedBy(new ArrayList<>());
+        post.setBookmarkedBy(new ArrayList<>());
         post.setReportedBy(new ArrayList<>());
 
         Post savedPost = postRepository.save(post);
@@ -160,6 +161,25 @@ public class PostService {
         return convertToPostResponse(updatedPost, userEmail);
     }
 
+    public PostResponse toggleBookmark(String postId, String userEmail) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        User user = getUserByEmail(userEmail);
+        List<String> bookmarkedBy = post.getBookmarkedBy() != null ? post.getBookmarkedBy() : new ArrayList<>();
+
+        if (bookmarkedBy.contains(user.getId())) {
+            bookmarkedBy.remove(user.getId());
+        } else {
+            bookmarkedBy.add(user.getId());
+        }
+
+        post.setBookmarkedBy(bookmarkedBy);
+        Post updatedPost = postRepository.save(post);
+
+        return convertToPostResponse(updatedPost, userEmail);
+    }
+
     public void reportPost(String postId, String userEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
@@ -213,7 +233,8 @@ public class PostService {
         // Check if current user is the author
         response.setIsAuthor(post.getAuthorId().equals(currentUser.getId()));
 
-        response.setIsBookmarked(false); // TODO: Implement bookmark functionality
+        boolean isBookmarked = post.getBookmarkedBy() != null && post.getBookmarkedBy().contains(currentUser.getId());
+        response.setIsBookmarked(isBookmarked);
 
         return response;
     }

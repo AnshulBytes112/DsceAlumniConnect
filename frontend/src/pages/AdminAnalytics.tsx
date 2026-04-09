@@ -54,15 +54,6 @@ interface ChartDatum {
   value: number;
 }
 
-interface AlumniLite {
-  id: string;
-  name: string;
-  email: string;
-  department?: string;
-  graduationYear?: number;
-  company?: string;
-}
-
 interface SkillDatum extends ChartDatum {
   alumni: UserProfile[];
 }
@@ -107,9 +98,6 @@ export default function AdminAnalytics() {
     const departmentCounter: Record<string, number> = {};
 
     alumni.forEach((alum) => {
-      const currentCompany = Array.isArray(alum.workExperiences)
-        ? (alum.workExperiences.find((exp: any) => exp?.currentlyWorking)?.company || alum.workExperiences[0]?.company || '')
-        : '';
       const alumniId = (alum.id || alum.email || Math.random().toString(36).slice(2)).toString();
       const alumniProfile: UserProfile = {
         ...alum,

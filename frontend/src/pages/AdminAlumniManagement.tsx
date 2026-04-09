@@ -1,6 +1,5 @@
 import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { 
@@ -116,72 +115,6 @@ export default function AdminAlumniManagement() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const calculateAnalytics = (alumniData: UserProfile[]) => {
-        const companies: Record<string, number> = {};
-        const departments: Record<string, number> = {};
-        const experienceRanges = { '0-2': 0, '3-5': 0, '6-10': 0, '10+': 0 };
-        let totalExperience = 0;
-        let experienceCount = 0;
-        const currentYear = new Date().getFullYear();
-
-        alumniData.forEach(alum => {
-            // Count companies
-            if (alum.workExperiences && alum.workExperiences.length > 0) {
-                const company = alum.workExperiences[0].company;
-                if (company) {
-                    companies[company] = (companies[company] || 0) + 1;
-                }
-
-                // Calculate experience
-                const workDate = alum.workExperiences[0].date;
-                if (workDate) {
-                    const years = currentYear - parseInt(workDate.split('-')[0]);
-                    totalExperience += years;
-                    experienceCount++;
-
-                    if (years <= 2) experienceRanges['0-2']++;
-                    else if (years <= 5) experienceRanges['3-5']++;
-                    else if (years <= 10) experienceRanges['6-10']++;
-                    else experienceRanges['10+']++;
-                }
-            }
-
-            // Count departments
-            if (alum.department) {
-                departments[alum.department] = (departments[alum.department] || 0) + 1;
-            }
-        });
-
-        const averageExperience = experienceCount > 0 ? Math.round(totalExperience / experienceCount) : 0;
-        const recentGraduates = alumniData.filter(alum => 
-            alum.graduationYear && alum.graduationYear >= currentYear - 2
-        ).length;
-        const seniorAlumni = alumniData.filter(alum => 
-            alum.workExperiences && alum.workExperiences.length > 0 && 
-            parseInt(alum.workExperiences[0].date?.split('-')[0] || '0') <= currentYear - 5
-        ).length;
-
-        const topCompanies = Object.entries(companies)
-                .sort(([,a]: [string, number], [,b]: [string, number]) => b - a)
-                .slice(0, 5)
-                .map(([company, count]: [string, number]) => ({ company, count }));
-        const departmentsList = Object.entries(departments)
-                .sort(([,a]: [string, number], [,b]: [string, number]) => b - a)
-                .map(([department, count]: [string, number]) => ({ department, count }));
-        const experienceDistribution = Object.entries(experienceRanges)
-                .map(([range, count]: [string, number]) => ({ range, count }));
-
-        setAnalytics({
-            totalAlumni: alumniData.length,
-            averageExperience,
-            topCompanies,
-            departments: departmentsList,
-            experienceDistribution,
-            recentGraduates,
-            seniorAlumni
-        });
     };
 
     const filterAlumni = () => {
@@ -478,6 +411,12 @@ export default function AdminAlumniManagement() {
             </div>
 
             <MotionWrapper className="max-w-7xl mx-auto px-4 -mt-10">
+                {error && (
+                    <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                        {error}
+                    </div>
+                )}
+
                 {/* Analytics Overview */}
                 {analytics && (
                     <motion.div
@@ -516,7 +455,7 @@ export default function AdminAlumniManagement() {
                         <div className="mt-8">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">Top Companies</h3>
                             <div className="flex flex-wrap gap-3">
-                                {analytics.topCompanies.map((company, index) => (
+                                {analytics.topCompanies.map((company) => (
                                     <div key={company.company} className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700">
                                         {company.company} ({company.count})
                                     </div>
@@ -528,7 +467,7 @@ export default function AdminAlumniManagement() {
                         <div className="mt-8">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">Department Distribution</h3>
                             <div className="flex flex-wrap gap-3">
-                                {analytics.departments.map((dept, index) => (
+                                {analytics.departments.map((dept) => (
                                     <div key={dept.department} className="px-4 py-2 bg-dsce-blue/10 text-dsce-blue rounded-lg text-sm font-medium">
                                         {dept.department} ({dept.count})
                                     </div>
@@ -540,7 +479,7 @@ export default function AdminAlumniManagement() {
                         <div className="mt-8">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">Experience Distribution</h3>
                             <div className="flex flex-wrap gap-3">
-                                {analytics.experienceDistribution.map((range, index) => (
+                                {analytics.experienceDistribution.map((range) => (
                                     <div key={range.range} className="px-4 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium">
                                         {range.range} years: {range.count}
                                     </div>

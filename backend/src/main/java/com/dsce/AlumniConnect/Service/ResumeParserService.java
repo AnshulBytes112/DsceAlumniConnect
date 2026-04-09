@@ -1,7 +1,6 @@
 package com.dsce.AlumniConnect.Service;
 
 import com.dsce.AlumniConnect.DTO.ResumeParserResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +18,6 @@ public class ResumeParserService {
 
     @Autowired
     private GeminiResumeService geminiResumeService;
-
-    private final ObjectMapper objectMapper;
-
-    public ResumeParserService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     public ResumeParserResponse parseResume(String pdfFilePath) throws Exception {
         try {

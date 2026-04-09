@@ -1,6 +1,5 @@
 package com.dsce.AlumniConnect.Service;
 
-import com.dsce.AlumniConnect.DTO.ErrorResponse;
 import com.dsce.AlumniConnect.DTO.ProfileUpdateRequest;
 import com.dsce.AlumniConnect.DTO.ResumeParserResponse;
 import com.dsce.AlumniConnect.entity.User;

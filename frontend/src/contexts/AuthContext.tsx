@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, type AuthResponse, type UserProfile } from '@/lib/api';
 
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // React Query to fetch user profile
-  const { data: user, isLoading: loading, error } = useQuery({
+  const { data: user, isLoading: loading } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
       const token = localStorage.getItem('jwtToken');

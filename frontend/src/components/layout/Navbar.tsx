@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -7,14 +6,12 @@ import { Menu } from 'lucide-react';
 
 export default function Navbar() {
   const { isAuthenticated, logout, user } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Debug logging
   console.log("User role:", user?.role);
 
   const handleMenuClick = () => {
     console.log('Menu clicked!');
-    setIsSidebarOpen(true);
     alert('Menu button clicked! Sidebar would open here.');
   };
 

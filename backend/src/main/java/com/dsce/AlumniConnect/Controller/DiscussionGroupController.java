@@ -1,8 +1,6 @@
 package com.dsce.AlumniConnect.Controller;
 
 import com.dsce.AlumniConnect.Repository.DiscussionGroupRepository;
-import com.dsce.AlumniConnect.Repository.DiscussionTopicRepository;
-import com.dsce.AlumniConnect.Repository.DiscussionPostRepository;
 import com.dsce.AlumniConnect.Repository.UserRepository;
 import com.dsce.AlumniConnect.entity.DiscussionGroup;
 import com.dsce.AlumniConnect.entity.User;
@@ -24,8 +22,6 @@ import java.util.*;
 public class DiscussionGroupController {
 
     private final DiscussionGroupRepository groupRepository;
-    private final DiscussionTopicRepository topicRepository;
-    private final DiscussionPostRepository postRepository;
     private final UserRepository userRepository;
 
     @GetMapping

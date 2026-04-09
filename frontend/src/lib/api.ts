@@ -825,6 +825,10 @@ class ApiClient {
         await this.post(`/api/posts/${id}/like`, {});
     }
 
+    async toggleBookmarkPost(id: string): Promise<void> {
+        await this.post(`/api/posts/${id}/bookmark`, {});
+    }
+
     async sharePost(id: string): Promise<void> {
         await this.post(`/api/posts/${id}/share`, {});
     }

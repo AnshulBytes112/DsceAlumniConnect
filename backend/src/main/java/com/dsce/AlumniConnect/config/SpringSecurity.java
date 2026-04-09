@@ -1,8 +1,6 @@
 package com.dsce.AlumniConnect.config;
 
-import com.dsce.AlumniConnect.Service.UserDetailsServiceImpl;
 import com.dsce.AlumniConnect.filter.JwtFilter;
-import jakarta.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,9 +30,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SpringSecurity {
     @Autowired
     private JwtFilter jwtfilter;
-
-    @Autowired
-    private UserDetailsServiceImpl userDetailService;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -74,10 +69,8 @@ public class SpringSecurity {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+    public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }

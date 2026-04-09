@@ -3,7 +3,6 @@ package com.dsce.AlumniConnect.DTO;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 public class CommentResponse {

@@ -9,7 +9,6 @@ import com.dsce.AlumniConnect.Repository.CommentRepository;
 import com.dsce.AlumniConnect.Repository.PostRepository;
 import com.dsce.AlumniConnect.Repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

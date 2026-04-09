@@ -4,21 +4,16 @@ import com.dsce.AlumniConnect.DTO.CreatePostRequest;
 import com.dsce.AlumniConnect.DTO.ErrorResponse;
 import com.dsce.AlumniConnect.DTO.PostResponse;
 import com.dsce.AlumniConnect.DTO.UpdatePostRequest;
-import com.dsce.AlumniConnect.Repository.PostRepository;
 import com.dsce.AlumniConnect.Service.PostService;
-import com.dsce.AlumniConnect.entity.Post;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -26,9 +21,6 @@ import java.util.List;
 @RequestMapping({ "/api/posts", "/posts" })
 @RequiredArgsConstructor
 public class PostController {
-    @Autowired
-    private PostRepository postRepository;
-
     private final PostService postService;
 
     // Get all posts (feed)
@@ -140,6 +132,19 @@ public class PostController {
             log.error("Error sharing post {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse("Failed to share post: " + e.getMessage()));
+        }
+    }
+
+    // Bookmark/Unbookmark post
+    @PostMapping("/{id}/bookmark")
+    public ResponseEntity<?> toggleBookmark(@PathVariable String id, Authentication authentication) {
+        try {
+            PostResponse post = postService.toggleBookmark(id, authentication.getName());
+            return ResponseEntity.ok(post);
+        } catch (Exception e) {
+            log.error("Error toggling bookmark for post {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Failed to bookmark post: " + e.getMessage()));
         }
     }
 

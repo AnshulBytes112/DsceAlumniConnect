@@ -9,19 +9,16 @@ import {
   Calendar,
   Search,
   RefreshCw,
-  AlertCircle,
   ShieldCheck,
   UserCheck,
   UserX,
-  Activity,
-  ArrowRight,
   Filter
 } from 'lucide-react';
 import { apiClient, type UserProfile } from '@/lib/api';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { Button } from '@/components/ui/Button';
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AdminVerification() {

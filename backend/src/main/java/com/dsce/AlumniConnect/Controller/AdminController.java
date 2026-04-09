@@ -6,7 +6,6 @@ import com.dsce.AlumniConnect.entity.User;
 import com.dsce.AlumniConnect.entity.Event;
 import com.dsce.AlumniConnect.DTO.EventDTO;
 import com.dsce.AlumniConnect.DTO.ErrorResponse;
-import com.dsce.AlumniConnect.DTO.DashboardStatsDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -63,7 +62,8 @@ public ResponseEntity<?> getAnalytics() {
         for (User user : alumniUsers) {
             // Count departments
             if (user.getDepartment() != null && !user.getDepartment().isBlank()) {
-                departments.merge(user.getDepartment(), 1, Integer::sum);
+                String department = user.getDepartment();
+                departments.put(department, departments.getOrDefault(department, 0) + 1);
             }
 
             // Parse experience - try month/year first, then date string
@@ -108,18 +108,19 @@ public ResponseEntity<?> getAnalytics() {
 
             // Categorize experience
             if (yearsOfExperience <= 2) {
-                experienceRanges.merge("0-2", 1, Integer::sum);
+                experienceRanges.put("0-2", experienceRanges.getOrDefault("0-2", 0) + 1);
             } else if (yearsOfExperience <= 5) {
-                experienceRanges.merge("3-5", 1, Integer::sum);
+                experienceRanges.put("3-5", experienceRanges.getOrDefault("3-5", 0) + 1);
             } else if (yearsOfExperience <= 10) {
-                experienceRanges.merge("6-10", 1, Integer::sum);
+                experienceRanges.put("6-10", experienceRanges.getOrDefault("6-10", 0) + 1);
             } else {
-                experienceRanges.merge("10+", 1, Integer::sum);
+                experienceRanges.put("10+", experienceRanges.getOrDefault("10+", 0) + 1);
             }
 
             // Count companies
             if (firstExperience.getCompany() != null && !firstExperience.getCompany().isBlank()) {
-                companies.merge(firstExperience.getCompany().trim(), 1, Integer::sum);
+                String company = firstExperience.getCompany().trim();
+                companies.put(company, companies.getOrDefault(company, 0) + 1);
             }
 
             log.info("Parsed date for user {}: '{}' -> {}", user.getId(), dateStr, startDate);
