@@ -278,15 +278,18 @@ export default function AdminVerification() {
                           </Button>
                         ) : null}
 
-                        {request.verificationStatus === 'APPROVED' || (request.verificationStatus || 'PENDING') === 'PENDING' ? (
+                        {(request.verificationStatus || 'PENDING') !== 'REJECTED' ? (
                           <Button
-                            variant="ghost"
+                            variant={(request.verificationStatus === 'APPROVED') ? 'default' : 'outline'}
                             onClick={() => handleVerify(request.id, 'reject')}
                             disabled={!!actionLoading}
-                            className={`h-12 rounded-xl font-bold border border-rose-100 transition-all ${(request.verificationStatus || 'PENDING') === 'PENDING' ? 'flex-1 text-rose-600 hover:bg-rose-50' : 'w-full text-rose-600 hover:bg-rose-50'
+                            className={`h-12 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                              (request.verificationStatus || 'PENDING') === 'PENDING' 
+                                ? 'flex-1 border-rose-200 text-rose-600 hover:bg-rose-50' 
+                                : 'w-full bg-rose-600 text-white hover:bg-rose-700 border-none'
                               }`}
                           >
-                            <XCircle size={18} className="mr-2" />
+                            <XCircle size={18} />
                             {request.verificationStatus === 'APPROVED' ? 'Revoke Access' : 'Reject'}
                           </Button>
                         ) : null}
