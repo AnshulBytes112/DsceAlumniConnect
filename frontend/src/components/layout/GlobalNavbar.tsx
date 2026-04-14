@@ -54,9 +54,9 @@ export default function GlobalNavbar() {
               >
                 {/* Profile Avatar */}
                 {user?.profilePicture ? (
-                  <img 
+                  <img
                     src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:8080/${user.profilePicture}`}
-                    alt="Profile" 
+                    alt="Profile"
                     className="w-8 h-8 rounded-full object-cover border-2 border-yellow-300/50"
                     onError={(e) => {
                       console.log('Profile image failed to load:', user.profilePicture);
@@ -86,7 +86,7 @@ export default function GlobalNavbar() {
                     </p>
                     <p className="text-sm text-gray-600 truncate">{user?.email}</p>
                   </div>
-                  
+
                   <div className="py-2">
                     <Link
                       to="/dashboard/profile"
@@ -96,7 +96,7 @@ export default function GlobalNavbar() {
                       <User className="w-4 h-4" />
                       <span>View Profile</span>
                     </Link>
-                    
+
                     <Link
                       to="/dashboard/profile/edit-profile"
                       onClick={() => setIsProfileDropdownOpen(false)}
@@ -105,7 +105,7 @@ export default function GlobalNavbar() {
                       <Edit className="w-4 h-4" />
                       <span>Edit Profile</span>
                     </Link>
-                    
+
                     <Link
                       to="/dashboard/settings"
                       onClick={() => setIsProfileDropdownOpen(false)}
@@ -115,7 +115,7 @@ export default function GlobalNavbar() {
                       <span>Settings</span>
                     </Link>
                   </div>
-                  
+
                   <div className="border-t border-yellow-200/30 py-2">
                     <button
                       onClick={() => {

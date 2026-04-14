@@ -238,15 +238,15 @@ const TopicDetail = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
+            <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-dsce-blue"></div>
             </div>
         );
     }
 
     if (!topic || !group) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light flex items-center justify-center">
                 <div className="text-center">
                     <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-gray-700">Topic not found</h3>
@@ -259,7 +259,7 @@ const TopicDetail = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light">
             <Helmet>
                 <title>{topic.title} - Discussion</title>
             </Helmet>
@@ -268,7 +268,7 @@ const TopicDetail = () => {
                 <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
                     <button 
                         onClick={() => navigate('/dashboard/forums')}
-                        className="flex items-center gap-1 hover:text-blue-900"
+                        className="flex items-center gap-1 hover:text-dsce-blue"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Forums
@@ -276,7 +276,7 @@ const TopicDetail = () => {
                     <span>/</span>
                     <button 
                         onClick={() => navigate(`/dashboard/forums/${groupId}`)}
-                        className="hover:text-blue-900"
+                        className="hover:text-dsce-blue"
                     >
                         {group.name}
                     </button>
@@ -324,7 +324,7 @@ const TopicDetail = () => {
                                 {canModerate && (
                                     <button
                                         onClick={handleLockTopic}
-                                        className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600"
+                                        className="flex items-center gap-1 text-sm text-gray-500 hover:text-dsce-blue"
                                     >
                                         <Lock className="w-4 h-4" />
                                         {topic.isLocked ? 'Unlock' : 'Lock'}
@@ -410,7 +410,7 @@ const TopicDetail = () => {
                                                 <textarea
                                                     value={editContent}
                                                     onChange={(e) => setEditContent(e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue placeholder-gray-500"
                                                     rows={3}
                                                 />
                                                 <div className="flex gap-2 mt-2">
@@ -467,18 +467,18 @@ const TopicDetail = () => {
                             </div>
                             <div className="flex-1">
                                 <textarea
-                                    value={newPostContent}
-                                    onChange={(e) => setNewPostContent(e.target.value)}
-                                    placeholder="Share your thoughts..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    rows={4}
-                                />
+                                                    value={newPostContent}
+                                                    onChange={(e) => setNewPostContent(e.target.value)}
+                                                    placeholder="Share your thoughts..."
+                                                    className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue placeholder-gray-500"
+                                                    rows={4}
+                                                />
                                 <div className="flex justify-end mt-3">
                                     <Button
                                         type="button"
                                         onClick={handleCreatePost}
                                         disabled={!newPostContent.trim()}
-                                        className="bg-blue-900 text-white"
+                                        className="bg-dsce-blue text-white hover:bg-dsce-blue/90"
                                     >
                                         <Send className="w-4 h-4 mr-2" />
                                         Post Reply
