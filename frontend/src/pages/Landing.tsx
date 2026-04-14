@@ -110,7 +110,7 @@ export default function Landing() {
       </section>
 
       {/* About DSCE Section */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             ABOUT <span className="text-dsce-blue">DSCE</span>
@@ -202,7 +202,7 @@ export default function Landing() {
       </section>
 
       {/* Interactive Timeline */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             DSCE <span className="text-dsce-blue">TIMELINE</span>
@@ -289,7 +289,7 @@ export default function Landing() {
       </section>
 
       {/* Alumni Gallery & Achievements */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             ALUMNI <span className="text-dsce-blue">GALLERY</span>
@@ -413,7 +413,7 @@ export default function Landing() {
       </section>
 
       {/* Events & Activities */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             ALUMNI <span className="text-dsce-blue">ACTIVITIES</span>

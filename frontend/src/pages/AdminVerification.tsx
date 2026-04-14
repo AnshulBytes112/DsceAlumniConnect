@@ -280,7 +280,7 @@ export default function AdminVerification() {
 
                         {(request.verificationStatus || 'PENDING') !== 'REJECTED' ? (
                           <Button
-                            variant={(request.verificationStatus === 'APPROVED') ? 'default' : 'outline'}
+                            variant={(request.verificationStatus === 'APPROVED') ? 'primary' : 'outline'}
                             onClick={() => handleVerify(request.id, 'reject')}
                             disabled={!!actionLoading}
                             className={`h-12 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
