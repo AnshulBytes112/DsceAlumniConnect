@@ -76,3 +76,26 @@ body {
 .border-dsce-blue {
   border-color: var(--color-dsce-blue);
 }
+
+/* Announcement card bell icon — changes to light gray on card hover */
+.bell-icon {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.group:hover .bell-icon {
+  color: #E5E7EB; /* gray-200, visible on dark blue background */
+}
+
+/* DSCE outline button — hover fills with dsce-blue and turns text white */
+.btn-dsce-outline:hover {
+  background-color: var(--color-dsce-blue);
+  color: #ffffff;
+  border-color: var(--color-dsce-blue);
+}
+
+/* Admin analytics stat card action button — fills on parent card hover */
+.group:hover .stat-card-btn {
+  background-color: var(--color-dsce-blue);
+  color: #ffffff;
+  border-color: transparent;
+}
