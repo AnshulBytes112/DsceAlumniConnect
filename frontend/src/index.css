@@ -38,6 +38,34 @@
   --color-dsce-bg-light: #fcfaf9;
   --color-dsce-bg-cream: #f9f5f0;
   --color-dsce-text-dark: #1a1c1e;
+
+  /* New Profile Animations & Colors */
+  --profile-gradient: linear-gradient(-45deg, #001e40, #003366, #c6a355, #001e40);
+}
+
+@keyframes profileGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-profile-gradient {
+  background-size: 400% 400%;
+  animation: profileGradient 15s ease infinite;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card-dark {
+  background: rgba(0, 30, 64, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 30, 64, 0.1);
 }
 
 :root {
