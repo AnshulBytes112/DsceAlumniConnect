@@ -14,7 +14,8 @@ import {
     ChevronDown,
     FileSpreadsheet,
     X,
-    Globe
+    Globe,
+    Linkedin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient, type UserProfile } from '@/lib/api';
@@ -1031,11 +1032,16 @@ export default function AdminAlumniManagement() {
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <Mail className="w-5 h-5 text-gray-400" />
-                                                <span>{selectedAlumniDetail.email}</span>
+                                                <a href={`mailto:${selectedAlumniDetail.email}`} 
+                                                   className="text-dsce-blue hover:underline">
+                                                    {selectedAlumniDetail.email}
+                                                </a>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <Globe className="w-5 h-5 text-gray-400" />
-                                                <a href={selectedAlumniDetail.linkedinProfile} target="_blank" rel="noopener noreferrer" 
+                                                <Linkedin className="w-5 h-5 text-gray-400" />
+                                                <a href={selectedAlumniDetail.linkedinProfile?.startsWith('http') ? 
+                                                    selectedAlumniDetail.linkedinProfile : `https://${selectedAlumniDetail.linkedinProfile}`}
+                                                   target="_blank" rel="noopener noreferrer" 
                                                    className="text-dsce-blue hover:underline">
                                                     LinkedIn Profile
                                                 </a>

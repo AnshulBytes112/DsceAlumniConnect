@@ -112,7 +112,9 @@ export default function AlumniDetail() {
                             <div className="flex flex-col gap-4 text-left bg-dsce-bg-light/50 rounded-2xl p-6 border border-dsce-blue/5">
                                 <div className="flex items-center text-sm text-gray-700">
                                     <Mail className="h-5 w-5 mr-3 text-dsce-blue" />
-                                    <span className="truncate font-medium">{alumniData.email}</span>
+                                    <a href={`mailto:${alumniData.email}`} className="truncate font-medium hover:text-dsce-blue hover:underline transition-colors">
+                                        {alumniData.email}
+                                    </a>
                                 </div>
                                 {alumniData.location && (
                                     <div className="flex items-center text-sm text-gray-700">
@@ -130,7 +132,7 @@ export default function AlumniDetail() {
 
                             <div className="flex gap-4 mt-8 justify-center">
                                 {alumniData.linkedinProfile && (
-                                    <a href={alumniData.linkedinProfile} target="_blank" rel="noopener noreferrer">
+                                    <a href={alumniData.linkedinProfile.startsWith('http') ? alumniData.linkedinProfile : `https://${alumniData.linkedinProfile}`} target="_blank" rel="noopener noreferrer">
                                         <Button variant="outline" size="sm" className="h-12 w-12 rounded-full border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue/5">
                                             <Linkedin className="h-5 w-5" />
                                         </Button>

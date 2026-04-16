@@ -92,7 +92,7 @@ export default function AdminVerification() {
       );
       toast({
         title: "Success",
-        description: `User ${action}d successfully`,
+        description: `User ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
       });
     } catch (error) {
       console.error(`Failed to ${action} user`, error);
