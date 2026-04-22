@@ -1,4 +1,4 @@
-﻿import { Helmet } from 'react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -360,14 +360,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800 flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-xl text-dsce-text-dark">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 text-gray-800">
+    <div className="min-h-screen bg-background text-gray-800">
       <Helmet>
         <title>Dashboard - DSCE Alumni Connect</title>
       </Helmet>

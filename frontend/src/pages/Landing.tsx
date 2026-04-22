@@ -76,12 +76,12 @@ export default function Landing() {
                   </Button>
                 </Link>
                 <Link to="/dashboard/profile">
-                  <Button variant="outline" size="lg" className="rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue hover:bg-dsce-blue hover:text-white transition-all duration-300">
+                  <Button variant="outline" size="lg" className="btn-dsce-outline rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue transition-all duration-300">
                     My Profile
                   </Button>
                 </Link>
                 <Link to="/alumni">
-                  <Button variant="outline" size="lg" className="rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue hover:bg-dsce-blue hover:text-white transition-all duration-300">
+                  <Button variant="outline" size="lg" className="btn-dsce-outline rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue transition-all duration-300">
                     Alumni Directory
                   </Button>
                 </Link>
@@ -94,12 +94,12 @@ export default function Landing() {
                   </Button>
                 </Link>
                 <Link to="/alumni">
-                  <Button variant="outline" size="lg" className="rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue hover:bg-dsce-blue hover:text-white transition-all duration-300">
+                  <Button variant="outline" size="lg" className="btn-dsce-outline rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue transition-all duration-300">
                     View Alumni
                   </Button>
                 </Link>
                 <Link to="/login">
-                  <Button variant="outline" size="lg" className="rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue hover:bg-dsce-blue hover:text-white transition-all duration-300">
+                  <Button variant="outline" size="lg" className="btn-dsce-outline rounded-full px-8 py-6 text-lg border-dsce-blue text-dsce-blue transition-all duration-300">
                     Sign In
                   </Button>
                 </Link>
@@ -110,7 +110,7 @@ export default function Landing() {
       </section>
 
       {/* About DSCE Section */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             ABOUT <span className="text-dsce-blue">DSCE</span>
@@ -202,7 +202,7 @@ export default function Landing() {
       </section>
 
       {/* Interactive Timeline */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             DSCE <span className="text-dsce-blue">TIMELINE</span>
@@ -289,7 +289,7 @@ export default function Landing() {
       </section>
 
       {/* Alumni Gallery & Achievements */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             ALUMNI <span className="text-dsce-blue">GALLERY</span>
@@ -379,7 +379,7 @@ export default function Landing() {
           {/* View Gallery Button */}
           <div className="text-center mt-12">
             <Link to="/gallery">
-              <Button variant="outline" className="rounded-full px-8 py-4 border-dsce-blue text-dsce-blue hover:bg-dsce-blue hover:text-white transition-all">
+              <Button variant="outline" className="btn-dsce-outline rounded-full px-8 py-4 border-dsce-blue text-dsce-blue transition-all">
                 View Full Gallery <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
@@ -413,7 +413,7 @@ export default function Landing() {
       </section>
 
       {/* Events & Activities */}
-      <section className="py-32 px-6 bg-white">
+      <section className="py-32 px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-16 text-center">
             ALUMNI <span className="text-dsce-blue">ACTIVITIES</span>

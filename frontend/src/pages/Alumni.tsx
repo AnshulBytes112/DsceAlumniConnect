@@ -307,8 +307,18 @@ export default function Alumni() {
                                                                 <div className="absolute -bottom-2 -right-2 bg-white p-1 rounded-full shadow-md"><div className="bg-green-500 h-3 w-3 rounded-full border-2 border-white"></div></div>
                                                             </div>
                                                             <div className="flex gap-2">
-                                                                <button className="p-2 text-gray-400 hover:text-dsce-blue hover:bg-dsce-blue/5 rounded-full transition-colors"><Linkedin className="h-5 w-5" /></button>
-                                                                <button className="p-2 text-gray-400 hover:text-dsce-blue hover:bg-dsce-blue/5 rounded-full transition-colors"><Mail className="h-5 w-5" /></button>
+                                                                <button 
+                                                                    onClick={() => window.open(alum.linkedin.startsWith('http') ? alum.linkedin : `https://${alum.linkedin}`, '_blank')}
+                                                                    className="p-2 text-gray-400 hover:text-dsce-blue hover:bg-dsce-blue/5 rounded-full transition-colors"
+                                                                >
+                                                                    <Linkedin className="h-5 w-5" />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => window.open(`mailto:${alum.email}`, '_blank')}
+                                                                    className="p-2 text-gray-400 hover:text-dsce-blue hover:bg-dsce-blue/5 rounded-full transition-colors"
+                                                                >
+                                                                    <Mail className="h-5 w-5" />
+                                                                </button>
                                                             </div>
                                                         </div>
                                                         <div className="mb-4">

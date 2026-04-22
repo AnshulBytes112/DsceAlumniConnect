@@ -434,7 +434,7 @@ export default function AdminAnalytics() {
                       <Link to={stat.link}>
                         <Button
                           variant="ghost"
-                          className={`w-full justify-between px-4 py-6 rounded-xl border border-gray-100 group-hover:border-transparent group-hover:bg-dsce-blue group-hover:text-white transition-all duration-300 font-semibold text-gray-600`}
+                          className={`stat-card-btn w-full justify-between px-4 py-6 rounded-xl border border-gray-100 transition-all duration-300 font-semibold text-gray-600`}
                         >
                           {stat.actionText}
                           <ArrowRight size={18} className="transform group-hover:translate-x-1 transition-transform" />
