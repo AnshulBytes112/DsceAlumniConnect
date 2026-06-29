@@ -49,7 +49,8 @@ public class DashboardController {
                         a.getId(),
                         a.getTitle(),
                         a.getDescription(),
-                        a.getTime()))
+                        a.getTime(),
+                        a.getImageUrl()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
@@ -148,7 +149,8 @@ public class DashboardController {
                     savedAnnouncement.getId(),
                     savedAnnouncement.getTitle(),
                     savedAnnouncement.getDescription(),
-                    savedAnnouncement.getTime());
+                    savedAnnouncement.getTime(),
+                    savedAnnouncement.getImageUrl());
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             log.error("Error creating announcement", e);
@@ -168,12 +170,14 @@ public class DashboardController {
             existingAnnouncement.setTitle(announcement.getTitle());
             existingAnnouncement.setDescription(announcement.getDescription());
             existingAnnouncement.setTime(announcement.getTime());
+            existingAnnouncement.setImageUrl(announcement.getImageUrl());
             Announcement savedAnnouncement = announcementRepository.save(existingAnnouncement);
             AnnouncementDTO dto = new AnnouncementDTO(
                     savedAnnouncement.getId(),
                     savedAnnouncement.getTitle(),
                     savedAnnouncement.getDescription(),
-                    savedAnnouncement.getTime());
+                    savedAnnouncement.getTime(),
+                    savedAnnouncement.getImageUrl());
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             log.error("Error updating announcement", e);

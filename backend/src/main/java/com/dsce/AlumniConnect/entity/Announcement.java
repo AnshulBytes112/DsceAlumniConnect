@@ -18,12 +18,14 @@ public class Announcement {
     private String title;
     private String description;
     private String time;
+    private String imageUrl;
     private LocalDateTime createdAt;
 
-    public Announcement(String title, String description, String time, LocalDateTime createdAt) {
+    public Announcement(String title, String description, String time, String imageUrl, LocalDateTime createdAt) {
         this.title = title;
         this.description = description;
         this.time = time;
+        this.imageUrl = imageUrl;
         this.createdAt = createdAt;
     }
 }

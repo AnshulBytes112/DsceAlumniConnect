@@ -134,6 +134,7 @@ export interface AnnouncementDTO {
     title: string;
     description: string;
     time: string;
+    imageUrl?: string;
 }
 
 export interface ProjectFundingRequest {

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Megaphone, Plus, Search, Edit, Trash2,
   Clock, AlertCircle,
-  RefreshCw, X
+  RefreshCw, X, ImagePlus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient, type AnnouncementDTO } from '@/lib/api';
@@ -23,9 +23,30 @@ export default function AnnouncementManager() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    time: ''
+    time: '',
+    imageUrl: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const urls = await apiClient.uploadPostImages([file]);
+      if (urls && urls.length > 0) {
+        setFormData(prev => ({ ...prev, imageUrl: urls[0] }));
+        toast({ title: 'Success', description: 'Image uploaded successfully' });
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast({ title: 'Upload Failed', description: 'Failed to upload image.', variant: 'destructive' });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   useEffect(() => {
     fetchAnnouncements();
@@ -72,7 +93,8 @@ export default function AnnouncementManager() {
     setFormData({
       title: announcement.title,
       description: announcement.description,
-      time: announcement.time
+      time: announcement.time,
+      imageUrl: announcement.imageUrl || ''
     });
     setIsModalOpen(true);
   };
@@ -82,7 +104,8 @@ export default function AnnouncementManager() {
     setFormData({
       title: '',
       description: '',
-      time: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      time: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      imageUrl: ''
     });
     setIsModalOpen(true);
   };
@@ -268,6 +291,39 @@ export default function AnnouncementManager() {
                     placeholder="Enter the full announcement details..."
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-dsce-blue/20 focus:border-dsce-blue focus:outline-none transition-all resize-none"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 ml-1">Poster Image (Optional)</label>
+                  <div className="flex items-center gap-4">
+                    {formData.imageUrl && (
+                      <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                        <img src={formData.imageUrl} alt="Poster preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
+                          className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full hover:bg-black/70"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                    <label className="flex-1 cursor-pointer">
+                      <div className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 border border-dashed border-gray-300 rounded-xl hover:bg-gray-100 transition-colors">
+                        <ImagePlus className="w-5 h-5 text-gray-500" />
+                        <span className="text-sm text-gray-600 font-medium">
+                          {uploadingImage ? 'Uploading...' : 'Upload Poster Image'}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-4">

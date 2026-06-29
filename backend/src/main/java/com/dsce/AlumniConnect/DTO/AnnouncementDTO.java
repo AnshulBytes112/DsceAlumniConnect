@@ -13,4 +13,5 @@ public class AnnouncementDTO {
     private String title;
     private String description;
     private String time;
+    private String imageUrl;
 }
