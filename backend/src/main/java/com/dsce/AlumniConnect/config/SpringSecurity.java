@@ -49,6 +49,8 @@ public class SpringSecurity {
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/resume/parse").permitAll()
                         .requestMatchers("/api/profile/resume").permitAll()
+                        .requestMatchers("/api/dashboard/announcements").permitAll()
+                        .requestMatchers("/api/events/featured", "/events/featured").permitAll()
                         .requestMatchers("/chat.html").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/ws-forum", "/ws-forum/**").permitAll()

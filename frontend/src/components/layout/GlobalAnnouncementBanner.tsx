@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Megaphone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient, type AnnouncementDTO, type EventDTO, getImageUrl } from '@/lib/api';
@@ -18,6 +19,7 @@ export default function GlobalAnnouncementBanner() {
   const [items, setItems] = useState<BannerItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -68,8 +70,14 @@ export default function GlobalAnnouncementBanner() {
       }
     };
     
-    fetchContent();
-  }, []);
+    // Trigger on initial load, OR every time they explicitly visit the landing page
+    if (location.pathname === '/' || location.pathname === '/landing') {
+      fetchContent();
+    } else if (items.length === 0) {
+      // Still fetch on first load if they enter through a different route (e.g. /dashboard)
+      fetchContent();
+    }
+  }, [location.pathname]);
 
   const handleDismiss = () => {
     setIsVisible(false);
