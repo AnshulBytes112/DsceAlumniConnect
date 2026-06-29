@@ -21,7 +21,7 @@ import java.util.Map;
 @Service
 public class FileStorageService {
 
-    @Value("${file.upload.base-dir}")
+    @Value("${file.upload.base-dir:./uploads_data}")
     private String BASE_UPLOAD_DIR;
 
     @Autowired
