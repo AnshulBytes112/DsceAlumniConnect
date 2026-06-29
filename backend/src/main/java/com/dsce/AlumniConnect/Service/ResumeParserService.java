@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 @Service
 public class ResumeParserService {
 
-    @Value("${file.upload.base-dir}")
+    @Value("${file.upload.base-dir:./uploads_data}")
     private String baseUploadDir;
 
     @Autowired
