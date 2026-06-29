@@ -215,7 +215,7 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-6 -mt-10 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-6 mt-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Navigation Sidebar */}
             <div className="lg:col-span-3">

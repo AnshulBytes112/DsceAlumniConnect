@@ -77,8 +77,8 @@ export default function Alumni() {
         };
     });
 
-    // Merge both, allowing mock data to provide the geographic distribution until more real data is pinned
-    const allAlumni = [...mappedRealAlumni, ...mockAlumni.filter(ma => !mappedRealAlumni.find(ra => ra.name === ma.name))];
+    // Use only real data from backend
+    const allAlumni = [...mappedRealAlumni];
 
     const years = [...new Set(allAlumni.map(a => a.graduationYear))].sort((a, b) => b - a);
     const departments = [...new Set(allAlumni.map(a => a.department))].sort();

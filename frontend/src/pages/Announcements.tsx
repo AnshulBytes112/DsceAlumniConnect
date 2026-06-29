@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Calendar, Loader2 } from 'lucide-react';
+import { Bell, Calendar, Loader2, Settings } from 'lucide-react';
 import { apiClient, type AnnouncementDTO } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState<AnnouncementDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -37,9 +41,19 @@ const Announcements = () => {
       </Helmet>
 
       <div className="max-w-[1600px] mx-auto p-6 pt-32">
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-dsce-blue">Announcements</h1>
-          <p className="text-dsce-text-dark mt-2">Stay updated with the latest news and updates from the university.</p>
+        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-dsce-blue">Announcements</h1>
+            <p className="text-dsce-text-dark mt-2">Stay updated with the latest news and updates from the university.</p>
+          </div>
+          {user?.role === 'ADMIN' && (
+            <Link to="/admin/manager">
+              <Button className="bg-dsce-gold text-dsce-blue hover:bg-dsce-gold/90 font-bold rounded-xl shadow-md flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Manage Announcements
+              </Button>
+            </Link>
+          )}
         </div>
 
         {loading ? (

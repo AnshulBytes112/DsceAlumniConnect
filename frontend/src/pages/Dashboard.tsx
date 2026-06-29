@@ -454,6 +454,12 @@ export default function Dashboard() {
                       <ArrowRight size={16} className="transform group-hover/btn:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
+                  <Link to="/admin/alumni">
+                    <Button variant="outline" className="w-full border-dsce-gold/30 text-dsce-gold hover:bg-dsce-gold hover:text-dsce-blue font-bold rounded-xl h-11 flex items-center justify-between group/btn text-xs mt-2">
+                      Alumni Management (Filters & Search)
+                      <Users size={16} className="transform group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                   <Link to="/admin/manager">
                     <Button variant="outline" className="w-full border-dsce-gold/30 text-dsce-gold hover:bg-dsce-gold hover:text-dsce-blue font-bold rounded-xl h-11 flex items-center justify-between group/btn text-xs mt-2">
                       Announcement Manager
@@ -909,15 +915,15 @@ export default function Dashboard() {
                         <div className="flex items-center space-x-4 mt-2">
                           <div className="flex items-center gap-1 text-xs text-gray-600">
                             <Eye className="h-4 w-4" />
-                            <span>{event.views || Math.floor(Math.random() * 100) + 20}</span>
+                            <span>{event.views || 0}</span>
                           </div>
                           <div className="flex items-center gap-1 text-xs text-gray-600">
                             <Heart className="h-4 w-4" />
-                            <span>{event.likes || Math.floor(Math.random() * 30) + 5}</span>
+                            <span>{event.likes || 0}</span>
                           </div>
                           <div className="flex items-center gap-1 text-xs text-gray-600">
                             <MessageCircle className="h-4 w-4" />
-                            <span>{event.comments || Math.floor(Math.random() * 10) + 1}</span>
+                            <span>{event.comments || 0}</span>
                           </div>
                         </div>
                       </div>
