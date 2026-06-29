@@ -215,8 +215,8 @@ export default function Posts() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading posts...</div>
+      <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light flex items-center justify-center">
+        <div className="text-xl text-dsce-text-dark">Loading posts...</div>
       </div>
     );
   }
@@ -232,12 +232,12 @@ export default function Posts() {
         <header className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-blue-900">Alumni Posts</h1>
-              <p className="text-gray-600 mt-1">Share updates, achievements, and connect with fellow alumni</p>
+              <h1 className="text-3xl font-bold text-dsce-blue">Alumni Posts</h1>
+              <p className="text-dsce-text-dark mt-1">Share updates, achievements, and connect with fellow alumni</p>
             </div>
             <Button
               onClick={() => setIsNewPostModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+              className="bg-dsce-gold hover:bg-dsce-gold-hover text-dsce-blue px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
               Create Post
@@ -245,13 +245,13 @@ export default function Posts() {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-6 text-sm text-gray-600">
+          <div className="flex items-center gap-6 text-sm text-dsce-text-dark">
             <span className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+              <div className="w-2 h-2 bg-dsce-blue rounded-full"></div>
               {posts.length} Posts
             </span>
             <span className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+              <div className="w-2 h-2 bg-dsce-gold rounded-full"></div>
               Active Community
             </span>
           </div>
@@ -265,16 +265,16 @@ export default function Posts() {
                 key={post.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300"
+                className="bg-white rounded-2xl border border-dsce-blue/10 shadow-sm hover:shadow-lg transition-all duration-300"
               >
                 <div className="p-6">
                   {/* Post Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       {post.authorAvatar ? (
-                        <img src={post.authorAvatar} alt={post.authorName} className="h-10 w-10 rounded-full object-cover border border-gray-200" />
+                        <img src={post.authorAvatar} alt={post.authorName} className="h-10 w-10 rounded-full object-cover border border-dsce-blue/20" />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center border border-gray-200">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-dsce-blue/20">
                           <span className="text-white text-sm font-bold">
                             {post.authorName ? post.authorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
                           </span>
@@ -283,9 +283,9 @@ export default function Posts() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2 mb-1">
-                            <h4 className="text-sm font-bold text-gray-900">{post.authorName}</h4>
+                            <h4 className="text-sm font-bold text-dsce-text-dark">{post.authorName}</h4>
                             {post.graduationYear && (
-                              <span className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+                              <span className="inline-flex items-center px-2 py-1 bg-dsce-blue/10 text-dsce-blue text-xs font-medium rounded-full">
                                 Class of {post.graduationYear}
                               </span>
                             )}
@@ -294,7 +294,7 @@ export default function Posts() {
                             <div className="flex items-center space-x-1">
                               <button
                                 onClick={() => handleEditPost(post)}
-                                className="text-gray-500 hover:text-blue-600 transition-colors"
+                                className="text-gray-500 hover:text-dsce-blue transition-colors"
                                 title="Edit post"
                               >
                                 <Edit className="h-4 w-4" />
@@ -326,7 +326,7 @@ export default function Posts() {
                   </div>
 
                   {/* Post Content */}
-                  <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-sm text-dsce-text-dark mb-4 leading-relaxed">
                     {post.content}
                   </p>
 
@@ -336,7 +336,7 @@ export default function Posts() {
                       <div className="grid grid-cols-2 gap-3">
                         {post.media.map((mediaUrl: string, index: number) => (
                           <div key={`${post.id}-media-${index}`} className="relative group">
-                            <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 bg-white">
+                            <div className="relative overflow-hidden rounded-xl border-2 border-dsce-blue/10 shadow-sm hover:shadow-md transition-all duration-200 bg-white">
                               <img
                                 src={mediaUrl}
                                 alt={`Post image ${index + 1}`}
@@ -358,7 +358,7 @@ export default function Posts() {
                         {post.hashtags.map((tag: string, index: number) => (
                           <span
                             key={index}
-                            className="inline-block bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-sm px-3 py-1.5 rounded-full hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 cursor-pointer border border-blue-200"
+                            className="inline-block bg-dsce-blue/10 text-dsce-blue text-sm px-3 py-1.5 rounded-full hover:bg-dsce-blue/20 transition-all duration-200 cursor-pointer border border-dsce-blue/20"
                             onClick={() => console.log('Hashtag clicked:', tag)}
                           >
                             #{tag}
@@ -369,7 +369,7 @@ export default function Posts() {
                   )}
 
                   {/* Post Actions */}
-                  <div className="flex items-center space-x-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center space-x-4 pt-4 border-t border-dsce-blue/10">
                     <button
                       onClick={() => handleLikePost(post.id)}
                       className={`flex items-center space-x-1 text-sm transition-colors ${post.isLiked
@@ -383,14 +383,14 @@ export default function Posts() {
                     <button
                       onClick={() => handleCommentClick(post.id)}
                       className={`flex items-center space-x-1 text-sm transition-colors ${commentingPostId === post.id
-                        ? 'text-blue-600'
-                        : 'text-gray-500 hover:text-blue-600'
+                        ? 'text-dsce-blue'
+                        : 'text-gray-500 hover:text-dsce-blue'
                         }`}
                     >
                       <MessageCircle className="h-4 w-4" />
                       <span className="text-xs">{post.comments}</span>
                     </button>
-                    <button className="flex items-center space-x-1 text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                    <button className="flex items-center space-x-1 text-sm text-gray-500 hover:text-dsce-blue transition-colors">
                       <Share2 className="h-4 w-4" />
                       <span className="text-xs">{post.shares || 0}</span>
                     </button>
@@ -398,7 +398,7 @@ export default function Posts() {
 
                   {/* Comment Section */}
                   {commentingPostId === post.id && (
-                    <div className="border-t border-gray-100 pt-4 mt-4">
+                    <div className="border-t border-dsce-blue/10 pt-4 mt-4">
                       <div className="space-y-3">
                         {/* Comment Input */}
                         <div className="flex gap-2">
@@ -407,13 +407,13 @@ export default function Posts() {
                             value={commentText}
                             onChange={(e) => setCommentText(e.target.value)}
                             placeholder="Add a comment..."
-                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                            className="flex-1 px-3 py-2 border border-dsce-blue/20 rounded-lg text-sm focus:outline-none focus:border-dsce-blue"
                             onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
                           />
                           <button
                             onClick={() => handleCommentSubmit(post.id)}
                             disabled={!commentText.trim()}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2 bg-dsce-gold text-dsce-blue rounded-lg text-sm font-semibold hover:bg-dsce-gold-hover disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Post
                           </button>
@@ -421,16 +421,16 @@ export default function Posts() {
 
                         {/* Comments List */}
                         {comments[post.id]?.map((comment) => (
-                          <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div key={comment.id} className="flex gap-3 p-3 bg-dsce-bg-cream rounded-lg border border-dsce-blue/10">
                             <div className="flex-shrink-0">
                               {comment.authorAvatar ? (
                                 <img
                                   src={comment.authorAvatar}
                                   alt={comment.authorName}
-                                  className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                                  className="h-8 w-8 rounded-full object-cover border border-dsce-blue/20"
                                 />
                               ) : (
-                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center border border-gray-200">
+                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-dsce-blue/20">
                                   <span className="text-white text-xs font-bold">
                                     {comment.authorName ? comment.authorName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'AL'}
                                   </span>
@@ -440,7 +440,7 @@ export default function Posts() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-gray-900">{comment.authorName}</span>
+                                  <span className="text-sm font-medium text-dsce-text-dark">{comment.authorName}</span>
                                   {comment.authorRole && (
                                     <span className="text-xs text-gray-500">• {comment.authorRole}</span>
                                   )}
@@ -454,7 +454,7 @@ export default function Posts() {
                                   }) : 'Just now'}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-700 break-words">{comment.content}</p>
+                              <p className="text-sm text-dsce-text-dark break-words">{comment.content}</p>
                             </div>
                           </div>
                         ))}
@@ -466,14 +466,14 @@ export default function Posts() {
             ))
           ) : (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-dsce-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-8 h-8 text-dsce-blue" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
-              <p className="text-gray-600 mb-6">Be the first to share something with the alumni community!</p>
+              <h3 className="text-lg font-medium text-dsce-text-dark mb-2">No posts yet</h3>
+              <p className="text-dsce-text-dark mb-6">Be the first to share something with the alumni community!</p>
               <Button
                 onClick={() => setIsNewPostModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-dsce-gold hover:bg-dsce-gold-hover text-dsce-blue font-semibold"
               >
                 Create First Post
               </Button>

@@ -1,8 +1,8 @@
-﻿import { Helmet } from 'react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { apiClient, type UserProfile } from '@/lib/api';
+import { apiClient, type UserProfile, API_BASE_URL, getImageUrl } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import {
   dashboardUser,
@@ -350,24 +350,24 @@ export default function Dashboard() {
     name: `${userProfile.firstName} ${userProfile.lastName}`,
     role: userProfile.headline || 'Alumni',
     initials: `${userProfile.firstName?.[0] || ''}${userProfile.lastName?.[0] || ''}`.toUpperCase(),
-    avatar: userProfile.profilePicture ? `http://localhost:8080/${userProfile.profilePicture}` : null
+    avatar: userProfile.profilePicture ? getImageUrl(userProfile.profilePicture) : null
   } : isMockUser ? dashboardUser : {
     name: user ? `${user.firstName} ${user.lastName}` : 'User',
     role: user?.headline || 'Alumni Member',
     initials: user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() : 'U',
-    avatar: user?.profilePicture ? `http://localhost:8080/${user.profilePicture}` : null
+    avatar: user?.profilePicture ? getImageUrl(user.profilePicture) : null
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800 flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-xl text-dsce-text-dark">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 text-gray-800">
+    <div className="min-h-screen bg-background text-gray-800">
       <Helmet>
         <title>Dashboard - DSCE Alumni Connect</title>
       </Helmet>

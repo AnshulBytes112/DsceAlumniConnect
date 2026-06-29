@@ -1,49 +1,76 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-bg: #000000;
-  --color-brand-accent: #4A70A9;
-  --color-brand-accent-light: #8FABD4;
-  --color-brand-hover: rgba(143, 171, 212, 0.3);
-  --color-brand-hover-1: rgba(239, 236, 227, 1);
+  --color-brand-bg: #1a1c1e;
+  --color-brand-accent: #c6a355;
+  --color-brand-accent-light: #d4bc82;
+  --color-brand-hover: rgba(198, 163, 85, 0.1);
+  --color-brand-hover-1: #f2efed;
 
-  /* Shadcn colors */
-  --color-background: #000000;
-  --color-foreground: #ffffff;
-  --color-card: #09090b;
-  --color-card-foreground: #ffffff;
-  --color-popover: #09090b;
-  --color-popover-foreground: #ffffff;
-  --color-primary: #4A70A9;
+  /* Shadcn colors optimized for warmth */
+  --color-background: #fcfaf9;
+  --color-foreground: #1a1c1e;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1c1e;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a1c1e;
+  --color-primary: #001e40;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #27272a;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #27272a;
-  --color-muted-foreground: #a1a1aa;
-  --color-accent: #27272a;
-  --color-accent-foreground: #ffffff;
+  --color-secondary: #f2efed;
+  --color-secondary-foreground: #1a1c1e;
+  --color-muted: #f2efed;
+  --color-muted-foreground: #6c6a69;
+  --color-accent: #f2efed;
+  --color-accent-foreground: #1a1c1e;
   --color-destructive: #7f1d1d;
   --color-destructive-foreground: #ffffff;
-  --color-border: #27272a;
-  --color-input: #27272a;
-  --color-ring: #4A70A9;
-  --radius-lg: 0.5rem;
-  --radius-md: calc(0.5rem - 2px);
-  --radius-sm: calc(0.5rem - 4px);
+  --color-border: #e8e4e2;
+  --color-input: #e8e4e2;
+  --color-ring: #c6a355;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
 
-  /* DSCE Brand Colors */
-  --color-dsce-blue: #003366;
-  --color-dsce-gold: #FFD700;
-  --color-dsce-gold-hover: #FFC700;
-  --color-dsce-light-blue: #00AEEF;
-  --color-dsce-bg-light: #F8F8F8;
-  --color-dsce-bg-cream: #FFF9E6;
-  --color-dsce-text-dark: #333333;
+  /* DSCE Heritage Brand Colors */
+  --color-dsce-blue: #001e40;
+  --color-dsce-gold: #c6a355;
+  --color-dsce-gold-hover: #b8860b;
+  --color-dsce-bg-light: #fcfaf9;
+  --color-dsce-bg-cream: #f9f5f0;
+  --color-dsce-text-dark: #1a1c1e;
+
+  /* New Profile Animations & Colors */
+  --profile-gradient: linear-gradient(-45deg, #001e40, #003366, #c6a355, #001e40);
+}
+
+@keyframes profileGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-profile-gradient {
+  background-size: 400% 400%;
+  animation: profileGradient 15s ease infinite;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card-dark {
+  background: rgba(0, 30, 64, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 30, 64, 0.1);
 }
 
 :root {
-  --background: #F8F8F8;
-  --foreground: #333333;
+  --background: #fcfaf9;
+  --foreground: #1a1c1e;
 }
 
 body {
@@ -75,4 +102,27 @@ body {
 
 .border-dsce-blue {
   border-color: var(--color-dsce-blue);
+}
+
+/* Announcement card bell icon — changes to light gray on card hover */
+.bell-icon {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.group:hover .bell-icon {
+  color: #E5E7EB; /* gray-200, visible on dark blue background */
+}
+
+/* DSCE outline button — hover fills with dsce-blue and turns text white */
+.btn-dsce-outline:hover {
+  background-color: var(--color-dsce-blue);
+  color: #ffffff;
+  border-color: var(--color-dsce-blue);
+}
+
+/* Admin analytics stat card action button — fills on parent card hover */
+.group:hover .stat-card-btn {
+  background-color: var(--color-dsce-blue);
+  color: #ffffff;
+  border-color: transparent;
 }

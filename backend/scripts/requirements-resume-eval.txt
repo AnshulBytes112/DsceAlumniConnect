@@ -1,0 +1,5 @@
+kagglehub[pandas-datasets]
+pandas
+requests
+pypdf
+openpyxl

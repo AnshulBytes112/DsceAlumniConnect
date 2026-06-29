@@ -27,6 +27,8 @@ public class ResumeParserResponse {
         private String email;
         private String phone;
         private String url;
+        private String graduationYear;
+        private String department;
         private String summary;
         private String location;
     }

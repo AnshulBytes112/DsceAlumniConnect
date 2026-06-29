@@ -21,10 +21,12 @@ public class ResumeParserService {
 
     public ResumeParserResponse parseResume(String pdfFilePath) throws Exception {
         try {
-            // Check if PDF file exists
-            Path pdfPath = Paths.get(pdfFilePath);
-            if (!pdfPath.toFile().exists()) {
-                throw new RuntimeException("PDF file not found: " + pdfFilePath);
+            // Check if PDF file exists (skip check for URLs)
+            if (pdfFilePath == null || (!pdfFilePath.startsWith("http://") && !pdfFilePath.startsWith("https://"))) {
+                Path pdfPath = Paths.get(pdfFilePath);
+                if (!pdfPath.toFile().exists()) {
+                    throw new RuntimeException("PDF file not found: " + pdfFilePath);
+                }
             }
 
             log.info("Parsing resume using Gemini API for file: {}", pdfFilePath);
@@ -48,6 +50,9 @@ public class ResumeParserService {
     }
 
     public ResumeParserResponse parseResumeFromRelativePath(String relativePath) throws Exception {
+        if (relativePath != null && (relativePath.startsWith("http://") || relativePath.startsWith("https://"))) {
+            return parseResume(relativePath);
+        }
         Path fullPath = Paths.get(baseUploadDir, relativePath);
         return parseResume(fullPath.toAbsolutePath().toString());
     }

@@ -89,7 +89,7 @@ const ForumList = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light">
             <Helmet>
                 <title>Discussion Forums - DSCE Alumni Connect</title>
             </Helmet>
@@ -99,12 +99,12 @@ const ForumList = () => {
                 <div className="mb-8">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-blue-900">Discussion Forums</h1>
-                            <p className="text-gray-600 mt-1">Join conversations with fellow alumni</p>
+                            <h1 className="text-3xl font-bold text-dsce-blue">Discussion Forums</h1>
+                            <p className="text-dsce-text-dark mt-1">Join conversations with fellow alumni</p>
                         </div>
                         <Button 
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] font-semibold"
+                            className="bg-dsce-gold text-dsce-blue hover:bg-dsce-gold-hover font-bold"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Create Forum
@@ -120,7 +120,7 @@ const ForumList = () => {
                             placeholder="Search forums..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                            className="pl-10 bg-white border-dsce-blue/20 text-dsce-text-dark placeholder-gray-500 focus:border-dsce-blue focus:ring-dsce-blue"
                         />
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-2">
@@ -132,8 +132,8 @@ const ForumList = () => {
                                     onClick={() => setSelectedCategory(cat.id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
                                         selectedCategory === cat.id
-                                            ? 'bg-blue-900 text-white'
-                                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                            ? 'bg-dsce-blue text-white shadow-md'
+                                            : 'bg-white text-gray-700 hover:bg-dsce-bg-light border border-dsce-blue/10'
                                     }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -147,7 +147,7 @@ const ForumList = () => {
                 {/* Forums Grid */}
                 {loading ? (
                     <div className="flex items-center justify-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-dsce-blue"></div>
                     </div>
                 ) : groups.length === 0 ? (
                     <div className="text-center py-16">
@@ -156,7 +156,7 @@ const ForumList = () => {
                         <p className="text-gray-500 mt-2">Be the first to create a discussion forum!</p>
                         <Button 
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="mt-4 bg-blue-900 text-white"
+                            className="mt-4 bg-dsce-blue text-white hover:bg-dsce-blue/90"
                         >
                             Create Forum
                         </Button>
@@ -169,7 +169,7 @@ const ForumList = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 whileHover={{ y: -4 }}
-                                className="bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-all"
+                                className="bg-white rounded-2xl border border-dsce-blue/10 overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:border-dsce-blue/30"
                                 onClick={() => navigate(`/dashboard/forums/${group.id}`)}
                             >
                                 <div className="p-6">
@@ -258,6 +258,7 @@ const ForumList = () => {
                                     value={newGroup.name}
                                     onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
                                     placeholder="e.g., Computer Science Alumni"
+                                    className="bg-white text-gray-900 border-gray-300 placeholder-gray-500 focus:border-dsce-blue focus:ring-dsce-blue"
                                 />
                             </div>
 
@@ -269,7 +270,7 @@ const ForumList = () => {
                                     value={newGroup.description}
                                     onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
                                     placeholder="What is this forum about?"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue placeholder-gray-500"
                                     rows={3}
                                 />
                             </div>
@@ -281,7 +282,7 @@ const ForumList = () => {
                                 <select
                                     value={newGroup.category}
                                     onChange={(e) => setNewGroup({ ...newGroup, category: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue"
                                 >
                                     <option value="General">General</option>
                                     <option value="Career">Career</option>
@@ -314,7 +315,7 @@ const ForumList = () => {
                                 </Button>
                                 <Button
                                     type="button"
-                                    className="flex-1 bg-blue-900 text-white"
+                                    className="flex-1 bg-dsce-blue text-white hover:bg-dsce-blue/90"
                                     onClick={handleCreateGroup}
                                     disabled={!newGroup.name.trim()}
                                 >

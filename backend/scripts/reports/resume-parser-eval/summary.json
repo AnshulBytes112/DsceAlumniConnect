@@ -1,0 +1,21 @@
+{
+  "dataset_id": "snehaanbhawal/resume-dataset",
+  "dataset_root": "C:\\Users\\SANJEEV KUMAR\\.cache\\kagglehub\\datasets\\snehaanbhawal\\resume-dataset\\versions\\1",
+  "source_descriptor": "pdf-auto-discovery",
+  "max_samples": 5,
+  "samples_evaluated": 1,
+  "parsed_resumes": 0,
+  "failed_resumes": 1,
+  "quota_limited_resumes": 0,
+  "parse_success_rate": 0.0,
+  "average_completeness": 0.0,
+  "effective_efficiency": 0.0,
+  "average_duration_ms": 372.0,
+  "elapsed_seconds": 0.37,
+  "started_at_utc": "2026-05-11T13:29:50.996672Z",
+  "finished_at_utc": "2026-05-11T13:30:43.831529Z",
+  "notes": [
+    "Accuracy is reported as structural completeness because the Kaggle resume dataset does not typically include ground-truth structured labels.",
+    "If the dataset exposes labeled fields, extend score_parsed_resume to compare against those labels for a true exact-match metric."
+  ]
+}

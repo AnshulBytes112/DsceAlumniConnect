@@ -28,8 +28,8 @@ const JobDetail = lazy(() => import('./pages/JobDetail'));
 
 // Loading fallback
 const LoadingFallback = () => (
-  <div className="flex h-screen w-full items-center justify-center bg-black text-white">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-accent border-t-transparent"></div>
+  <div className="flex h-screen w-full items-center justify-center bg-background text-[#1a1c1e]">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#c6a355] border-t-transparent"></div>
   </div>
 );
 

@@ -45,15 +45,26 @@ public class FileController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/{id}/resume")
-    public ResponseEntity<Resource> getResume(@PathVariable String id, Authentication authentication) throws IOException {
+    public ResponseEntity<?> getResume(@PathVariable String id, Authentication authentication) throws IOException {
         User user = userRepository.findById(id).orElseThrow();
         
         // Check if user has resume
         if (user.getResumeUrl() == null || user.getResumeUrl().isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        String resumeUrl = user.getResumeUrl();
+
+        // If it's a Cloudinary URL, redirect to a signed URL to bypass PDF restrictions
+        if (resumeUrl.startsWith("http://") || resumeUrl.startsWith("https://")) {
+            String signedUrl = fileStorageService.getSignedUrl(resumeUrl);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FOUND)
+                    .location(java.net.URI.create(signedUrl))
+                    .build();
+        }
         
-        Path path = fileStorageService.getFilePath(user.getResumeUrl());
+        // Fallback for old local files
+        Path path = fileStorageService.getFilePath(resumeUrl);
         Resource resource = new UrlResource(path.toUri());
 
         String contentType = Files.probeContentType(path);

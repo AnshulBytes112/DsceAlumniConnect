@@ -222,8 +222,11 @@ public class ProfileService {
     // Helper method to parse resume and update user profile
     private void parseAndUpdateProfile(User user, String resumePath, boolean replaceExisting) {
         try {
-            String fullPath = fileStorageService.getFilePath(resumePath).toAbsolutePath().toString();
-            ResumeParserResponse parsedResume = resumeParserService.parseResume(fullPath);
+            String targetPath = resumePath;
+            if (resumePath != null && !resumePath.startsWith("http://") && !resumePath.startsWith("https://")) {
+                targetPath = fileStorageService.getFilePath(resumePath).toAbsolutePath().toString();
+            }
+            ResumeParserResponse parsedResume = resumeParserService.parseResume(targetPath);
 
             log.info("Parsed resume data - Profile: {}, WorkExps: {}, Educations: {}, Projects: {}, Skills: {}",
                     parsedResume.getProfile() != null ? "present" : "null",

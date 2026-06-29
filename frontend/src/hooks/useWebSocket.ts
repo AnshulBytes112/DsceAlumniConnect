@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Client, type IMessage } from '@stomp/stompjs';
+import { API_BASE_URL } from '@/lib/api';
 
 interface WebSocketMessage {
   type: string;
@@ -38,7 +39,7 @@ export function useWebSocket({
     if (!topicId && !groupId) return;
 
     const client = new Client({
-      brokerURL: 'ws://localhost:8080/ws-forum',
+      brokerURL: `${API_BASE_URL.replace(/^http/, 'ws')}/ws-forum`,
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,

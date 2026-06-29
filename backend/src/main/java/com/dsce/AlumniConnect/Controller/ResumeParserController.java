@@ -56,24 +56,18 @@ public class ResumeParserController {
                         .body(new ErrorResponse("Only PDF files are supported"));
             }
 
-            // Save file temporarily
-            String tempPath = fileStorageService.uploadResume(file);
-            String fullPath = fileStorageService.getFilePath(tempPath).toAbsolutePath().toString();
-
+            // Save file temporarily to disk (not Cloudinary) to parse it
+            java.io.File tempFile = java.io.File.createTempFile("resume_parse_", ".pdf");
             try {
+                file.transferTo(tempFile);
                 // Parse the resume
-                ResumeParserResponse response = resumeParserService.parseResume(fullPath);
-
-                // Optionally delete temp file after parsing
-                // fileStorageService.deleteFile(tempPath);
-
+                ResumeParserResponse response = resumeParserService.parseResume(tempFile.getAbsolutePath());
                 return ResponseEntity.ok(response);
-            } catch (Exception e) {
-                // Clean up temp file on error
-                fileStorageService.deleteFile(tempPath);
-                throw e;
+            } finally {
+                if (tempFile.exists()) {
+                    tempFile.delete();
+                }
             }
-
         } catch (IllegalArgumentException e) {
             log.error("Invalid file: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

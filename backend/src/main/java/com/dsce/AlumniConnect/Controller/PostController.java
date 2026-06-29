@@ -4,6 +4,7 @@ import com.dsce.AlumniConnect.DTO.CreatePostRequest;
 import com.dsce.AlumniConnect.DTO.ErrorResponse;
 import com.dsce.AlumniConnect.DTO.PostResponse;
 import com.dsce.AlumniConnect.DTO.UpdatePostRequest;
+import com.dsce.AlumniConnect.Service.FileStorageService;
 import com.dsce.AlumniConnect.Service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final FileStorageService fileStorageService;
 
     // Get all posts (feed)
     @GetMapping
@@ -167,44 +169,10 @@ public class PostController {
         try {
             log.info("Uploading image for user: {}", authentication.getName());
 
-            // Validate file
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("Image file is required"));
-            }
+            // Upload via Cloudinary
+            String imageUrl = fileStorageService.uploadPostImage(file);
 
-            // Check file type
-            String contentType = file.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("Only image files are allowed"));
-            }
-
-            // Check file size (max 10MB)
-            if (file.getSize() > 10 * 1024 * 1024) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("Image size should not exceed 10MB"));
-            }
-
-            // Generate unique filename
-            String originalFilename = file.getOriginalFilename();
-            String extension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf("."))
-                    : ".jpg";
-            String filename = "post_" + System.currentTimeMillis() + "_" +
-                    (int) (Math.random() * 1000) + extension;
-
-            // Use absolute path to the project's uploads directory
-            String projectPath = System.getProperty("user.dir");
-            String uploadDir = projectPath + "/uploads/posts/";
-            java.io.File directory = new java.io.File(uploadDir);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
-
-            java.io.File destinationFile = new java.io.File(uploadDir + filename);
-            file.transferTo(destinationFile);
-
-            // Return relative path for frontend to construct full URL
-            String imageUrl = "uploads/posts/" + filename;
-
-            log.info("Successfully uploaded image: {} to directory: {}", filename, uploadDir);
+            log.info("Successfully uploaded image to Cloudinary: {}", imageUrl);
 
             return ResponseEntity.ok().body(java.util.Map.of("imageUrl", imageUrl));
 

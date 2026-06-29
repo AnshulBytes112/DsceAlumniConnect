@@ -207,15 +207,15 @@ const ForumDetail = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
+            <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-dsce-blue"></div>
             </div>
         );
     }
 
     if (!group) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light flex items-center justify-center">
                 <div className="text-center">
                     <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-gray-700">Forum not found</h3>
@@ -228,7 +228,7 @@ const ForumDetail = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light">
             <Helmet>
                 <title>{group.name} - Discussion Forum</title>
             </Helmet>
@@ -237,7 +237,7 @@ const ForumDetail = () => {
                 {/* Back Button */}
                 <button 
                     onClick={() => navigate('/dashboard/forums')}
-                    className="flex items-center gap-2 text-gray-600 hover:text-blue-900 mb-4"
+                    className="flex items-center gap-2 text-gray-600 hover:text-dsce-blue mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Forums
@@ -292,7 +292,7 @@ const ForumDetail = () => {
                             ) : (
                                 <Button
                                     onClick={handleJoinGroup}
-                                    className="bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] font-semibold"
+                                    className="bg-dsce-gold text-dsce-blue hover:bg-dsce-gold-hover font-bold"
                                 >
                                     Join Forum
                                 </Button>
@@ -300,7 +300,7 @@ const ForumDetail = () => {
                             {isMember && (
                                 <Button
                                     onClick={() => setIsCreateModalOpen(true)}
-                                    className="bg-blue-900 text-white"
+                                    className="bg-dsce-blue text-white hover:bg-dsce-blue/90"
                                 >
                                     <Plus className="w-4 h-4 mr-2" />
                                     New Topic
@@ -318,8 +318,8 @@ const ForumDetail = () => {
                             onClick={() => setSortBy('activity')}
                             className={`px-3 py-1 rounded-full text-sm ${
                                 sortBy === 'activity'
-                                    ? 'bg-blue-900 text-white'
-                                    : 'bg-white text-gray-600 border border-gray-200'
+                                    ? 'bg-dsce-blue text-white shadow-sm'
+                                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-dsce-bg-light'
                             }`}
                         >
                             Latest Activity
@@ -328,8 +328,8 @@ const ForumDetail = () => {
                             onClick={() => setSortBy('newest')}
                             className={`px-3 py-1 rounded-full text-sm ${
                                 sortBy === 'newest'
-                                    ? 'bg-blue-900 text-white'
-                                    : 'bg-white text-gray-600 border border-gray-200'
+                                    ? 'bg-dsce-blue text-white shadow-sm'
+                                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-dsce-bg-light'
                             }`}
                         >
                             Newest
@@ -346,7 +346,7 @@ const ForumDetail = () => {
                         {isMember && (
                             <Button 
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="mt-4 bg-blue-900 text-white"
+                                className="mt-4 bg-dsce-blue text-white hover:bg-dsce-blue/90"
                             >
                                 Start a Topic
                             </Button>
@@ -373,7 +373,7 @@ const ForumDetail = () => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-lg text-gray-900 hover:text-blue-600">
+                                                <h3 className="font-semibold text-lg text-gray-900 hover:text-dsce-blue">
                                                     {topic.title}
                                                 </h3>
                                                 <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
@@ -487,7 +487,7 @@ const ForumDetail = () => {
                                     value={newTopic.title}
                                     onChange={(e) => setNewTopic({ ...newTopic, title: e.target.value })}
                                     placeholder="What's on your mind?"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue placeholder-gray-500"
                                 />
                             </div>
 
@@ -499,7 +499,7 @@ const ForumDetail = () => {
                                     value={newTopic.content}
                                     onChange={(e) => setNewTopic({ ...newTopic, content: e.target.value })}
                                     placeholder="Provide more details..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue placeholder-gray-500"
                                     rows={5}
                                 />
                             </div>
@@ -515,7 +515,7 @@ const ForumDetail = () => {
                                         onChange={(e) => setTagInput(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                                         placeholder="Add a tag and press Enter"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-dsce-blue placeholder-gray-500"
                                     />
                                     <Button type="button" onClick={addTag} variant="outline">
                                         Add
@@ -550,7 +550,7 @@ const ForumDetail = () => {
                                 </Button>
                                 <Button
                                     type="button"
-                                    className="flex-1 bg-blue-900 text-white"
+                                    className="flex-1 bg-dsce-blue text-white hover:bg-dsce-blue/90"
                                     onClick={handleCreateTopic}
                                     disabled={!newTopic.title.trim()}
                                 >

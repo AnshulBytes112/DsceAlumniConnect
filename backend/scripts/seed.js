@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const { faker } = require('@faker-js/faker');
 
 // Configuration
-const MONGO_URI = 'mongodb://localhost:27017';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 const DB_NAME = 'alumni_connect';
 
 // Hardcoded Password for all users: 'password123'

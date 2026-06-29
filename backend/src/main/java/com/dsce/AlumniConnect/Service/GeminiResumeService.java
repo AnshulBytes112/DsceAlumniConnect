@@ -44,6 +44,7 @@ public class GeminiResumeService {
     private String groqApiUrl;
 
     private final ObjectMapper objectMapper;
+    private final FileStorageService fileStorageService;
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent";
     private static final int MAX_RETRIES = 3;
     private static final long RETRY_DELAY_MS = 1000;
@@ -54,8 +55,9 @@ public class GeminiResumeService {
             "gemini-2.0-flash-lite"
         };
 
-    public GeminiResumeService(ObjectMapper objectMapper) {
+    public GeminiResumeService(ObjectMapper objectMapper, FileStorageService fileStorageService) {
         this.objectMapper = objectMapper;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -101,10 +103,29 @@ public class GeminiResumeService {
      * Extract text from PDF file
      */
     private String extractTextFromPDF(String pdfFilePath) throws Exception {
-        File file = new File(pdfFilePath);
-        
-        if (!file.exists()) {
-            throw new RuntimeException("PDF file not found: " + pdfFilePath);
+        File file;
+        boolean isTempFile = false;
+
+        if (pdfFilePath != null && (pdfFilePath.startsWith("http://") || pdfFilePath.startsWith("https://"))) {
+            // Get a signed URL from Cloudinary to bypass strict PDF security
+            String signedUrl = fileStorageService.getSignedUrl(pdfFilePath);
+            
+            // Download from URL to a temp file
+            file = File.createTempFile("resume_cloud_", ".pdf");
+            isTempFile = true;
+            
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URI(signedUrl).toURL().openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            
+            try (java.io.InputStream in = conn.getInputStream()) {
+                java.nio.file.Files.copy(in, file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        } else {
+            file = new File(pdfFilePath);
+            if (!file.exists()) {
+                throw new RuntimeException("PDF file not found: " + pdfFilePath);
+            }
         }
 
         StringBuilder textContent = new StringBuilder();
@@ -124,6 +145,10 @@ public class GeminiResumeService {
         } catch (Exception e) {
             log.error("Error extracting text from PDF: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to extract text from PDF: " + e.getMessage(), e);
+        } finally {
+            if (isTempFile && file != null && file.exists()) {
+                file.delete();
+            }
         }
 
         return textContent.toString().trim();
@@ -409,6 +434,8 @@ public class GeminiResumeService {
         normalizedProfile.put("email", readText(profileNode, root, "email"));
         normalizedProfile.put("phone", readText(profileNode, root, "phone", "contactNumber", "mobile"));
         normalizedProfile.put("url", readText(profileNode, root, "url", "website", "linkedinProfile", "linkedin"));
+        normalizedProfile.put("graduationYear", readText(profileNode, root, "graduationYear", "gradYear", "classYear", "yearOfGraduation"));
+        normalizedProfile.put("department", readText(profileNode, root, "department", "branch", "major"));
         normalizedProfile.put("summary", readText(profileNode, root, "summary", "bio", "headline"));
         normalizedProfile.put("location", readText(profileNode, root, "location", "address"));
         normalized.set("profile", normalizedProfile);
@@ -556,6 +583,8 @@ public class GeminiResumeService {
                     "email": "string",
                     "phone": "string",
                     "url": "string",
+                                        "graduationYear": "string",
+                                        "department": "string",
                     "summary": "string",
                     "location": "string"
                   },

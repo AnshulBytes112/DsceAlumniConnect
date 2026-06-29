@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { GraduationCap, Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code, Award } from 'lucide-react';
 import MotionWrapper from '@/components/ui/MotionWrapper';
-import { apiClient } from '@/lib/api';
+import { apiClient, API_BASE_URL, getImageUrl } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -90,7 +90,12 @@ const urlSchema = z.string()
 const profileSetupSchema = z.object({
   graduationYear: z.string().regex(/^\d{4}$/, 'Please enter a valid graduation year').min(1, 'Graduation year is required for alumni verification'),
   department: z.string().min(1, 'Department is required for alumni verification'),
-  contactNumber: z.string().min(10, 'Phone number must be at least 10 characters').optional(),
+  contactNumber: z.string()
+    .optional()
+    .or(z.literal(''))
+    .refine((val) => !val || val.length >= 10, {
+      message: 'Phone number must be at least 10 characters',
+    }),
   bio: z.string().optional(),
   location: z.string().optional(),
   linkedinProfile: urlSchema,
@@ -141,7 +146,7 @@ export default function ProfileSetup() {
 
   const resumeWatched = useWatch({ control: form.control, name: 'resume' });
   const profileWatched = useWatch({ control: form.control, name: 'profilePicture' });
-  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : (user?.profilePicture ? `http://localhost:8080/${user.profilePicture}` : null);
+  const previewUrl = profileWatched instanceof File ? URL.createObjectURL(profileWatched) : (user?.profilePicture ? getImageUrl(user.profilePicture) : null);
 
   useEffect(() => {
     return () => {
@@ -166,23 +171,48 @@ export default function ProfileSetup() {
             linkedinProfile: profile.linkedinProfile || '',
             website: profile.website || '',
             workExperiences: profile.workExperiences?.map(we => ({
-              ...we,
+              company: we.company || '',
+              jobTitle: we.jobTitle || '',
+              date: we.date || '',
+              month: we.month || '',
               year: we.year?.toString() || '',
+              endMonth: we.endMonth || '',
               endYear: we.endYear?.toString() || '',
+              currentlyWorking: we.currentlyWorking || false,
+              descriptions: Array.isArray(we.descriptions) ? we.descriptions : [],
             })) || [],
             educations: profile.educations?.map(ed => ({
-              ...ed,
+              school: ed.school || '',
+              degree: ed.degree || '',
+              month: ed.month || '',
               year: ed.year?.toString() || '',
+              endMonth: ed.endMonth || '',
               endYear: ed.endYear?.toString() || '',
+              currentlyPursuing: ed.currentlyPursuing || false,
+              date: ed.date || '',
+              gpa: ed.gpa || '',
+              descriptions: Array.isArray(ed.descriptions) ? ed.descriptions : [],
             })) || [],
-            projects: profile.projects || [],
+            projects: profile.projects?.map(proj => ({
+              project: proj.project || '',
+              date: proj.date || '',
+              descriptions: Array.isArray(proj.descriptions) ? proj.descriptions : [],
+            })) || [],
             achievements: profile.achievements?.map((ach: any) => ({
               title: ach.title || ach.Title || ach.name || '',
               description: ach.description || ach.Description || '',
               date: ach.date || ach.Date || ach.year || '',
             })) || [],
             skills: profile.skills || [],
-            featuredSkills: profile.featuredSkills || [],
+            featuredSkills: (profile.featuredSkills || []).map((fs: any) => {
+              let rating = parseInt(fs.rating);
+              if (isNaN(rating)) rating = 1;
+              rating = Math.max(1, Math.min(5, rating));
+              return {
+                skill: fs.skill || '',
+                rating: rating
+              };
+            }),
           });
         }
       } catch (error) {
@@ -362,10 +392,15 @@ export default function ProfileSetup() {
         }
         if (updatedProfile.featuredSkills && updatedProfile.featuredSkills.length > 0) {
           console.log('Setting featured skills:', updatedProfile.featuredSkills);
-          formData.featuredSkills = updatedProfile.featuredSkills.map((fs: any) => ({
-            skill: fs.skill || '',
-            rating: fs.rating || 1,
-          }));
+          formData.featuredSkills = updatedProfile.featuredSkills.map((fs: any) => {
+            let rating = parseInt(fs.rating);
+            if (isNaN(rating)) rating = 1;
+            rating = Math.max(1, Math.min(5, rating));
+            return {
+              skill: fs.skill || '',
+              rating: rating
+            };
+          });
         }
         if (updatedProfile.achievements && updatedProfile.achievements.length > 0) {
           console.log('Setting achievements:', updatedProfile.achievements);
@@ -484,6 +519,35 @@ export default function ProfileSetup() {
     }
   };
 
+  const getErrorMessages = (errors: any): string[] => {
+    const messages: string[] = [];
+    const walk = (obj: any, path: string = '') => {
+      if (!obj) return;
+      if (typeof obj === 'object') {
+        if (obj.message && typeof obj.message === 'string') {
+          messages.push(`${path ? path + ': ' : ''}${obj.message}`);
+        } else {
+          Object.keys(obj).forEach(key => {
+            const newPath = path ? (isNaN(Number(key)) ? `${path}.${key}` : `${path}[${key}]`) : key;
+            walk(obj[key], newPath);
+          });
+        }
+      }
+    };
+    walk(errors);
+    return messages;
+  };
+
+  const onInvalid = (errors: any) => {
+    console.error("Form validation errors:", errors);
+    const errorMessages = getErrorMessages(errors).join(', ');
+    toast({
+      title: 'Validation failed',
+      description: `Please fix the following errors: ${errorMessages || 'Invalid form data'}`,
+      variant: 'destructive',
+    });
+  };
+
   return (
     <MotionWrapper className="min-h-screen bg-gradient-to-br from-[#F8F8F8] via-[#FFF9E6] to-[#F8F8F8] p-4 py-12">
       <Helmet>
@@ -506,7 +570,7 @@ export default function ProfileSetup() {
 
         <div className="rounded-xl border border-[#003366]/10 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
               {/* Resume Upload Section */}
               <div className="border-b border-[#003366]/10 pb-6">
                 <h3 className="text-xl font-semibold text-[#333333] mb-4 flex items-center">

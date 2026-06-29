@@ -1,0 +1,19 @@
+[
+  {
+    "sample_index": 1,
+    "source_name": "data\\data\\ACCOUNTANT\\10554236.pdf",
+    "source_type": "pdf",
+    "parse_success": false,
+    "quota_limited": false,
+    "error_code": "HTTP_400",
+    "error_message": "{\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"API key not valid. Please pass a valid API key.\",\n    \"status\": \"INVALID_ARGUMENT\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n        \"reason\": \"API_KEY_INVALID\",\n        \"domain\": \"googleapis.com\",\n        \"metadata\": {\n          \"service\": \"generativelanguage.googleapis.com\"\n        }\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.LocalizedMessage\",\n        \"locale\": \"en-US\",\n        \"message\": \"API key not valid. Please pass a valid API key.\"\n      }\n    ]\n  }\n}\n",
+    "profile_score": 0.0,
+    "work_score": 0.0,
+    "education_score": 0.0,
+    "project_score": 0.0,
+    "achievement_score": 0.0,
+    "skills_score": 0.0,
+    "completeness_score": 0.0,
+    "duration_ms": 372
+  }
+]

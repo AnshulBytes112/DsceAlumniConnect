@@ -62,7 +62,7 @@ const Announcements = () => {
                 className="bg-white border border-dsce-blue/10 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group flex flex-col h-full"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-dsce-blue/5 rounded-2xl text-dsce-blue group-hover:bg-dsce-blue group-hover:text-white transition-colors duration-300">
+                  <div className="bell-icon p-3 bg-dsce-blue/5 rounded-2xl text-dsce-blue group-hover:bg-dsce-blue transition-colors duration-300">
                     <Bell className="w-6 h-6" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full flex items-center">
@@ -70,11 +70,11 @@ const Announcements = () => {
                     {announcement.time}
                   </span>
                 </div>
-                
+
                 <h3 className="text-xl font-bold text-dsce-text-dark mb-3 group-hover:text-dsce-blue transition-colors">
                   {announcement.title}
                 </h3>
-                
+
                 <p className="text-gray-600 leading-relaxed flex-grow">
                   {announcement.description}
                 </p>

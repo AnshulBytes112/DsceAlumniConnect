@@ -1,5 +1,6 @@
 package com.dsce.AlumniConnect.util;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.FileOutputStream;
@@ -13,8 +14,18 @@ import java.util.UUID;
 @Component
 public class ImageUtil {
 
+    private static String uploadBaseUrl;
+
+    @Value("${app.base-url:http://localhost:8080}")
+    public void setUploadBaseUrl(String baseUrl) {
+        uploadBaseUrl = baseUrl + "/uploads/images/";
+    }
+
     private static final String UPLOAD_DIR = "uploads/images/";
-    private static final String BASE_URL = "http://localhost:8080/uploads/images/";
+    
+    public static String getBaseUrl() {
+        return uploadBaseUrl;
+    }
 
     static {
         try {
@@ -55,7 +66,7 @@ public class ImageUtil {
             System.out.println("Image saved to: " + Paths.get(filePath).toAbsolutePath());
 
             // Return the URL
-            String imageUrl = BASE_URL + fileName;
+            String imageUrl = uploadBaseUrl + fileName;
             System.out.println("Image URL: " + imageUrl);
             System.out.println("=== END IMAGE PROCESSING DEBUG ===");
 

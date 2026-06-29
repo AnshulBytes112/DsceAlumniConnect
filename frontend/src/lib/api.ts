@@ -1,4 +1,15 @@
-const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+/**
+ * Resolves an image path to a full URL.
+ * If the path is already a full URL (e.g. Cloudinary secure_url), returns it as-is.
+ * Otherwise, prepends API_BASE_URL.
+ */
+export const getImageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${API_BASE_URL}/${path.replace(/^\//, '')}`;
+};
 import {
     upcomingEvents,
     mockCredentials
