@@ -20,6 +20,7 @@ public class Announcement {
     private String time;
     private String imageUrl;
     private LocalDateTime createdAt;
+    private boolean featured = false;
 
     public Announcement(String title, String description, String time, String imageUrl, LocalDateTime createdAt) {
         this.title = title;
@@ -27,5 +28,6 @@ public class Announcement {
         this.time = time;
         this.imageUrl = imageUrl;
         this.createdAt = createdAt;
+        this.featured = false;
     }
 }

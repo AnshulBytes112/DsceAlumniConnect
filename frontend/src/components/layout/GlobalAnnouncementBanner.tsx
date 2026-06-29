@@ -29,17 +29,19 @@ export default function GlobalAnnouncementBanner() {
 
         const bannerItems: BannerItem[] = [];
 
-        // Add all announcements
+        // Add featured announcements
         announcements.forEach((a: AnnouncementDTO) => {
-          bannerItems.push({
-            id: `ann-${a.id}`,
-            type: 'announcement',
-            title: a.title,
-            description: a.description,
-            time: a.time,
-            imageUrl: a.imageUrl,
-            originalData: a
-          });
+          if (a.featured) {
+            bannerItems.push({
+              id: `ann-${a.id}`,
+              type: 'announcement',
+              title: a.title,
+              description: a.description,
+              time: a.time,
+              imageUrl: a.imageUrl,
+              originalData: a
+            });
+          }
         });
 
         // Add featured events that have posters
@@ -66,16 +68,11 @@ export default function GlobalAnnouncementBanner() {
       }
     };
     
-    // Only show the banner if they haven't dismissed it in this session
-    const hasDismissed = sessionStorage.getItem('announcement_dismissed');
-    if (!hasDismissed) {
-      fetchContent();
-    }
+    fetchContent();
   }, []);
 
   const handleDismiss = () => {
     setIsVisible(false);
-    sessionStorage.setItem('announcement_dismissed', 'true');
   };
 
   const nextSlide = (e?: React.MouseEvent) => {

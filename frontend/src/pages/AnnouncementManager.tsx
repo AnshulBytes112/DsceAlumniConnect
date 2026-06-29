@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Megaphone, Plus, Search, Edit, Trash2,
-  Clock, AlertCircle,
+  Clock, AlertCircle, Star,
   RefreshCw, X, ImagePlus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -83,6 +83,27 @@ export default function AnnouncementManager() {
       toast({
         title: "Delete Failed",
         description: "An error occurred while trying to delete.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleFeature = async (id: string, currentlyFeatured: boolean) => {
+    try {
+      if (currentlyFeatured) {
+        await apiClient.unfeatureAnnouncement(id);
+      } else {
+        await apiClient.featureAnnouncement(id);
+      }
+      setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, featured: !currentlyFeatured } : a));
+      toast({
+        title: currentlyFeatured ? "Unfeatured" : "Featured",
+        description: `Announcement is now ${currentlyFeatured ? 'removed from' : 'added to'} the featured banner.`
+      });
+    } catch (error) {
+      toast({
+        title: "Action Failed",
+        description: "Failed to update feature status.",
         variant: "destructive"
       });
     }
@@ -221,6 +242,14 @@ export default function AnnouncementManager() {
                 <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between gap-2">
                   <Button variant="ghost" className="flex-1 text-dsce-blue hover:bg-dsce-blue/5" onClick={() => handleEdit(item)}>
                     <Edit className="h-4 w-4 mr-2" /> Edit
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className={`flex-1 ${item.featured ? 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100' : 'text-gray-500 hover:bg-gray-100'}`}
+                    onClick={() => handleToggleFeature(item.id, item.featured || false)}
+                  >
+                    <Star className={`h-4 w-4 mr-2 ${item.featured ? 'fill-yellow-500 text-yellow-500' : ''}`} /> 
+                    {item.featured ? 'Featured' : 'Feature'}
                   </Button>
                   <Button
                     variant="ghost"

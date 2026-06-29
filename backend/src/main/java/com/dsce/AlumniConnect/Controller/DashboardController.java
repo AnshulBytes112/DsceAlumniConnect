@@ -50,7 +50,8 @@ public class DashboardController {
                         a.getTitle(),
                         a.getDescription(),
                         a.getTime(),
-                        a.getImageUrl()))
+                        a.getImageUrl(),
+                        a.isFeatured()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
@@ -153,7 +154,8 @@ public class DashboardController {
                     savedAnnouncement.getTitle(),
                     savedAnnouncement.getDescription(),
                     savedAnnouncement.getTime(),
-                    savedAnnouncement.getImageUrl());
+                    savedAnnouncement.getImageUrl(),
+                    savedAnnouncement.isFeatured());
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             log.error("Error creating announcement", e);
@@ -180,7 +182,8 @@ public class DashboardController {
                     savedAnnouncement.getTitle(),
                     savedAnnouncement.getDescription(),
                     savedAnnouncement.getTime(),
-                    savedAnnouncement.getImageUrl());
+                    savedAnnouncement.getImageUrl(),
+                    savedAnnouncement.isFeatured());
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             log.error("Error updating announcement", e);
@@ -196,6 +199,54 @@ public class DashboardController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Error deleting announcement", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/announcements/{id}/feature")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AnnouncementDTO> featureAnnouncement(@PathVariable String id) {
+        try {
+            Announcement existingAnnouncement = announcementRepository.findById(id).orElse(null);
+            if (existingAnnouncement == null) {
+                return ResponseEntity.notFound().build();
+            }
+            existingAnnouncement.setFeatured(true);
+            Announcement savedAnnouncement = announcementRepository.save(existingAnnouncement);
+            AnnouncementDTO dto = new AnnouncementDTO(
+                    savedAnnouncement.getId(),
+                    savedAnnouncement.getTitle(),
+                    savedAnnouncement.getDescription(),
+                    savedAnnouncement.getTime(),
+                    savedAnnouncement.getImageUrl(),
+                    savedAnnouncement.isFeatured());
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            log.error("Error featuring announcement", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/announcements/{id}/unfeature")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AnnouncementDTO> unfeatureAnnouncement(@PathVariable String id) {
+        try {
+            Announcement existingAnnouncement = announcementRepository.findById(id).orElse(null);
+            if (existingAnnouncement == null) {
+                return ResponseEntity.notFound().build();
+            }
+            existingAnnouncement.setFeatured(false);
+            Announcement savedAnnouncement = announcementRepository.save(existingAnnouncement);
+            AnnouncementDTO dto = new AnnouncementDTO(
+                    savedAnnouncement.getId(),
+                    savedAnnouncement.getTitle(),
+                    savedAnnouncement.getDescription(),
+                    savedAnnouncement.getTime(),
+                    savedAnnouncement.getImageUrl(),
+                    savedAnnouncement.isFeatured());
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            log.error("Error unfeaturing announcement", e);
             return ResponseEntity.badRequest().build();
         }
     }

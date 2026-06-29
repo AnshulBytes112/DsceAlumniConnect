@@ -95,7 +95,7 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
         User user = getUserByEmail(userEmail);
-        if (!post.getAuthorId().equals(user.getId()) && user.getRole() != User.Role.ADMIN) {
+        if (!post.getAuthorId().equals(user.getId())) {
             throw new RuntimeException("You can only edit your own posts");
         }
 

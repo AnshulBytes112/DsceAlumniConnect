@@ -315,8 +315,8 @@ export default function Posts() {
                               </span>
                             )}
                           </div>
-                          {(post.isAuthor || user?.role === 'ADMIN') && (
-                            <div className="flex items-center space-x-1">
+                          <div className="flex items-center space-x-1">
+                            {post.isAuthor && (
                               <button
                                 onClick={() => handleEditPost(post)}
                                 className="text-gray-500 hover:text-dsce-blue transition-colors"
@@ -324,6 +324,8 @@ export default function Posts() {
                               >
                                 <Edit className="h-4 w-4" />
                               </button>
+                            )}
+                            {(post.isAuthor || user?.role === 'ADMIN') && (
                               <button
                                 onClick={() => setDeleteConfirmPost(post)}
                                 className="text-gray-500 hover:text-red-500 transition-colors"
@@ -331,8 +333,8 @@ export default function Posts() {
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
                           {post.department && <span>{post.department}</span>}

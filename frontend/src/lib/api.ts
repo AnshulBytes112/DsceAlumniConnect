@@ -136,6 +136,7 @@ export interface AnnouncementDTO {
     description: string;
     time: string;
     imageUrl?: string;
+    featured?: boolean;
 }
 
 export interface ProjectFundingRequest {
@@ -616,6 +617,14 @@ class ApiClient {
 
     async deleteAnnouncement(id: string): Promise<void> {
         await this.delete(`/api/dashboard/announcements/${id}`);
+    }
+
+    async featureAnnouncement(id: string): Promise<AnnouncementDTO> {
+        return this.post<AnnouncementDTO>(`/api/dashboard/announcements/${id}/feature`, {});
+    }
+
+    async unfeatureAnnouncement(id: string): Promise<AnnouncementDTO> {
+        return this.post<AnnouncementDTO>(`/api/dashboard/announcements/${id}/unfeature`, {});
     }
 
     async getJobApplications() {
