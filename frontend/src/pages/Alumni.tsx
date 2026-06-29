@@ -6,7 +6,7 @@ import MotionWrapper from '@/components/ui/MotionWrapper';
 import { Search, Users, Calendar, MapPin, Award, GraduationCap, Filter, X, Linkedin, Mail, Briefcase, Building2, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockAlumni } from '@/data/mockData';
-import { apiClient, type UserProfile, API_BASE_URL, getImageUrl } from '@/lib/api';
+import { apiClient, type UserProfile, getImageUrl } from '@/lib/api';
 import AlumniMap from '@/components/AlumniMap';
 
 export default function Alumni() {

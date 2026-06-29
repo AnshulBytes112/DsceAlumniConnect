@@ -23,7 +23,7 @@ import {
   ExternalLink,
   ChevronRight
 } from 'lucide-react';
-import { apiClient, type UserProfile, API_BASE_URL, getImageUrl } from '@/lib/api';
+import { apiClient, type UserProfile, getImageUrl } from '@/lib/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 

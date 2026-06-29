@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { GraduationCap, Upload, FileText, Loader2, CheckCircle2, Plus, X, Briefcase, GraduationCap as GradCap, FolderKanban, Code, Award } from 'lucide-react';
 import MotionWrapper from '@/components/ui/MotionWrapper';
-import { apiClient, API_BASE_URL, getImageUrl } from '@/lib/api';
+import { apiClient, getImageUrl } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
