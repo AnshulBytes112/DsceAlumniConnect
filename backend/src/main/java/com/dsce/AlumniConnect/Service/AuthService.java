@@ -11,6 +11,9 @@ import com.dsce.AlumniConnect.Repository.UserRepository;
 import com.dsce.AlumniConnect.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -27,8 +31,54 @@ public class AuthService {
     private final GoogleTokenVerifier googleTokenVerifier;
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
-    private final PasswordEncoder passwordEncoder; // Add this
+    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JavaMailSender mailSender;
+
+    @Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
+
+    public void forgotPassword(String email) {
+        // ponytail: silent success — don't reveal whether email exists
+        userRepository.findByEmail(email).ifPresent(user -> {
+            String token = UUID.randomUUID().toString();
+            user.setPasswordResetToken(token);
+            user.setPasswordResetExpiry(LocalDateTime.now().plusHours(1));
+            userRepository.save(user);
+
+            String resetUrl = frontendUrl + "/reset-password?token=" + token;
+            // ponytail: always log reset URL — lets you test without SMTP configured
+            log.info("=== PASSWORD RESET LINK (dev) === {}", resetUrl);
+
+            try {
+                SimpleMailMessage msg = new SimpleMailMessage();
+                msg.setTo(email);
+                msg.setSubject("DSCE Alumni Connect – Password Reset");
+                msg.setText("Click the link below to reset your password (expires in 1 hour):\n\n"
+                        + resetUrl
+                        + "\n\nIf you did not request this, ignore this email.");
+                mailSender.send(msg);
+                log.info("Password reset email sent to {}", email);
+            } catch (Exception mailEx) {
+                // ponytail: mail failure must not bubble up as 500 — link is logged above for dev
+                log.warn("Could not send reset email to {} — configure SMTP credentials. Error: {}", email, mailEx.getMessage());
+            }
+        });
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByPasswordResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
+        if (user.getPasswordResetExpiry() == null || LocalDateTime.now().isAfter(user.getPasswordResetExpiry())) {
+            throw new RuntimeException("Reset token has expired. Please request a new link.");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetExpiry(null);
+        userRepository.save(user);
+        log.info("Password reset successfully for {}", user.getEmail());
+    }
+
 
     public AuthResponse login(LogInRequest request) {
         try {

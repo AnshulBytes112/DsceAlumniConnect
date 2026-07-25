@@ -15,6 +15,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Alumni = lazy(() => import('./pages/Alumni'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'));
 const Events = lazy(() => import('./pages/Events'));
 const Announcements = lazy(() => import('./pages/Announcements'));
@@ -62,6 +63,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/verify-otp" element={<VerifyOtp />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* Public Routes */}
               <Route path="/alumni" element={<Alumni />} />
