@@ -199,37 +199,50 @@ const AlumniMap: React.FC<AlumniMapProps> = ({ alumni }) => {
                 />
                 <ZoomControl position="bottomright" />
 
-                {pinned.map(({ alum, lat, lng }) => (
-                    <Marker key={alum.id} position={[lat, lng]} icon={customIcon}>
+                {Object.values(pinned.reduce((acc, current) => {
+                    const key = `${current.lat.toFixed(4)},${current.lng.toFixed(4)}`;
+                    if (!acc[key]) acc[key] = { lat: current.lat, lng: current.lng, alumniList: [] };
+                    acc[key].alumniList.push(current.alum);
+                    return acc;
+                }, {} as Record<string, { lat: number, lng: number, alumniList: any[] }>)).map(({ lat, lng, alumniList }, index) => (
+                    <Marker key={index} position={[lat, lng]} icon={customIcon}>
                         <Popup className="custom-popup">
                             <div style={{ fontFamily: 'inherit', overflow: 'hidden', background: 'white' }}>
                                 {/* Header */}
-                                <div style={{ background: 'linear-gradient(135deg, #003366, #002244)', padding: '14px 16px', color: 'white' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 'bold', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', flexShrink: 0 }}>
-                                            {alum.image
-                                                ? <img src={alum.image} alt={alum.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                : alum.name?.[0] || '?'}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 700, fontSize: 13 }}>{alum.name}</div>
-                                            <div style={{ fontSize: 10, color: '#bbd0e8', textTransform: 'uppercase', letterSpacing: 1 }}>Class of {alum.graduationYear}</div>
-                                        </div>
-                                    </div>
+                                <div style={{ background: 'linear-gradient(135deg, #003366, #002244)', padding: '10px 16px', color: 'white', fontWeight: 'bold' }}>
+                                    {alumniList.length > 1 ? `${alumniList.length} Alumni at this location` : 'Alumni Profile'}
                                 </div>
+                                <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                                    {alumniList.map((alum, i) => (
+                                        <div key={alum.id} style={{ borderBottom: i < alumniList.length - 1 ? '1px solid #eee' : 'none' }}>
+                                            {/* Body Header */}
+                                            <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div style={{ width: 38, height: 38, borderRadius: 10, background: '#f0f4f8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 'bold', border: '1px solid #e1e7ed', overflow: 'hidden', flexShrink: 0, color: '#003366' }}>
+                                                    {alum.image
+                                                        ? <img src={alum.image} alt={alum.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        : alum.name?.[0] || '?'}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 700, fontSize: 13, color: '#333' }}>{alum.name}</div>
+                                                    <div style={{ fontSize: 10, color: '#666', textTransform: 'uppercase', letterSpacing: 1 }}>Class of {alum.graduationYear}</div>
+                                                </div>
+                                            </div>
 
-                                {/* Body */}
-                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    {alum.department && <div style={{ fontSize: 12, color: '#555', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: '#c9a227' }}>🎓</span> {alum.department}</div>}
-                                    {alum.position && <div style={{ fontSize: 12, fontWeight: 600, color: '#333', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: '#003366' }}>💼</span> {alum.position}</div>}
-                                    {alum.company && <div style={{ fontSize: 12, color: '#555', display: 'flex', alignItems: 'center', gap: 6 }}><span>🏢</span> {alum.company}</div>}
-                                    {alum.location && <div style={{ fontSize: 11, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span>📍</span> {alum.location}</div>}
-                                    <button
-                                        onClick={() => navigate(`/alumni/${alum.id}`)}
-                                        style={{ marginTop: 6, width: '100%', padding: '7px 0', background: '#003366', color: 'white', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
-                                    >
-                                        View Profile →
-                                    </button>
+                                            {/* Body Info */}
+                                            <div style={{ padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                {alum.department && <div style={{ fontSize: 12, color: '#555', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: '#c9a227' }}>🎓</span> {alum.department}</div>}
+                                                {alum.position && <div style={{ fontSize: 12, fontWeight: 600, color: '#333', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: '#003366' }}>💼</span> {alum.position}</div>}
+                                                {alum.company && <div style={{ fontSize: 12, color: '#555', display: 'flex', alignItems: 'center', gap: 6 }}><span>🏢</span> {alum.company}</div>}
+                                                {alum.location && <div style={{ fontSize: 11, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span>📍</span> {alum.location}</div>}
+                                                <button
+                                                    onClick={() => navigate(`/alumni/${alum.id}`)}
+                                                    style={{ marginTop: 6, width: '100%', padding: '7px 0', background: '#003366', color: 'white', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                                                >
+                                                    View Profile →
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </Popup>

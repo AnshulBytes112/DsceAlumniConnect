@@ -5,6 +5,7 @@ import com.dsce.AlumniConnect.DTO.PostResponse;
 import com.dsce.AlumniConnect.DTO.UpdatePostRequest;
 import com.dsce.AlumniConnect.entity.Post;
 import com.dsce.AlumniConnect.entity.User;
+import com.dsce.AlumniConnect.Repository.CommentRepository;
 import com.dsce.AlumniConnect.Repository.PostRepository;
 import com.dsce.AlumniConnect.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
 
@@ -220,7 +222,11 @@ public class PostService {
         response.setContent(post.getContent());
         response.setCreatedAt(post.getCreatedAt());
         response.setLikes(post.getLikes());
-        response.setComments(post.getComments());
+        
+        // Ensure comment count is always accurate regardless of concurrency issues
+        Long actualCommentCount = commentRepository.countByPostIdAndIsDeletedFalse(post.getId());
+        response.setComments(actualCommentCount != null ? actualCommentCount.intValue() : 0);
+        
         response.setShares(post.getShares());
         response.setMedia(post.getMedia());
         response.setHashtags(post.getHashtags());

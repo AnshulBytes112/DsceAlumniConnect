@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Trash2 } from 'lucide-react';
+import { Calendar, MoreHorizontal, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Trash2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardService, ProfileService } from '@/services/authService';
@@ -388,8 +388,7 @@ export default function Dashboard() {
               <RefreshCw className="h-4 w-4 text-gray-600" />
             </Button>
             <div className="relative">
-              <Bell className="h-6 w-6 text-gray-600 hover:text-dsce-blue cursor-pointer transition-colors" />
-              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-dsce-bg-light"></span>
+              {/* Notification bell removed per request */}
             </div>
           </div>
         </header>
@@ -702,102 +701,112 @@ export default function Dashboard() {
                       </div>
 
                       {/* Comment Section */}
-                      {commentingPostId === post.id && (
-                        <div className="border-t border-dsce-blue/10 pt-4 mt-4">
-                          <div className="flex space-x-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center flex-shrink-0">
-                              <span className="text-white text-sm font-semibold">
-                                {currentUser.initials}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <textarea
-                                value={commentText}
-                                onChange={(e) => setCommentText(e.target.value)}
-                                placeholder="Write a comment..."
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue/50 text-sm"
-                                rows={2}
-                              />
-                              <div className="flex justify-end mt-2 space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setCommentingPostId(null);
-                                    setCommentText('');
-                                  }}
-                                  className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={() => handleCommentSubmit(post.id)}
-                                  disabled={!commentText.trim()}
-                                  className="px-3 py-1 text-sm bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  Comment
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Comments List */}
-                      {comments[post.id] && comments[post.id].length > 0 && (
-                        <div className="mt-4 space-y-3">
-                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Comments ({comments[post.id].length})
-                          </div>
-                          {comments[post.id].map((comment) => (
-                            <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
-                              <div className="flex-shrink-0">
-                                {comment.authorAvatar ? (
-                                  <img
-                                    src={comment.authorAvatar}
-                                    alt={comment.authorName}
-                                    className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                      <AnimatePresence>
+                        {commentingPostId === post.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="border-t border-dsce-blue/10 pt-4 mt-4">
+                              <div className="flex space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center flex-shrink-0">
+                                  <span className="text-white text-sm font-semibold">
+                                    {currentUser.initials}
+                                  </span>
+                                </div>
+                                <div className="flex-1">
+                                  <textarea
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                    placeholder="Write a comment..."
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue/50 text-sm"
+                                    rows={2}
                                   />
-                                ) : (
-                                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-gray-200">
-                                    <span className="text-white text-xs font-bold">
-                                      {comment.authorName ? comment.authorName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'AL'}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-900">{comment.authorName}</span>
-                                    {comment.authorRole && (
-                                      <span className="text-xs text-gray-500">• {comment.authorRole}</span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500">
-                                      {new Date(comment.createdAt).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </span>
-                                    {(comment.isAuthor || user?.role === 'ADMIN') && (
-                                      <button
-                                        onClick={() => handleDeleteComment(post.id, comment.id)}
-                                        className="text-gray-400 hover:text-red-500 transition-colors ml-2"
-                                        title="Delete comment"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </button>
-                                    )}
+                                  <div className="flex justify-end mt-2 space-x-2">
+                                    <button
+                                      onClick={() => {
+                                        setCommentingPostId(null);
+                                        setCommentText('');
+                                      }}
+                                      className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => handleCommentSubmit(post.id)}
+                                      disabled={!commentText.trim()}
+                                      className="px-3 py-1 text-sm bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      Comment
+                                    </button>
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-700 break-words">{comment.content}</p>
                               </div>
+                              
+                              {/* Comments List */}
+                              {comments[post.id] && comments[post.id].length > 0 && (
+                                <div className="mt-4 space-y-3">
+                                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                    Comments ({comments[post.id].length})
+                                  </div>
+                                  {comments[post.id].map((comment) => (
+                                    <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
+                                      <div className="flex-shrink-0">
+                                        {comment.authorAvatar ? (
+                                          <img
+                                            src={comment.authorAvatar}
+                                            alt={comment.authorName}
+                                            className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                                          />
+                                        ) : (
+                                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-gray-200">
+                                            <span className="text-white text-xs font-bold">
+                                              {comment.authorName ? comment.authorName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'AL'}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-900">{comment.authorName}</span>
+                                            {comment.authorRole && (
+                                              <span className="text-xs text-gray-500">• {comment.authorRole}</span>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500">
+                                              {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                              })}
+                                            </span>
+                                            {(comment.isAuthor || user?.role === 'ADMIN') && (
+                                              <button
+                                                onClick={() => handleDeleteComment(post.id, comment.id)}
+                                                className="text-gray-400 hover:text-red-500 transition-colors ml-2"
+                                                title="Delete comment"
+                                              >
+                                                <Trash2 className="w-3 h-3" />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <p className="text-sm text-gray-700 break-words">{comment.content}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   ))
                 ) : (
