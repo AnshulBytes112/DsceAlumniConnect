@@ -47,6 +47,9 @@ const EventDetails = () => {
       console.log("Fetching event with ID:", eventId);
       const data = await apiClient.getEventById(eventId);
       setEvent(data);
+
+      // Use real engagement metrics from event data
+
     } catch (error) {
       console.error("Error fetching event:", error);
       toast({
@@ -97,6 +100,14 @@ const EventDetails = () => {
       });
     }
   };
+
+  // const handleLike = () => {
+  //   setIsLiked(!isLiked);
+  //   toast({
+  //     title: isLiked ? "Removed from Likes" : "Added to Likes",
+  //     description: isLiked ? "Event removed from your likes." : "Event added to your likes!",
+  //   });
+  // };
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);

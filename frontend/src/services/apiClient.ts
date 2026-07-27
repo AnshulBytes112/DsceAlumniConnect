@@ -13,7 +13,8 @@ import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axio
  */
 
 // ponytail: empty base URL → all requests go via Vite proxy → no CORS
-const API_BASE_URL = '';
+// In production, we MUST use VITE_API_BASE_URL because there is no Vite proxy
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({

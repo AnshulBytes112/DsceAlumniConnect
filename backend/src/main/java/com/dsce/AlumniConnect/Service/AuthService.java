@@ -20,6 +20,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -34,7 +39,13 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${resend.api.key:}")
+    private String resendApiKey;
+
+    @Value("${resend.from.email:onboarding@resend.dev}")
+    private String resendFromEmail;
 
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
@@ -55,17 +66,37 @@ public class AuthService {
             log.info("[PASSWORD RESET] Reset link: {}", resetUrl);
 
             try {
-                SimpleMailMessage msg = new SimpleMailMessage();
-                msg.setTo(email);
-                msg.setSubject("DSCE Alumni Connect – Password Reset");
-                msg.setText("Click the link below to reset your password (expires in 1 hour):\n\n"
-                        + resetUrl
-                        + "\n\nIf you did not request this, ignore this email.");
-                mailSender.send(msg);
-                log.info("[PASSWORD RESET] Email sent successfully to {}", email);
+                if (resendApiKey == null || resendApiKey.isEmpty()) {
+                    log.warn("[PASSWORD RESET] RESEND_API_KEY is not configured. Email will not be sent.");
+                    return;
+                }
+
+                String htmlContent = "<p>Click the link below to reset your password (expires in 1 hour):</p>"
+                        + "<p><a href=\"" + resetUrl + "\">" + resetUrl + "</a></p>"
+                        + "<p>If you did not request this, ignore this email.</p>";
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.setBearerAuth(resendApiKey);
+
+                java.util.Map<String, Object> body = new java.util.HashMap<>();
+                body.put("from", resendFromEmail);
+                body.put("to", new String[]{email});
+                body.put("subject", "DSCE Alumni Connect – Password Reset");
+                body.put("html", htmlContent);
+
+                HttpEntity<java.util.Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+                
+                ResponseEntity<String> response = restTemplate.postForEntity("https://api.resend.com/emails", requestEntity, String.class);
+                
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    log.info("[PASSWORD RESET] Email sent successfully to {} via Resend", email);
+                } else {
+                    log.error("[PASSWORD RESET] Failed to send email via Resend: {}", response.getBody());
+                }
             } catch (Exception mailEx) {
                 // ponytail: mail failure must not bubble up as 500 — link is logged above for dev
-                log.warn("[PASSWORD RESET] Could not send reset email to {} — configure SMTP credentials. Error: {}", email, mailEx.getMessage());
+                log.warn("[PASSWORD RESET] Could not send reset email to {}. Error: {}", email, mailEx.getMessage());
             }
         });
     }

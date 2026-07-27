@@ -1,4 +1,4 @@
-export const API_BASE_URL = ''; // ponytail: proxy handles routing to :8081
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''; // ponytail: uses Vite env in prod, empty proxy in dev
 
 /**
  * Resolves an image path to a full URL.

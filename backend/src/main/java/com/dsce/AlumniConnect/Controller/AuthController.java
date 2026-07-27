@@ -85,4 +85,11 @@ public class AuthController {
                     .body(new ErrorResponse(e.getMessage()));
         }
     }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyToken() {
+        // If the request reaches here, it means the JWT token was valid
+        // because it passed through the JwtAuthenticationFilter.
+        return ResponseEntity.ok(java.util.Map.of("valid", true));
+    }
 }
