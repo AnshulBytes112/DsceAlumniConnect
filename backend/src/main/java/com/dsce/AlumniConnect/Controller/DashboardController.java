@@ -1,10 +1,17 @@
 package com.dsce.AlumniConnect.Controller;
 
-import com.dsce.AlumniConnect.DTO.*;
-import com.dsce.AlumniConnect.Repository.*;
-import com.dsce.AlumniConnect.entity.*;
+import com.dsce.AlumniConnect.DTO.AnnouncementDTO;
+import com.dsce.AlumniConnect.DTO.DashboardStatsDTO;
+import com.dsce.AlumniConnect.DTO.EventDTO;
+import com.dsce.AlumniConnect.DTO.FundingDTO;
+import com.dsce.AlumniConnect.DTO.JobApplicationDTO;
+import com.dsce.AlumniConnect.Service.DashboardService;
 import com.dsce.AlumniConnect.Service.ProfileService;
-import com.dsce.AlumniConnect.Service.EventService;
+import com.dsce.AlumniConnect.Repository.AnnouncementRepository;
+import com.dsce.AlumniConnect.Repository.ProjectFundingRepository;
+import com.dsce.AlumniConnect.entity.Announcement;
+import com.dsce.AlumniConnect.entity.ProjectFunding;
+import com.dsce.AlumniConnect.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,85 +27,34 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DashboardController {
 
+    private final DashboardService dashboardService;
     private final AnnouncementRepository announcementRepository;
-    private final JobApplicationRepository jobApplicationRepository;
     private final ProjectFundingRepository projectFundingRepository;
     private final ProfileService profileService;
-    private final EventService eventService;
 
     @GetMapping("/stats")
     public ResponseEntity<DashboardStatsDTO> getStats() {
-        try {
-            User currentUser = profileService.getCurrentUserProfile();
-            int jobsApplied = jobApplicationRepository.findByUserId(currentUser.getId()).size();
-            int events = eventService.getEventsUserIsAttending().size();
-            int mentorships = 0;
-
-            return ResponseEntity.ok(new DashboardStatsDTO(jobsApplied, events, mentorships));
-        } catch (Exception e) {
-            log.error("Error fetching stats", e);
-            return ResponseEntity.ok(new DashboardStatsDTO(0, 0, 0));
-        }
+        return ResponseEntity.ok(dashboardService.getDashboardStats());
     }
 
     @GetMapping("/announcements")
     public ResponseEntity<List<AnnouncementDTO>> getAnnouncements() {
-        List<Announcement> announcements = announcementRepository.findAllByOrderByCreatedAtDesc();
-        List<AnnouncementDTO> dtos = announcements.stream()
-                .map(a -> new AnnouncementDTO(
-                        a.getId(),
-                        a.getTitle(),
-                        a.getDescription(),
-                        a.getTime(),
-                        a.getImageUrl(),
-                        a.isFeatured()))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(dashboardService.getAnnouncements());
     }
 
     @GetMapping("/job-applications")
     public ResponseEntity<List<JobApplicationDTO>> getJobApplications() {
-        try {
-            User currentUser = profileService.getCurrentUserProfile();
-            List<JobApplication> applications = jobApplicationRepository.findByUserId(currentUser.getId());
-            List<JobApplicationDTO> dtos = applications.stream()
-                    .map(j -> new JobApplicationDTO(j.getCompany(), j.getRole(), j.getStatus(), j.getDate()))
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            log.error("Error fetching job applications", e);
-            return ResponseEntity.ok(List.of());
-        }
+        return ResponseEntity.ok(dashboardService.getCurrentUserJobApplications());
     }
 
     @GetMapping("/get-fundings")
     public ResponseEntity<List<FundingDTO>> getUserFundings() {
-        try {
-            List<ProjectFunding> fundings = projectFundingRepository.findAll();
-            List<FundingDTO> dtos = fundings.stream()
-                    .map(f -> new FundingDTO(f.getTitle(), f.getAmount(), f.getStatus(), f.getDate()))
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            log.error("Error fetching user fundings", e);
-            return ResponseEntity.ok(List.of());
-        }
+        return ResponseEntity.ok(dashboardService.getProjectFundings());
     }
 
     @GetMapping("/events")
     public ResponseEntity<List<EventDTO>> getEvents() {
-        try {
-            User currentUser = profileService.getCurrentUserProfile();
-            log.info("Getting events for user: {}", currentUser.getId());
-
-            List<EventDTO> events = eventService.getEventsUserIsAttending();
-            log.info("Found {} events user is attending", events.size());
-
-            return ResponseEntity.ok(events);
-        } catch (Exception e) {
-            log.error("Error fetching events", e);
-            return ResponseEntity.ok(List.of());
-        }
+        return ResponseEntity.ok(dashboardService.getCurrentUserEvents());
     }
 
     @GetMapping("/fundings")

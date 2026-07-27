@@ -1,18 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Trash2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { apiClient, type UserProfile, getImageUrl } from '@/lib/api';
+import { Calendar, MoreHorizontal, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Trash2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import {
-  dashboardUser,
-  dashboardStats as mockStats,
-  dashboardAnnouncements,
-  dashboardJobApplications,
-  upcomingEvents,
-  dashboardProjectFundings,
-  mockCredentials
-} from '@/data/mockData';
+import { DashboardService, ProfileService } from '@/services/authService';
 import PostModal from '@/components/posts/PostModal';
 
 // Define types for dashboard data
@@ -67,6 +58,8 @@ import MotionWrapper from '@/components/ui/MotionWrapper';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import type { UserProfile } from '@/lib/api';
+import { apiClient, getImageUrl } from '@/lib/api';
 
 export default function Dashboard() {
   console.log('Dashboard component mounting...');
@@ -100,101 +93,74 @@ export default function Dashboard() {
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
 
   const [dataUpdateKey, setDataUpdateKey] = useState(0); // Force re-render
+  const isFetchingRef = useRef(false);
 
   const fetchDashboardData = async () => {
-    console.log('Fetching dashboard data... Loading state:', loading);
-    // Check if logged in as mock user
-    if (user?.email === mockCredentials.email) {
-      console.log('Mock user detected, using mock data');
-      // Simulate network delay for realism
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      setDashboardData({
-        stats: {
-          jobsApplied: parseInt(mockStats.find(s => s.label === 'Jobs Applied')?.value || '0'),
-          events: parseInt(mockStats.find(s => s.label === 'Events')?.value || '0'),
-          mentorships: parseInt(mockStats.find(s => s.label === 'Mentorships')?.value || '0')
-        },
-        announcements: dashboardAnnouncements,
-        jobApplications: dashboardJobApplications as JobApplication[],
-        events: upcomingEvents.map((e, i) => ({ ...e, id: `mock-${i}` })),
-        fundings: dashboardProjectFundings as ProjectFunding[]
-      });
-
-      setUserProfile({
-        ...user,
-        firstName: 'Test',
-        lastName: 'User',
-        headline: 'Mock User Role',
-        id: 'mock-id',
-        email: mockCredentials.email,
-        profileComplete: true,
-        profilePicture: null,
-        resumeUrl: null
-      } as UserProfile);
-
-      setLoading(false);
-      return;
-    }
-
-    // Real user - fetch from API using simple approach like Events page
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    console.log('Fetching dashboard data...');
+    // Real user - fetch from API using the new services
     try {
-      console.log('Real user detected, fetching events and announcements...');
+      console.log('Fetching dashboard data from services...');
 
-      // Force fresh API calls with cache-busting
-      console.log('=== FORCE FRESH API CALLS ===');
-
-      // Fetch events and announcements (both working)
-      const [events, announcements, postsData] = await Promise.all([
-        apiClient.getAllEvents(),
-        apiClient.getAnnouncements(),
-        apiClient.getAllPosts().catch(() => []) // Fallback to empty array if posts fail
+      // Fetch all dashboard data in parallel
+      const [stats, announcements, jobApplications, events, allEvents, fundings, userProfile, fetchedPosts] = await Promise.all([
+        DashboardService.getStats().catch(() => null),
+        DashboardService.getAnnouncements().catch(() => []),
+        DashboardService.getJobApplications().catch(() => []),
+        DashboardService.getUpcomingEvents().catch(() => []),
+        apiClient.getAllEvents().catch(() => []),
+        DashboardService.getProjectFundings().catch(() => []),
+        ProfileService.getProfile().catch(() => null),
+        apiClient.getAllPosts(0, 5).catch(() => [])
       ]);
 
-      console.log('Events fetched successfully:', events);
-      console.log('Announcements fetched successfully:', announcements);
-      console.log('Posts fetched successfully:', postsData);
+      console.log('Dashboard stats fetched:', stats);
+      console.log('Dashboard announcements fetched:', announcements);
 
-      // Set posts state
-      setPosts(postsData);
-      console.log('Posts fetched and set:', postsData);
+      if (user?.role === 'ADMIN') {
+        const analytics = await apiClient.getAnalytics().catch(() => null);
+        if (analytics) {
+          setAdminStats(analytics);
+        }
+      }
+
+      setPosts(fetchedPosts);
+
+      // Merge RSVP status from user events into all events
+      const mergedEvents = allEvents.map((ae: any) => {
+        const rsvpEvent = events.find((e: any) => e.id === ae.id);
+        return rsvpEvent ? { ...ae, userRsvpStatus: rsvpEvent.userRsvpStatus } : ae;
+      });
 
       setDashboardData(prev => ({
         ...prev,
-        events: events,
-        announcements: announcements
+        stats,
+        announcements,
+        jobApplications,
+        events: mergedEvents,
+        fundings
       }));
 
-      console.log('Dashboard events and announcements updated');
-
-      // Fetch admin specific stats if admin
-      if (user?.role === 'ADMIN') {
-        try {
-          const [alumni, verifications, jobs, eventsList] = await Promise.all([
-            apiClient.getAllAlumni().catch(() => []),
-            apiClient.getVerifications().catch(() => []),
-            apiClient.getAllJobs().catch(() => []),
-            apiClient.getAllEvents().catch(() => [])
-          ]);
-
-          setAdminStats({
-            totalAlumni: alumni.length,
-            pendingVerifications: verifications.filter(u => u.verificationStatus === 'PENDING').length,
-            activeJobs: jobs.filter(j => j.active).length,
-            upcomingEvents: eventsList.length
-          });
-        } catch (adminErr) {
-          console.error('Failed to fetch admin stats:', adminErr);
-        }
+      if (userProfile) {
+        setUserProfile(userProfile);
       }
+
+      console.log('Dashboard data updated');
 
       // Force re-render
       setDataUpdateKey(prev => prev + 1);
 
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard data. Please refresh.',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -366,19 +332,22 @@ export default function Dashboard() {
     }
   };
 
-  // Use real user data or fallback to mock data
-  const isMockUser = user?.email === mockCredentials.email;
-
+  // Determine current user from profile or auth context
   const currentUser = userProfile ? {
     name: `${userProfile.firstName} ${userProfile.lastName}`,
     role: userProfile.headline || 'Alumni',
     initials: `${userProfile.firstName?.[0] || ''}${userProfile.lastName?.[0] || ''}`.toUpperCase(),
     avatar: userProfile.profilePicture ? getImageUrl(userProfile.profilePicture) : null
-  } : isMockUser ? dashboardUser : {
-    name: user ? `${user.firstName} ${user.lastName}` : 'User',
-    role: user?.headline || 'Alumni Member',
-    initials: user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() : 'U',
-    avatar: user?.profilePicture ? getImageUrl(user.profilePicture) : null
+  } : user ? {
+    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'User',
+    role: user.headline || user.role || 'Alumni Member',
+    initials: `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase(),
+    avatar: user.profilePicture ? getImageUrl(user.profilePicture) : null
+  } : {
+    name: 'User',
+    role: 'Alumni Member',
+    initials: 'U',
+    avatar: null
   };
 
   if (loading) {
@@ -419,8 +388,7 @@ export default function Dashboard() {
               <RefreshCw className="h-4 w-4 text-gray-600" />
             </Button>
             <div className="relative">
-              <Bell className="h-6 w-6 text-gray-600 hover:text-dsce-blue cursor-pointer transition-colors" />
-              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-dsce-bg-light"></span>
+              {/* Notification bell removed per request */}
             </div>
           </div>
         </header>
@@ -733,102 +701,112 @@ export default function Dashboard() {
                       </div>
 
                       {/* Comment Section */}
-                      {commentingPostId === post.id && (
-                        <div className="border-t border-dsce-blue/10 pt-4 mt-4">
-                          <div className="flex space-x-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center flex-shrink-0">
-                              <span className="text-white text-sm font-semibold">
-                                {currentUser.initials}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <textarea
-                                value={commentText}
-                                onChange={(e) => setCommentText(e.target.value)}
-                                placeholder="Write a comment..."
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue/50 text-sm"
-                                rows={2}
-                              />
-                              <div className="flex justify-end mt-2 space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setCommentingPostId(null);
-                                    setCommentText('');
-                                  }}
-                                  className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={() => handleCommentSubmit(post.id)}
-                                  disabled={!commentText.trim()}
-                                  className="px-3 py-1 text-sm bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  Comment
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Comments List */}
-                      {comments[post.id] && comments[post.id].length > 0 && (
-                        <div className="mt-4 space-y-3">
-                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Comments ({comments[post.id].length})
-                          </div>
-                          {comments[post.id].map((comment) => (
-                            <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
-                              <div className="flex-shrink-0">
-                                {comment.authorAvatar ? (
-                                  <img
-                                    src={comment.authorAvatar}
-                                    alt={comment.authorName}
-                                    className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                      <AnimatePresence>
+                        {commentingPostId === post.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="border-t border-dsce-blue/10 pt-4 mt-4">
+                              <div className="flex space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center flex-shrink-0">
+                                  <span className="text-white text-sm font-semibold">
+                                    {currentUser.initials}
+                                  </span>
+                                </div>
+                                <div className="flex-1">
+                                  <textarea
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                    placeholder="Write a comment..."
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-dsce-blue/50 text-sm"
+                                    rows={2}
                                   />
-                                ) : (
-                                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-gray-200">
-                                    <span className="text-white text-xs font-bold">
-                                      {comment.authorName ? comment.authorName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'AL'}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-900">{comment.authorName}</span>
-                                    {comment.authorRole && (
-                                      <span className="text-xs text-gray-500">• {comment.authorRole}</span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500">
-                                      {new Date(comment.createdAt).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </span>
-                                    {(comment.isAuthor || user?.role === 'ADMIN') && (
-                                      <button
-                                        onClick={() => handleDeleteComment(post.id, comment.id)}
-                                        className="text-gray-400 hover:text-red-500 transition-colors ml-2"
-                                        title="Delete comment"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </button>
-                                    )}
+                                  <div className="flex justify-end mt-2 space-x-2">
+                                    <button
+                                      onClick={() => {
+                                        setCommentingPostId(null);
+                                        setCommentText('');
+                                      }}
+                                      className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => handleCommentSubmit(post.id)}
+                                      disabled={!commentText.trim()}
+                                      className="px-3 py-1 text-sm bg-dsce-blue hover:bg-dsce-blue/90 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      Comment
+                                    </button>
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-700 break-words">{comment.content}</p>
                               </div>
+                              
+                              {/* Comments List */}
+                              {comments[post.id] && comments[post.id].length > 0 && (
+                                <div className="mt-4 space-y-3">
+                                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                    Comments ({comments[post.id].length})
+                                  </div>
+                                  {comments[post.id].map((comment) => (
+                                    <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
+                                      <div className="flex-shrink-0">
+                                        {comment.authorAvatar ? (
+                                          <img
+                                            src={comment.authorAvatar}
+                                            alt={comment.authorName}
+                                            className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                                          />
+                                        ) : (
+                                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-gray-200">
+                                            <span className="text-white text-xs font-bold">
+                                              {comment.authorName ? comment.authorName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'AL'}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-900">{comment.authorName}</span>
+                                            {comment.authorRole && (
+                                              <span className="text-xs text-gray-500">• {comment.authorRole}</span>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500">
+                                              {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                              })}
+                                            </span>
+                                            {(comment.isAuthor || user?.role === 'ADMIN') && (
+                                              <button
+                                                onClick={() => handleDeleteComment(post.id, comment.id)}
+                                                className="text-gray-400 hover:text-red-500 transition-colors ml-2"
+                                                title="Delete comment"
+                                              >
+                                                <Trash2 className="w-3 h-3" />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <p className="text-sm text-gray-700 break-words">{comment.content}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   ))
                 ) : (

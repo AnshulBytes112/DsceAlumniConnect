@@ -2,53 +2,40 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Plus, Search, Briefcase, RefreshCw, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiClient } from '../lib/api';
-import type { JobPostDTO } from '../lib/api';
+import { JobsService, type JobPostDTO } from '../services/authService';
+import { useAsync } from '@/hooks/useAsync';
+import { SkeletonGrid } from '@/components/ui/Skeleton';
 import JobCard from '../components/JobCard';
-import { mockJobs } from '../data/mockData';
 import CreateJobModal from '../components/CreateJobModal';
 import MotionWrapper from '../components/ui/MotionWrapper';
 import { Button } from '../components/ui/Button';
 
 const Jobs = () => {
     const [jobs, setJobs] = useState<JobPostDTO[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const { data, loading, error, execute: fetchJobs } = useAsync<JobPostDTO[]>(
+        async () => {
+            if (filter === 'my-jobs') return await JobsService.getMyJobs();
+            return await JobsService.getAllJobs();
+        },
+        false
+    );
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filter, setFilter] = useState('all'); // all, my-jobs
     const [search, setSearch] = useState('');
 
-    const fetchJobs = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            let data: JobPostDTO[];
-            if (filter === 'my-jobs') {
-                data = await apiClient.getMyJobs();
-            } else {
-                data = await apiClient.getAllJobs();
-            }
-            // Sort by created date desc if not already
+    // Sync local jobs state when async data arrives
+    useEffect(() => {
+        if (data && Array.isArray(data)) {
+            // Sort newest first
             data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-            // Fallback to mock data if no jobs found from API
-            if (data.length === 0 && filter === 'all') {
-                console.log('No jobs from API, using mock data');
-                setJobs(mockJobs as JobPostDTO[]);
-            } else {
-                setJobs(data);
-            }
-        } catch (err) {
-            setError('Failed to load jobs');
-            console.error(err);
-        } finally {
-            setLoading(false);
+            setJobs(data);
         }
-    };
+    }, [data]);
 
+    // Fetch when filter changes
     useEffect(() => {
         fetchJobs();
-    }, [filter]);
+    }, [filter, fetchJobs]);
 
     const handleJobCreated = () => {
         fetchJobs();
@@ -180,11 +167,7 @@ const Jobs = () => {
                     </div>
 
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[1, 2, 3, 4, 5, 6].map((i) => (
-                                <div key={i} className="h-64 bg-white rounded-2xl animate-pulse border border-gray-100 shadow-sm"></div>
-                            ))}
-                        </div>
+                        <SkeletonGrid count={6} />
                     ) : error ? (
                         <div className="text-center py-20 bg-white rounded-3xl border border-red-100 shadow-sm">
                             <p className="text-red-500 mb-4">{error}</p>

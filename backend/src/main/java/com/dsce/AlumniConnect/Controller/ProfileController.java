@@ -49,7 +49,7 @@ public class ProfileController {
 
             // Update profile picture if provided
             if (profilePicture != null && !profilePicture.isEmpty()) {
-                user = profileService.updateProfilePicture(profilePicture);
+                user = profileService.updateProfilePicture(profilePicture).join();
             }
 
             // Update profile data if provided
@@ -60,7 +60,7 @@ public class ProfileController {
 
             // Upload and parse resume if provided
             if (resume != null && !resume.isEmpty()) {
-                user = profileService.updateProfileFromResume(resume, false); // Don't replace existing data
+                user = profileService.updateProfileFromResume(resume, false).join(); // Don't replace existing data
             }
 
             return ResponseEntity.ok(user);
@@ -73,7 +73,7 @@ public class ProfileController {
 
     // Update profile manually
     @PutMapping
-    public ResponseEntity<?> updateProfile(@RequestBody ProfileUpdateRequest request) {
+    public ResponseEntity<?> updateProfile(@jakarta.validation.Valid @RequestBody ProfileUpdateRequest request) {
         try {
             log.info("Profile update request received");
             User updatedUser = profileService.updateProfile(request);
@@ -93,15 +93,11 @@ public class ProfileController {
     public ResponseEntity<?> updateProfilePicture(@RequestParam("file") MultipartFile file) {
         try {
             log.info("Profile picture update request received");
-            User updatedUser = profileService.updateProfilePictureOnly(file);
+            User updatedUser = profileService.updateProfilePictureOnly(file).join();
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(e.getMessage()));
-        } catch (IOException e) {
-            log.error("Error uploading profile picture: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Failed to upload profile picture: " + e.getMessage()));
         } catch (Exception e) {
             log.error("Error updating profile picture: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -116,19 +112,15 @@ public class ProfileController {
             @RequestParam(value = "replaceExisting", defaultValue = "false") boolean replaceExisting) {
         try {
             log.info("Resume upload and parse request received, replaceExisting: {}", replaceExisting);
-            User updatedUser = profileService.updateProfileFromResume(file, replaceExisting);
+            User updatedUser = profileService.updateProfileFromResume(file, replaceExisting).join();
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(e.getMessage()));
-        } catch (IOException e) {
-            log.error("Error uploading resume: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Failed to upload resume: " + e.getMessage()));
         } catch (Exception e) {
             log.error("Error updating profile from resume: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Failed to update profile from resume: " + e.getMessage()));
+                    .body(new ErrorResponse("Failed to upload resume: " + e.getMessage()));
         }
     }
 
@@ -156,19 +148,15 @@ public class ProfileController {
             @RequestParam("file") MultipartFile file) {
         try {
             log.info("Resume upload and parse request received with replaceExisting=true");
-            User updatedUser = profileService.updateProfileFromResume(file, true);
+            User updatedUser = profileService.updateProfileFromResume(file, true).join();
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(e.getMessage()));
-        } catch (IOException e) {
-            log.error("Error uploading resume: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Failed to upload resume: " + e.getMessage()));
         } catch (Exception e) {
             log.error("Error updating profile from resume: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Failed to update profile from resume: " + e.getMessage()));
+                    .body(new ErrorResponse("Failed to upload resume: " + e.getMessage()));
         }
     }
 }

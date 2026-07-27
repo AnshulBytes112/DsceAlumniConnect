@@ -169,8 +169,8 @@ public class PostController {
         try {
             log.info("Uploading image for user: {}", authentication.getName());
 
-            // Upload via Cloudinary
-            String imageUrl = fileStorageService.uploadPostImage(file);
+            // Upload via Cloudinary asynchronously
+            String imageUrl = fileStorageService.uploadPostImage(file).join();
 
             log.info("Successfully uploaded image to Cloudinary: {}", imageUrl);
 

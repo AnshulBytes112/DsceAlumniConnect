@@ -3,12 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { Calendar, MoreHorizontal, Bell, Clock, Users, Briefcase, BookOpen, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { apiClient, type UserProfile } from '@/lib/api';
+import { DashboardService, ProfileService } from '@/services/authService';
 import ImageModal from '@/components/ui/ImageModal';
-import { 
-  dashboardUser,
-  homePageGallery
-} from '@/data/mockData';
 
 import MotionWrapper from '@/components/ui/MotionWrapper';
 
@@ -49,7 +45,7 @@ interface ProjectFunding {
 }
 
 export default function HomeAuthenticated() {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<any | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<{
@@ -78,12 +74,12 @@ export default function HomeAuthenticated() {
           events,
           fundings
         ] = await Promise.all([
-          apiClient.getProfile(),
-          apiClient.getDashboardStats(),
-          apiClient.getAnnouncements(),
-          apiClient.getJobApplications(),
-          apiClient.getUpcomingEvents(),
-          apiClient.getProjectFundings()
+          ProfileService.getProfile().catch(() => null),
+          DashboardService.getStats().catch(() => null),
+          DashboardService.getAnnouncements().catch(() => []),
+          DashboardService.getJobApplications().catch(() => []),
+          DashboardService.getUpcomingEvents().catch(() => []),
+          DashboardService.getProjectFundings().catch(() => [])
         ]);
 
         setUserProfile(profile);

@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { mockAlumni, campusMemories, upcomingEvents } from '@/data/mockData';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 import ImageModal from '@/components/ui/ImageModal';
+import { ProfileService } from '@/services/authService';
+import { useAsync } from '@/hooks/useAsync';
+import { SkeletonGrid } from '@/components/ui/Skeleton';
 
 const TABS = [
 	{ label: 'Achievers', value: 'achievers' },
@@ -13,6 +15,18 @@ const TABS = [
 export default function Gallery() {
 	const [tab, setTab] = useState('achievers');
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+	const { data: alumni, loading, error, retry } = useAsync<any[]>(
+		() => ProfileService.getAllAlumni(),
+		false
+	);
+
+	// Fetch when tab becomes achievers
+	if (tab === 'achievers' && !loading && !alumni && !error) {
+		// trigger fetch once when needed
+		// useAsync returns execute as a method, but we can call retry() which invokes execute
+		retry();
+	}
 
 	return (
 		<>
@@ -33,55 +47,36 @@ export default function Gallery() {
 				{tab === 'achievers' && (
 					<div>
 						<h2 className="text-2xl font-bold mb-6 text-center">Notable Achievers</h2>
-						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-							{mockAlumni.map((alumni) => (
-								<div key={alumni.id} className="bg-white rounded-xl shadow p-4 flex flex-col items-center border border-dsce-blue/10">
-									{alumni.image ? (
-										<img src={alumni.image} alt={alumni.name} className="w-32 h-32 object-cover rounded-full mb-4" />
-									) : (
-										<div className="w-32 h-32 rounded-full bg-dsce-blue flex items-center justify-center text-white text-3xl font-bold mb-4">
-											{alumni.name.split(' ').map(n => n[0]).join('')}
+						{loading ? (
+							<SkeletonGrid count={8} />
+						) : error ? (
+							<div className="text-center py-12 bg-white rounded-3xl border border-red-100 shadow-sm">
+								<p className="text-red-500 mb-4">{error}</p>
+								<Button variant="outline" onClick={() => retry()} className="text-dsce-blue border-dsce-blue">Try Again</Button>
+							</div>
+						) : (!alumni || alumni.length === 0) ? (
+							<div className="text-center text-gray-500">No alumni found</div>
+						) : (
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+								{alumni.map((alum: any) => (
+									<div key={alum.id} className="bg-white rounded-xl shadow p-4 flex flex-col items-center border border-dsce-blue/10">
+										{alum.profilePicture ? (
+											<img src={alum.profilePicture} alt={alum.firstName} className="w-32 h-32 object-cover rounded-full mb-4" />
+										) : (
+											<div className="w-32 h-32 rounded-full bg-dsce-blue flex items-center justify-center text-white text-3xl font-bold mb-4">
+												{(alum.firstName?.[0] || 'A') + (alum.lastName?.[0] || 'A')}
+											</div>
+										)}
+										<div className="text-center">
+											<h3 className="font-bold text-lg">{alum.firstName} {alum.lastName}</h3>
+											<p className="text-sm text-dsce-gold">{alum.graduationYear || 'Year unknown'}</p>
+											<p className="text-sm text-gray-700">{alum.headline || 'Professional'}</p>
+											<p className="text-xs text-gray-500">{alum.location || 'Location unknown'}</p>
 										</div>
-									)}
-									<div className="text-center">
-										<h3 className="font-bold text-lg">{alumni.name}</h3>
-										<p className="text-sm text-dsce-gold">Class of {alumni.graduationYear}</p>
-										<p className="text-sm text-gray-700">{alumni.position}</p>
-										<p className="text-xs text-gray-500">{alumni.company}</p>
 									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				)}
-
-				{tab === 'campus' && (
-					<div>
-						<h2 className="text-2xl font-bold mb-6 text-center">Campus Memories</h2>
-						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-							{campusMemories.map((img, i) => (
-								<div key={i} className="overflow-hidden rounded-xl shadow cursor-pointer" onClick={() => setSelectedImage(img)}>
-									<img src={img} alt={`Campus ${i + 1}`} className="w-full h-64 object-cover hover:scale-110 transition-transform duration-300" />
-								</div>
-							))}
-						</div>
-					</div>
-				)}
-
-				{tab === 'events' && (
-					<div>
-						<h2 className="text-2xl font-bold mb-6 text-center">Event Highlights</h2>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-							{upcomingEvents.map((event) => (
-								<div key={event.id} className="bg-white rounded-xl shadow p-6 border border-dsce-blue/10">
-									<h3 className="font-bold text-lg mb-2">{event.title}</h3>
-									<p className="text-sm text-gray-700 mb-1">{event.day} {event.month} | {event.time}</p>
-									<p className="text-xs text-gray-500 mb-2">{event.location}</p>
-									<p className="text-gray-600 mb-2">{event.description}</p>
-									<div className="text-xs text-dsce-blue font-semibold">Organized by: {event.organizerName}</div>
-								</div>
-							))}
-						</div>
+								))}
+							</div>
+						)}
 					</div>
 				)}
 

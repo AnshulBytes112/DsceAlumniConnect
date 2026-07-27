@@ -1,6 +1,9 @@
 package com.dsce.AlumniConnect.DTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,10 +16,20 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true) // Ignore unknown fields like "resume", "profilePicture" that are sent
                                             // separately
 public class ProfileUpdateRequest {
+    @NotBlank(message = "First name is required")
+    @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
     private String firstName;
+    
+    @NotBlank(message = "Last name is required")
+    @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
     private String lastName;
+    
+    @Size(max = 500, message = "Bio cannot exceed 500 characters")
     private String bio;
+    
+    @Pattern(regexp = "^[0-9\\s\\-\\+\\(\\)]*$", message = "Contact number format is invalid")
     private String contactNumber;
+    
     private String linkedinProfile;
     private String website;
     private String location;

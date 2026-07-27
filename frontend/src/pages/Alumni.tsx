@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { Search, Users, Calendar, MapPin, Award, GraduationCap, Filter, X, Linkedin, Mail, Briefcase, Building2, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiClient, type UserProfile, getImageUrl } from '@/lib/api';
+import { type UserProfile, getImageUrl } from '@/lib/api';
+import { ProfileService } from '@/services/authService';
+import { useAsync } from '@/hooks/useAsync';
 import AlumniMap from '@/components/AlumniMap';
 
 export default function Alumni() {
@@ -16,28 +18,17 @@ export default function Alumni() {
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
-    const [realAlumni, setRealAlumni] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data: realAlumni, loading, error, retry } = useAsync<UserProfile[]>(
+        () => ProfileService.getAllAlumni(),
+        false
+    );
 
-    // Fetch real alumni data on component mount
     useEffect(() => {
-        const fetchAlumni = async () => {
-            try {
-                console.log('Fetching alumni from backend...');
-                const alumni = await apiClient.getAllAlumni();
-                console.log('Received alumni:', alumni);
-                setRealAlumni(alumni);
-            } catch (error) {
-                console.warn('Failed to fetch real alumni, using mock data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchAlumni();
+        if (!loading && !realAlumni && !error) retry();
     }, []);
 
     // Combine real alumni with mock data
-    const mappedRealAlumni = realAlumni.map(user => {
+    const mappedRealAlumni = (realAlumni || []).map(user => {
         const currentWork = user.workExperiences?.[0];
         const achievements = [];
 
@@ -82,7 +73,7 @@ export default function Alumni() {
     const years = [...new Set(allAlumni.map(a => a.graduationYear))].sort((a, b) => b - a);
     const departments = [...new Set(allAlumni.map(a => a.department))].sort();
     const companies = [...new Set(allAlumni.map(a => a.company))].sort();
-    const allSkills = [...new Set(realAlumni.flatMap(alum => [...(alum.skills || []), ...(alum.featuredSkills?.map(fs => fs.skill) || [])]))].sort();
+    const allSkills = [...new Set((realAlumni || []).flatMap(alum => [...(alum.skills || []), ...(alum.featuredSkills?.map(fs => fs.skill) || [])]))].sort();
 
     const filteredAlumni = allAlumni.filter(alum => {
         const matchesSearch = alum.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -96,7 +87,7 @@ export default function Alumni() {
         // For skills filtering, we need to check the original real alumni data
         let matchesSkills = true;
         if (selectedSkills.length > 0 && 'isReal' in alum && alum.isReal) {
-            const realAlum = realAlumni.find(ra => ra.id === alum.id.split('-')[0]);
+            const realAlum = (realAlumni || []).find(ra => ra.id === alum.id.split('-')[0]);
             if (realAlum) {
                 matchesSkills = selectedSkills.every(skill => 
                     realAlum.skills?.includes(skill) || realAlum.featuredSkills?.some(fs => fs.skill === skill)

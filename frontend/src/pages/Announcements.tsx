@@ -1,38 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Calendar, Loader2, Settings } from 'lucide-react';
-import { apiClient, type AnnouncementDTO } from '@/lib/api';
+import { Bell, Calendar, Settings } from 'lucide-react';
+import { type AnnouncementDTO } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { useAsync } from '@/hooks/useAsync';
+import { DashboardService } from '@/services/authService';
+import { SkeletonGrid } from '@/components/ui/Skeleton';
 
 const Announcements = () => {
-  const [announcements, setAnnouncements] = useState<AnnouncementDTO[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const data = await apiClient.getAnnouncements();
-        setAnnouncements(data);
-      } catch (error) {
-        console.error('Failed to fetch announcements', error);
-        toast({
-          title: "Error",
-          description: "Failed to load announcements.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: announcements, loading, error, retry } = useAsync<AnnouncementDTO[]>(
+    () => DashboardService.getAnnouncements(),
+    false
+  );
 
-    fetchAnnouncements();
-  }, [toast]);
+  useEffect(() => {
+    // auto-fetch on mount
+    if (!loading && !announcements && !error) retry();
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      toast({ title: 'Error', description: String(error), variant: 'destructive' });
+    }
+  }, [error, toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light text-gray-800">
@@ -58,9 +55,9 @@ const Announcements = () => {
 
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="w-10 h-10 animate-spin text-dsce-blue" />
+            <SkeletonGrid count={3} />
           </div>
-        ) : announcements.length === 0 ? (
+        ) : (!announcements || announcements.length === 0) ? (
           <div className="text-center py-20 text-gray-500 bg-white/50 rounded-3xl border border-dsce-blue/10">
             <Bell className="w-12 h-12 mx-auto mb-4 text-dsce-blue/30" />
             <p className="text-lg font-medium">No announcements yet.</p>

@@ -3,7 +3,6 @@ package com.dsce.AlumniConnect.Service;
 import com.dsce.AlumniConnect.DTO.ResumeParserResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -12,9 +11,6 @@ import java.nio.file.Paths;
 @Slf4j
 @Service
 public class ResumeParserService {
-
-    @Value("${file.upload.base-dir:./uploads_data}")
-    private String baseUploadDir;
 
     @Autowired
     private GeminiResumeService geminiResumeService;
@@ -49,11 +45,4 @@ public class ResumeParserService {
         }
     }
 
-    public ResumeParserResponse parseResumeFromRelativePath(String relativePath) throws Exception {
-        if (relativePath != null && (relativePath.startsWith("http://") || relativePath.startsWith("https://"))) {
-            return parseResume(relativePath);
-        }
-        Path fullPath = Paths.get(baseUploadDir, relativePath);
-        return parseResume(fullPath.toAbsolutePath().toString());
-    }
 }

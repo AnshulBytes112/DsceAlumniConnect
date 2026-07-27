@@ -27,7 +27,7 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventDTO> createEvent(@RequestBody EventDTO eventDTO) {
+    public ResponseEntity<EventDTO> createEvent(@jakarta.validation.Valid @RequestBody EventDTO eventDTO) {
         return ResponseEntity.ok(eventService.createEvent(eventDTO));
     }
 

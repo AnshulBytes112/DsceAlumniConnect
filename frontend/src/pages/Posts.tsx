@@ -424,81 +424,91 @@ export default function Posts() {
                   </div>
 
                   {/* Comment Section */}
-                  {commentingPostId === post.id && (
-                    <div className="border-t border-dsce-blue/10 pt-4 mt-4">
-                      <div className="space-y-3">
-                        {/* Comment Input */}
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            placeholder="Add a comment..."
-                            className="flex-1 px-3 py-2 border border-dsce-blue/20 rounded-lg text-sm focus:outline-none focus:border-dsce-blue"
-                            onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
-                          />
-                          <button
-                            onClick={() => handleCommentSubmit(post.id)}
-                            disabled={!commentText.trim()}
-                            className="px-4 py-2 bg-dsce-gold text-dsce-blue rounded-lg text-sm font-semibold hover:bg-dsce-gold-hover disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            Post
-                          </button>
-                        </div>
-
-                        {/* Comments List */}
-                        {comments[post.id]?.map((comment) => (
-                          <div key={comment.id} className="flex gap-3 p-3 bg-dsce-bg-cream rounded-lg border border-dsce-blue/10">
-                            <div className="flex-shrink-0">
-                              {comment.authorAvatar ? (
-                                <img
-                                  src={comment.authorAvatar}
-                                  alt={comment.authorName}
-                                  className="h-8 w-8 rounded-full object-cover border border-dsce-blue/20"
-                                />
-                              ) : (
-                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-dsce-blue/20">
-                                  <span className="text-white text-xs font-bold">
-                                    {comment.authorName ? comment.authorName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'AL'}
-                                  </span>
-                                </div>
-                              )}
+                  <AnimatePresence>
+                    {commentingPostId === post.id && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="border-t border-dsce-blue/10 pt-4 mt-4">
+                          <div className="space-y-3">
+                            {/* Comment Input */}
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                placeholder="Add a comment..."
+                                className="flex-1 px-3 py-2 border border-dsce-blue/20 rounded-lg text-sm focus:outline-none focus:border-dsce-blue"
+                                onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
+                              />
+                              <button
+                                onClick={() => handleCommentSubmit(post.id)}
+                                disabled={!commentText.trim()}
+                                className="px-4 py-2 bg-dsce-gold text-dsce-blue rounded-lg text-sm font-semibold hover:bg-dsce-gold-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Post
+                              </button>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-dsce-text-dark">{comment.authorName}</span>
-                                  {comment.authorRole && (
-                                    <span className="text-xs text-gray-500">• {comment.authorRole}</span>
+
+                            {/* Comments List */}
+                            {comments[post.id]?.map((comment) => (
+                              <div key={comment.id} className="flex gap-3 p-3 bg-dsce-bg-cream rounded-lg border border-dsce-blue/10">
+                                <div className="flex-shrink-0">
+                                  {comment.authorAvatar ? (
+                                    <img
+                                      src={comment.authorAvatar}
+                                      alt={comment.authorName}
+                                      className="h-8 w-8 rounded-full object-cover border border-dsce-blue/20"
+                                    />
+                                  ) : (
+                                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-dsce-blue to-dsce-light-blue flex items-center justify-center border border-dsce-blue/20">
+                                      <span className="text-white text-xs font-bold">
+                                        {comment.authorName ? comment.authorName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'AL'}
+                                      </span>
+                                    </div>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">
-                                    {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    }) : 'Just now'}
-                                  </span>
-                                  {(comment.isAuthor || user?.role === 'ADMIN') && (
-                                    <button
-                                      onClick={() => handleDeleteComment(post.id, comment.id)}
-                                      className="text-gray-400 hover:text-red-500 transition-colors ml-2"
-                                      title="Delete comment"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </button>
-                                  )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium text-dsce-text-dark">{comment.authorName}</span>
+                                      {comment.authorRole && (
+                                        <span className="text-xs text-gray-500">• {comment.authorRole}</span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-gray-500">
+                                        {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        }) : 'Just now'}
+                                      </span>
+                                      {(comment.isAuthor || user?.role === 'ADMIN') && (
+                                        <button
+                                          onClick={() => handleDeleteComment(post.id, comment.id)}
+                                          className="text-gray-400 hover:text-red-500 transition-colors ml-2"
+                                          title="Delete comment"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-dsce-text-dark break-words">{comment.content}</p>
                                 </div>
                               </div>
-                              <p className="text-sm text-dsce-text-dark break-words">{comment.content}</p>
-                            </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             ))

@@ -5,9 +5,9 @@ import com.dsce.AlumniConnect.DTO.PostResponse;
 import com.dsce.AlumniConnect.DTO.UpdatePostRequest;
 import com.dsce.AlumniConnect.entity.Post;
 import com.dsce.AlumniConnect.entity.User;
+import com.dsce.AlumniConnect.Repository.CommentRepository;
 import com.dsce.AlumniConnect.Repository.PostRepository;
 import com.dsce.AlumniConnect.Repository.UserRepository;
-import com.dsce.AlumniConnect.util.ImageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -26,8 +26,9 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final UserRepository userRepository;
-    private final ImageUtil imageUtil;
+    private final FileStorageService fileStorageService;
 
     public List<PostResponse> getAllPosts(String userEmail, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -62,12 +63,10 @@ public class PostService {
         List<String> mediaUrls = new ArrayList<>();
         if (request.getMedia() != null) {
             for (String mediaItem : request.getMedia()) {
-                if (ImageUtil.isBase64Image(mediaItem)) {
-                    // Convert base64 to file and get URL
-                    String imageUrl = imageUtil.saveBase64Image(mediaItem);
+                if (mediaItem != null && mediaItem.startsWith("data:image/")) {
+                    String imageUrl = fileStorageService.uploadBase64Image(mediaItem).join();
                     mediaUrls.add(imageUrl);
                 } else {
-                    // Already a URL, add as-is
                     mediaUrls.add(mediaItem);
                 }
             }
@@ -223,7 +222,11 @@ public class PostService {
         response.setContent(post.getContent());
         response.setCreatedAt(post.getCreatedAt());
         response.setLikes(post.getLikes());
-        response.setComments(post.getComments());
+        
+        // Ensure comment count is always accurate regardless of concurrency issues
+        Long actualCommentCount = commentRepository.countByPostIdAndIsDeletedFalse(post.getId());
+        response.setComments(actualCommentCount != null ? actualCommentCount.intValue() : 0);
+        
         response.setShares(post.getShares());
         response.setMedia(post.getMedia());
         response.setHashtags(post.getHashtags());

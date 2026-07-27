@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -140,67 +141,65 @@ public class ProfileService {
     }
 
     // Update profile picture
-    public User updateProfilePicture(MultipartFile profilePicture) throws IOException {
+    public CompletableFuture<User> updateProfilePicture(MultipartFile profilePicture) {
         User user = getCurrentUserProfile();
 
-        if (profilePicture != null && !profilePicture.isEmpty()) {
-            // Delete old profile picture if exists
-            if (user.getProfilePicture() != null) {
-                fileStorageService.deleteFile(user.getProfilePicture());
-            }
-
-            String profilePicturePath = fileStorageService.uploadProfilePicture(profilePicture);
-            user.setProfilePicture(profilePicturePath);
-            user.setUpdatedAt(LocalDateTime.now());
-            return userRepository.save(user);
+        if (profilePicture == null || profilePicture.isEmpty()) {
+            throw new IllegalArgumentException("Profile picture is required");
         }
 
-        throw new IllegalArgumentException("Profile picture is required");
+        if (user.getProfilePicture() != null) {
+            fileStorageService.deleteFile(user.getProfilePicture());
+        }
+
+        return fileStorageService.uploadProfilePicture(profilePicture)
+                .thenApply(profilePicturePath -> {
+                    user.setProfilePicture(profilePicturePath);
+                    user.setUpdatedAt(LocalDateTime.now());
+                    return userRepository.save(user);
+                });
     }
 
     // Update profile picture without requiring profile completion
-    public User updateProfilePictureOnly(MultipartFile profilePicture) throws IOException {
+    public CompletableFuture<User> updateProfilePictureOnly(MultipartFile profilePicture) {
         User user = getCurrentUserProfile();
 
-        if (profilePicture != null && !profilePicture.isEmpty()) {
-            // Delete old profile picture if exists
-            if (user.getProfilePicture() != null) {
-                fileStorageService.deleteFile(user.getProfilePicture());
-            }
-
-            String profilePicturePath = fileStorageService.uploadProfilePicture(profilePicture);
-            user.setProfilePicture(profilePicturePath);
-            user.setUpdatedAt(LocalDateTime.now());
-            return userRepository.save(user);
+        if (profilePicture == null || profilePicture.isEmpty()) {
+            throw new IllegalArgumentException("Profile picture is required");
         }
 
-        throw new IllegalArgumentException("Profile picture is required");
+        if (user.getProfilePicture() != null) {
+            fileStorageService.deleteFile(user.getProfilePicture());
+        }
+
+        return fileStorageService.uploadProfilePicture(profilePicture)
+                .thenApply(profilePicturePath -> {
+                    user.setProfilePicture(profilePicturePath);
+                    user.setUpdatedAt(LocalDateTime.now());
+                    return userRepository.save(user);
+                });
     }
 
     // Upload and parse resume to update profile
-    public User updateProfileFromResume(MultipartFile resume, boolean replaceExisting) throws IOException {
+    public CompletableFuture<User> updateProfileFromResume(MultipartFile resume, boolean replaceExisting) {
         User user = getCurrentUserProfile();
 
         if (resume == null || resume.isEmpty()) {
             throw new IllegalArgumentException("Resume file is required");
         }
 
-        // Upload resume
-        String resumePath = fileStorageService.uploadResume(resume);
+        return fileStorageService.uploadResume(resume)
+                .thenApply(resumePath -> {
+                    if (replaceExisting && user.getResumeUrl() != null) {
+                        fileStorageService.deleteFile(user.getResumeUrl());
+                    }
 
-        // Delete old resume if replacing
-        if (replaceExisting && user.getResumeUrl() != null) {
-            fileStorageService.deleteFile(user.getResumeUrl());
-        }
-
-        user.setResumeUrl(resumePath);
-
-        // Parse resume and update profile
-        parseAndUpdateProfile(user, resumePath, replaceExisting);
-
-        user.setUpdatedAt(LocalDateTime.now());
-        markProfileAsCompleteIfReady(user);
-        return userRepository.save(user);
+                    user.setResumeUrl(resumePath);
+                    parseAndUpdateProfile(user, resumePath, replaceExisting);
+                    user.setUpdatedAt(LocalDateTime.now());
+                    markProfileAsCompleteIfReady(user);
+                    return userRepository.save(user);
+                });
     }
 
     // Parse existing resume and update profile
@@ -222,11 +221,13 @@ public class ProfileService {
     // Helper method to parse resume and update user profile
     private void parseAndUpdateProfile(User user, String resumePath, boolean replaceExisting) {
         try {
-            String targetPath = resumePath;
-            if (resumePath != null && !resumePath.startsWith("http://") && !resumePath.startsWith("https://")) {
-                targetPath = fileStorageService.getFilePath(resumePath).toAbsolutePath().toString();
+            if (resumePath == null || resumePath.isEmpty()) {
+                throw new IllegalArgumentException("Resume path is required for parsing");
             }
-            ResumeParserResponse parsedResume = resumeParserService.parseResume(targetPath);
+            if (!resumePath.startsWith("http://") && !resumePath.startsWith("https://")) {
+                throw new IllegalArgumentException("Local resume paths are no longer supported. Use Cloudinary URLs only.");
+            }
+            ResumeParserResponse parsedResume = resumeParserService.parseResume(resumePath);
 
             log.info("Parsed resume data - Profile: {}, WorkExps: {}, Educations: {}, Projects: {}, Skills: {}",
                     parsedResume.getProfile() != null ? "present" : "null",

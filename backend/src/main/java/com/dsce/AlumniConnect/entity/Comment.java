@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -20,18 +22,27 @@ public class Comment {
     @Id
     private String id;
     
-    @NotBlank(message = "Post ID is required")
+    // Post reference - new DBRef pattern
+    @DBRef(lazy = true)
+    private Post post;
+    
+    // Post ID - indexed for fast queries on comments per post
+    @Indexed
     private String postId;
     
-    @NotBlank(message = "Author ID is required")
+    // Author reference - new DBRef pattern
+    @DBRef(lazy = true)
+    private User author;
+    
+    // Author ID - indexed for fast queries on comments by author
+    @Indexed
     private String authorId;
     
-    @NotBlank(message = "Author name is required")
-    private String authorName;
+    private String authorName; // Denormalized for display
     
-    private String authorAvatar;
+    private String authorAvatar; // Denormalized for display
     
-    private String authorRole;
+    private String authorRole; // Denormalized for display
     
     @NotBlank(message = "Comment content is required")
     @Size(max = 1000, message = "Comment content cannot exceed 1000 characters")

@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "events")
 @Data
@@ -32,6 +34,7 @@ public class Event {
     private String createDate;
     private String updateDate;
     private LocalDateTime eventDate;
+    @Indexed
     private boolean featured = false; // Admin can feature events
     private String imageUrl; // Poster image for the event
     
@@ -39,4 +42,7 @@ public class Event {
     private Integer likes = 0;
     private Integer views = 0;
     private Integer comments = 0;
+
+    // Child collection - RSVPs for this event
+    private List<String> rsvpIds; // EventRSVP IDs for cascade delete when event deleted
 }

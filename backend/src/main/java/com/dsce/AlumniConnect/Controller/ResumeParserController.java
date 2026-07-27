@@ -2,7 +2,6 @@ package com.dsce.AlumniConnect.Controller;
 
 import com.dsce.AlumniConnect.DTO.ErrorResponse;
 import com.dsce.AlumniConnect.DTO.ResumeParserResponse;
-import com.dsce.AlumniConnect.Service.FileStorageService;
 import com.dsce.AlumniConnect.Service.ResumeParserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Locale;
 
 @Slf4j
@@ -20,9 +20,6 @@ public class ResumeParserController {
 
     @Autowired
     private ResumeParserService resumeParserService;
-
-    @Autowired
-    private FileStorageService fileStorageService;
 
     private boolean isGeminiQuotaError(Exception e) {
         String message = e.getMessage();
@@ -37,6 +34,23 @@ public class ResumeParserController {
                 || lowerMessage.contains("rate limit");
     }
 
+    private boolean isPdfFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return false;
+        }
+
+        try {
+            byte[] header = file.getBytes();
+            if (header.length < 4) {
+                return false;
+            }
+            return header[0] == '%' && header[1] == 'P' && header[2] == 'D' && header[3] == 'F';
+        } catch (IOException e) {
+            log.warn("Unable to read resume file header", e);
+            return false;
+        }
+    }
+
     // Parse resume from uploaded PDF file
     @PostMapping("/parse")
     public ResponseEntity<?> parseResume(@RequestParam("file") MultipartFile file) {
@@ -49,14 +63,11 @@ public class ResumeParserController {
                         .body(new ErrorResponse("Resume file is required"));
             }
 
-            // Check if it's a PDF
-            String contentType = file.getContentType();
-            if (contentType == null || !contentType.equals("application/pdf")) {
+            if (!isPdfFile(file)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ErrorResponse("Only PDF files are supported"));
+                        .body(new ErrorResponse("Only valid PDF files are supported"));
             }
 
-            // Save file temporarily to disk (not Cloudinary) to parse it
             java.io.File tempFile = java.io.File.createTempFile("resume_parse_", ".pdf");
             try {
                 file.transferTo(tempFile);
@@ -74,28 +85,6 @@ public class ResumeParserController {
                     .body(new ErrorResponse(e.getMessage()));
         } catch (Exception e) {
             if (isGeminiQuotaError(e)) {
-            log.warn("Gemini quota/rate-limit reached during resume parsing: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(new ErrorResponse("Resume parsing service is temporarily unavailable due to API quota limits. Please try again later."));
-            }
-
-            log.error("Error parsing resume: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Failed to parse resume: " + e.getMessage()));
-        }
-    }
-
-    // Parse resume from existing file path (relative to upload directory)
-    @GetMapping("/parse")
-    public ResponseEntity<?> parseResumeFromPath(@RequestParam("path") String filePath) {
-        try {
-            log.info("Resume parse request received for path: {}", filePath);
-
-            ResumeParserResponse response = resumeParserService.parseResumeFromRelativePath(filePath);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            if (isGeminiQuotaError(e)) {
                 log.warn("Gemini quota/rate-limit reached during resume parsing: {}", e.getMessage());
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                         .body(new ErrorResponse("Resume parsing service is temporarily unavailable due to API quota limits. Please try again later."));
@@ -106,5 +95,6 @@ public class ResumeParserController {
                     .body(new ErrorResponse("Failed to parse resume: " + e.getMessage()));
         }
     }
+
 }
 

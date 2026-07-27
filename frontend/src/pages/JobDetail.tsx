@@ -7,8 +7,7 @@ import {
     MapPin, Mail, Briefcase, ArrowLeft, ExternalLink, Calendar,
     Building2, Clock, CheckCircle2, AlertCircle
 } from 'lucide-react';
-import { apiClient, type JobPostDTO } from '@/lib/api';
-import { mockJobs } from '@/data/mockData';
+import { JobsService, type JobPostDTO } from '@/services/authService';
 
 export default function JobDetail() {
     const { id } = useParams<{ id: string }>();
@@ -20,20 +19,10 @@ export default function JobDetail() {
         const fetchJob = async () => {
             if (!id) return;
             try {
-                // Try real API first
-                const data = await apiClient.getJobById(id);
-                if (data && data.id) {
-                    setJob(data);
-                } else {
-                    // Fallback to mock data if API returns empty or fails
-                    const mockJob = mockJobs.find(j => j.id === id);
-                    if (mockJob) setJob(mockJob as any);
-                }
+                const data = await JobsService.getJobById(id);
+                setJob(data);
             } catch (error) {
                 console.error('Failed to fetch job data:', error);
-                // Fallback to mock data on error
-                const mockJob = mockJobs.find(j => j.id === id);
-                if (mockJob) setJob(mockJob as any);
             } finally {
                 setLoading(false);
             }

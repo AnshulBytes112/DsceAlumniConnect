@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -29,16 +30,17 @@ public class JobPost {
     private String contactEmail;
     private String applicationLink;
 
-    @DBRef
+    @DBRef(lazy = true)
     private User postedBy;
-
-    // Storing userId explicitly can sometimes preserve queries if User object isn't
-    // fully loaded,
-    // but DBRef is usually enough. keeping consistent with JobApplication.
+    
+    // User ID - indexed for fast queries on user's job posts
+    @Indexed
     private String postedById;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
+    // Indexed for finding active job listings
+    @Indexed
     private boolean active = true;
 }

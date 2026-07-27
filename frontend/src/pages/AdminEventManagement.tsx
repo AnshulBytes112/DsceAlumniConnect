@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { apiClient, type EventDTO } from '@/lib/api';
+import { type EventDTO } from '@/lib/api';
+import { EventsService } from '@/services/authService';
+import { useAsync } from '@/hooks/useAsync';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/Button';
@@ -20,7 +22,10 @@ import MotionWrapper from '@/components/ui/MotionWrapper';
 
 const AdminEventManagement = () => {
   const [events, setEvents] = useState<EventDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: eventsData, loading, error, retry } = useAsync<EventDTO[]>(
+    () => EventsService.getAllEvents(),
+    false
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'featured' | 'non-featured'>('all');
   const { isAdmin } = useAuth();
@@ -30,20 +35,12 @@ const AdminEventManagement = () => {
     if (!isAdmin) {
       return;
     }
-    
-    setLoading(true);
+    if (!loading && !eventsData && !error) retry();
     try {
-      const allEvents = await apiClient.getAllEventsForAdmin();
-      setEvents(allEvents);
-    } catch (error) {
-      console.error('Failed to fetch events', error);
-      toast({
-        title: "Error",
-        description: "Failed to load events for admin management.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+      if (eventsData) setEvents(eventsData);
+    } catch (err) {
+      console.error('Failed to fetch events', err);
+      toast({ title: 'Error', description: 'Failed to load events for admin management.', variant: 'destructive' });
     }
   };
 

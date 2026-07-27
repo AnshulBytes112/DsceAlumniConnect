@@ -10,11 +10,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { GraduationCap, ArrowRight, Loader2 } from 'lucide-react';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api';
+import { AuthService } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
-
-import { mockCredentials } from '@/data/mockData';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -40,49 +38,26 @@ export default function Login() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
 
-    // Check for mock credentials
-    if (data.email === mockCredentials.email && data.password === mockCredentials.password) {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      const mockAuthResponse = {
-        ...mockCredentials.user,
-        firstName: mockCredentials.user.firstname, // Map to correct property name
-        lastName: mockCredentials.user.lastname,
-        profileComplete: true, // Mock user is always complete
-        // Add other required fields from UserProfile/AuthResponse if missing
-        role: 'Student',
-        headline: 'Student at DSCE',
-        skills: [],
-        featuredSkills: [],
-        workExperiences: [],
-        educations: [],
-        projects: []
-      };
-
-      login(mockAuthResponse as any); // Cast to any or AuthResponse to avoid strict type checks on missing optional fields
-      toast({
-        title: 'Login successful (Mock)',
-        description: `Welcome back, ${mockAuthResponse.firstName}!`,
-      });
-      navigate('/dashboard');
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      const response = await apiClient.login({
+      const response = await AuthService.login({
         email: data.email,
         password: data.password,
       });
+      
+      // Store JWT token
+      localStorage.setItem('jwtToken', response.jwtToken);
+      
       login(response);
       toast({
         title: 'Login successful',
         description: `Welcome back, ${response.firstName}!`,
       });
 
-      if (response.role !== 'ADMIN' && !response.profileComplete) { navigate('/profile-setup'); }
-      else { navigate('/dashboard'); }
+      if (response.role !== 'ADMIN' && !response.profileComplete) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast({
         title: 'Login failed',

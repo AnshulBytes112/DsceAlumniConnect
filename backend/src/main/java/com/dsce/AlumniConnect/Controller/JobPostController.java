@@ -31,7 +31,7 @@ public class JobPostController {
     }
 
     @PostMapping
-    public ResponseEntity<JobPostDTO> createJob(@RequestBody JobPostDTO jobPostDTO) {
+    public ResponseEntity<JobPostDTO> createJob(@jakarta.validation.Valid @RequestBody JobPostDTO jobPostDTO) {
         return ResponseEntity.ok(jobPostService.createJobPost(jobPostDTO));
     }
 
