@@ -78,22 +78,16 @@ const Events = () => {
     }
 
     setUploadingImage(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'ml_default');
-    formData.append('cloud_name', 'dbyq33qen');
 
     try {
-      const response = await fetch('https://api.cloudinary.com/v1_1/dbyq33qen/image/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      setNewEvent(prev => ({ ...prev, imageUrl: data.secure_url }));
-      toast({
-        title: "Success",
-        description: "Poster uploaded successfully."
-      });
+      const urls = await apiClient.uploadPostImages([file]);
+      if (urls && urls.length > 0) {
+        setNewEvent(prev => ({ ...prev, imageUrl: urls[0] }));
+        toast({
+          title: "Success",
+          description: "Poster uploaded successfully."
+        });
+      }
     } catch (error) {
       toast({
         title: "Upload failed",
