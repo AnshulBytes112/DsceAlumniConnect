@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user'); // Cleanup legacy
     queryClient.setQueryData(['user'], null);
     queryClient.clear();
+    window.location.href = '/login';
   };
 
   const setUser = (userData: UserProfile | null) => {
