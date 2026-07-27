@@ -28,6 +28,7 @@ const AdminEventManagement = () => {
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'featured' | 'non-featured'>('all');
+  const [showPastEvents, setShowPastEvents] = useState(false);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -85,7 +86,27 @@ const AdminEventManagement = () => {
     }
   };
 
+  const isEventPast = (event: EventDTO) => {
+    const monthOrder = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const eventMonth = monthOrder.indexOf(event.month);
+    const eventDay = parseInt(event.day);
+    
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
+
+    if (eventMonth < currentMonth) {
+      return (currentMonth - eventMonth) <= 6;
+    }
+    if (eventMonth === currentMonth) {
+      return eventDay < currentDay;
+    }
+    return false;
+  };
+
   const filteredEvents = events.filter(event => {
+    if (!showPastEvents && isEventPast(event)) return false;
+
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.organizerName?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -162,6 +183,12 @@ const AdminEventManagement = () => {
             </div>
             
             <div className="flex gap-3 w-full md:w-auto">
+              <button
+                onClick={() => setShowPastEvents(!showPastEvents)}
+                className={`px-4 py-3 rounded-xl border focus:outline-none transition-colors font-medium text-sm whitespace-nowrap ${showPastEvents ? 'bg-dsce-blue border-dsce-blue text-white shadow-md' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+              >
+                {showPastEvents ? 'Hide Past Events' : 'Show Past Events'}
+              </button>
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as any)}

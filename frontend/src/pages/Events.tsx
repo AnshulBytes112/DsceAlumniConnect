@@ -165,7 +165,26 @@ const Events = () => {
   };
 
   // Filter and sort events
+  const isEventPast = (event: EventDTO) => {
+    const monthOrder = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const eventMonth = monthOrder.indexOf(event.month);
+    const eventDay = parseInt(event.day);
+    
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
+
+    if (eventMonth < currentMonth) {
+      return (currentMonth - eventMonth) <= 6;
+    }
+    if (eventMonth === currentMonth) {
+      return eventDay < currentDay;
+    }
+    return false;
+  };
+
   const filteredEvents = events
+    .filter(event => !isEventPast(event))
     .filter(event => {
       const matchesSearch = searchQuery === '' ||
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -282,14 +301,14 @@ const Events = () => {
         ) : (
           <>
             {/* Featured Events */}
-            {featuredEvents.length > 0 && (
+            {featuredEvents.filter(e => !isEventPast(e)).length > 0 && (
               <div className="mb-12">
                 <h2 className="text-2xl font-bold text-dsce-text-dark mb-6 flex items-center">
                   <Star className="w-6 h-6 mr-2 text-yellow-500" />
                   Featured Events
                 </h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {featuredEvents.map((event) => (
+                  {featuredEvents.filter(e => !isEventPast(e)).map((event) => (
                     <motion.div
                       key={event.id}
                       initial={{ opacity: 0, y: 20 }}

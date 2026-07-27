@@ -32,14 +32,16 @@ public class EventDTO {
     private Integer registeredCount;
     private String registrationDeadline;
     private String virtualLink;
+    @NotBlank(message = "Organizer name is required")
     private String organizerName;
+    @NotBlank(message = "Organizer contact is required")
     private String organizerContact;
     @NotBlank(message = "Event location is required")
     private String location;
     private String userRsvpStatus; // GOING, MAYBE, NOT_GOING, or null
     private boolean featured; // Admin can feature events
     private String imageUrl; // Poster image for the event
-    
+
     // Engagement metrics
     private Integer likes = 0;
     private Integer views = 0;
