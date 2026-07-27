@@ -14,6 +14,7 @@ import com.dsce.AlumniConnect.entity.ProjectFunding;
 import com.dsce.AlumniConnect.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -99,6 +100,7 @@ public class DashboardController {
 
     @PostMapping("/announcements")
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "announcements", allEntries = true)
     public ResponseEntity<AnnouncementDTO> createAnnouncement(@RequestBody Announcement announcement) {
         try {
             if (announcement.getCreatedAt() == null) {
@@ -121,6 +123,7 @@ public class DashboardController {
 
     @PutMapping("/announcements/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "announcements", allEntries = true)
     public ResponseEntity<AnnouncementDTO> updateAnnouncement(@PathVariable String id,
             @RequestBody Announcement announcement) {
         try {
@@ -149,6 +152,7 @@ public class DashboardController {
 
     @DeleteMapping("/announcements/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "announcements", allEntries = true)
     public ResponseEntity<Void> deleteAnnouncement(@PathVariable String id) {
         try {
             announcementRepository.deleteById(id);

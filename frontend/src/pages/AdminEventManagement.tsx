@@ -49,10 +49,13 @@ const AdminEventManagement = () => {
 
   const handleFeatureEvent = async (eventId: string) => {
     try {
+      // Optimistic update
+      setEvents(prev => prev.map(e => e.id === eventId ? { ...e, featured: true } : e));
       await apiClient.featureEvent(eventId);
       toast({ title: "Success", description: "Event featured successfully!" });
-      fetchEvents();
     } catch (error) {
+      // Revert on failure
+      fetchEvents();
       console.error('Failed to feature event', error);
       toast({ title: "Error", description: "Failed to feature event.", variant: "destructive" });
     }
@@ -60,10 +63,13 @@ const AdminEventManagement = () => {
 
   const handleUnfeatureEvent = async (eventId: string) => {
     try {
+      // Optimistic update
+      setEvents(prev => prev.map(e => e.id === eventId ? { ...e, featured: false } : e));
       await apiClient.unfeatureEvent(eventId);
       toast({ title: "Success", description: "Event unfeatured successfully!" });
-      fetchEvents();
     } catch (error) {
+      // Revert on failure
+      fetchEvents();
       console.error('Failed to unfeature event', error);
       toast({ title: "Error", description: "Failed to unfeature event.", variant: "destructive" });
     }

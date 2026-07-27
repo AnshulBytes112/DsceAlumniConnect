@@ -7,19 +7,15 @@ import {
   RefreshCw, X, ImagePlus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { type AnnouncementDTO } from '@/lib/api';
 import { DashboardService } from '@/services/authService';
-import { useAsync } from '@/hooks/useAsync';
+import { type AnnouncementDTO, apiClient } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
 
 export default function AnnouncementManager() {
   const { toast } = useToast();
   const [announcements, setAnnouncements] = useState<AnnouncementDTO[]>([]);
-  const { data: announcementsData, loading, error, retry } = useAsync<AnnouncementDTO[]>(
-    () => DashboardService.getAnnouncements(),
-    false
-  );
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal states
@@ -53,10 +49,21 @@ export default function AnnouncementManager() {
     }
   };
 
+  const fetchAnnouncements = async () => {
+    setLoading(true);
+    try {
+      const data = await DashboardService.getAnnouncements();
+      setAnnouncements(data);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load announcements.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (!loading && !announcementsData && !error) retry();
-    if (announcementsData) setAnnouncements(announcementsData);
-  }, [announcementsData, loading, error]);
+    fetchAnnouncements();
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this announcement?')) return;

@@ -9,6 +9,8 @@ import com.dsce.AlumniConnect.DTO.ErrorResponse;
 import com.dsce.AlumniConnect.Service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -333,6 +335,10 @@ private LocalDate parseDateFromMonthYear(User.WorkExperience experience) {
     }
 
     @PostMapping("/events/{eventId}/feature")
+    @Caching(evict = {
+        @CacheEvict(value = "allEvents", allEntries = true),
+        @CacheEvict(value = "featuredEvents", allEntries = true)
+    })
     public ResponseEntity<EventDTO> featureEvent(@PathVariable String eventId) {
         try {
             Event event = eventRepository.findById(eventId)
@@ -348,6 +354,10 @@ private LocalDate parseDateFromMonthYear(User.WorkExperience experience) {
     }
 
     @PostMapping("/events/{eventId}/unfeature")
+    @Caching(evict = {
+        @CacheEvict(value = "allEvents", allEntries = true),
+        @CacheEvict(value = "featuredEvents", allEntries = true)
+    })
     public ResponseEntity<EventDTO> unfeatureEvent(@PathVariable String eventId) {
         try {
             Event event = eventRepository.findById(eventId)
@@ -363,6 +373,10 @@ private LocalDate parseDateFromMonthYear(User.WorkExperience experience) {
     }
 
     @DeleteMapping("/events/{eventId}")
+    @Caching(evict = {
+        @CacheEvict(value = "allEvents", allEntries = true),
+        @CacheEvict(value = "featuredEvents", allEntries = true)
+    })
     public ResponseEntity<Void> deleteEvent(@PathVariable String eventId) {
         try {
             if (!eventRepository.existsById(eventId)) {
