@@ -6,6 +6,7 @@ import com.dsce.AlumniConnect.entity.User;
 import com.dsce.AlumniConnect.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class ProfileService {
     }
 
     // Update user profile manually
+    @CacheEvict(value = {"alumni", "allAlumni", "dashboardStats"}, allEntries = true)
     public User updateProfile(ProfileUpdateRequest request) {
         User user = getCurrentUserProfile();
 
@@ -141,6 +143,7 @@ public class ProfileService {
     }
 
     // Update profile picture
+    @CacheEvict(value = {"alumni", "allAlumni"}, allEntries = true)
     public CompletableFuture<User> updateProfilePicture(MultipartFile profilePicture) {
         User user = getCurrentUserProfile();
 
@@ -161,6 +164,7 @@ public class ProfileService {
     }
 
     // Update profile picture without requiring profile completion
+    @CacheEvict(value = {"alumni", "allAlumni"}, allEntries = true)
     public CompletableFuture<User> updateProfilePictureOnly(MultipartFile profilePicture) {
         User user = getCurrentUserProfile();
 
@@ -181,6 +185,7 @@ public class ProfileService {
     }
 
     // Upload and parse resume to update profile
+    @CacheEvict(value = {"alumni", "allAlumni"}, allEntries = true)
     public CompletableFuture<User> updateProfileFromResume(MultipartFile resume, boolean replaceExisting) {
         User user = getCurrentUserProfile();
 
@@ -203,6 +208,7 @@ public class ProfileService {
     }
 
     // Parse existing resume and update profile
+    @CacheEvict(value = {"alumni", "allAlumni"}, allEntries = true)
     public User parseExistingResume(boolean replaceExisting) {
         User user = getCurrentUserProfile();
 

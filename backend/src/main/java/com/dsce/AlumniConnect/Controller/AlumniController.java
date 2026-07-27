@@ -1,7 +1,7 @@
 package com.dsce.AlumniConnect.Controller;
 
+import com.dsce.AlumniConnect.DTO.UserProfileDTO;
 import com.dsce.AlumniConnect.Service.AlumniService;
-import com.dsce.AlumniConnect.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +26,9 @@ public class AlumniController {
 
     @GetMapping("/alumni")
     public ResponseEntity<?> getAllAlumni() {
-        List<User> allAlum = alumniservice.getAllAlumni();
+        List<UserProfileDTO> allAlum = alumniservice.getAllAlumni();
         log.info("Returning {} alumni. IDs: {}", allAlum.size(),
-                allAlum.stream().map(User::getId).collect(java.util.stream.Collectors.toList()));
+                allAlum.stream().map(UserProfileDTO::getId).collect(java.util.stream.Collectors.toList()));
 
         if (allAlum.isEmpty()) {
             log.info("No alumni found");

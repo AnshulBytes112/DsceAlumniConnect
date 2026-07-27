@@ -11,6 +11,7 @@ import com.dsce.AlumniConnect.Repository.ProjectFundingRepository;
 import com.dsce.AlumniConnect.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class DashboardService {
     /**
      * Get dashboard statistics for current user
      */
+    @Cacheable(value = "dashboardStats", key = "@profileService.getCurrentUserProfile().getId()")
     public DashboardStatsDTO getDashboardStats() {
         try {
             User currentUser = profileService.getCurrentUserProfile();
@@ -51,6 +53,7 @@ public class DashboardService {
     /**
      * Get all announcements as DTOs
      */
+    @Cacheable("announcements")
     public List<AnnouncementDTO> getAnnouncements() {
         return announcementRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(a -> new AnnouncementDTO(
@@ -66,6 +69,7 @@ public class DashboardService {
     /**
      * Get job applications for current user
      */
+    @Cacheable(value = "userJobApps", key = "@profileService.getCurrentUserProfile().getId()")
     public List<JobApplicationDTO> getCurrentUserJobApplications() {
         try {
             User currentUser = profileService.getCurrentUserProfile();
@@ -81,6 +85,7 @@ public class DashboardService {
     /**
      * Get project fundings
      */
+    @Cacheable("fundings")
     public List<FundingDTO> getProjectFundings() {
         try {
             return projectFundingRepository.findAll().stream()

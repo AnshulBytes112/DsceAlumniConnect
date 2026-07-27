@@ -8,6 +8,8 @@ import com.dsce.AlumniConnect.entity.EventRSVP;
 import com.dsce.AlumniConnect.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,14 +27,21 @@ public class EventService {
     private final EventRSVPRepository eventRSVPRepository;
     private final ProfileService profileService;
 
+    @Cacheable(value = "allEvents")
+    public List<EventDTO> getAllEventDTOs() {
+        return eventRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     public List<EventDTO> getAllEventsWithUserStatus() {
         User currentUser = profileService.getCurrentUserProfile();
-        List<Event> events = eventRepository.findAll();
+        List<EventDTO> cachedEvents = getAllEventDTOs();
 
-        return events.stream().map(event -> {
-            EventDTO dto = mapToDTO(event);
+        return cachedEvents.stream().map(cachedDto -> {
+            EventDTO dto = new EventDTO(cachedDto);
             // Check user status
-            Optional<EventRSVP> rsvp = eventRSVPRepository.findByUserIdAndEventId(currentUser.getId(), event.getId());
+            Optional<EventRSVP> rsvp = eventRSVPRepository.findByUserIdAndEventId(currentUser.getId(), dto.getId());
             rsvp.ifPresent(r -> dto.setUserRsvpStatus(r.getStatus().name()));
             return dto;
         }).collect(Collectors.toList());
@@ -70,6 +79,7 @@ public class EventService {
         return events;
     }
 
+    @Cacheable(value = "featuredEvents")
     public List<EventDTO> getFeaturedEvents() {
         List<Event> events = eventRepository.findAll();
         return events.stream()
@@ -78,6 +88,7 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
+    @CacheEvict(value = {"allEvents", "featuredEvents", "events", "dashboardStats"}, allEntries = true)
     public EventDTO createEvent(EventDTO eventDTO) {
         Event event = new Event();
         event.setTitle(eventDTO.getTitle());
@@ -110,6 +121,7 @@ public class EventService {
         return mapToDTO(savedEvent);
     }
 
+    @CacheEvict(value = {"dashboardStats"}, allEntries = true)
     public void rsvpEvent(String eventId, String status) {
         User currentUser = profileService.getCurrentUserProfile();
         EventRSVP.RsvpStatus rsvpStatus = EventRSVP.RsvpStatus.valueOf(status.toUpperCase());
@@ -135,15 +147,19 @@ public class EventService {
         log.info("Saved RSVP with ID: {}", savedRsvp.getId());
     }
 
-    public EventDTO getEventById(String eventId) {
-        User currentUser = profileService.getCurrentUserProfile();
+    @Cacheable(value = "events", key = "#eventId")
+    public EventDTO getEventDTOById(String eventId) {
         Optional<Event> eventOpt = eventRepository.findById(eventId);
         if (eventOpt.isEmpty()) {
             throw new RuntimeException("Event not found");
         }
+        return mapToDTO(eventOpt.get());
+    }
 
-        Event event = eventOpt.get();
-        EventDTO dto = mapToDTO(event);
+    public EventDTO getEventById(String eventId) {
+        User currentUser = profileService.getCurrentUserProfile();
+        EventDTO cachedDto = getEventDTOById(eventId);
+        EventDTO dto = new EventDTO(cachedDto);
 
         Optional<EventRSVP> rsvp = eventRSVPRepository.findByUserIdAndEventId(currentUser.getId(), eventId);
         rsvp.ifPresent(r -> dto.setUserRsvpStatus(r.getStatus().name()));
@@ -182,6 +198,7 @@ public class EventService {
         return dto;
     }
     
+    @CacheEvict(value = {"events", "allEvents", "featuredEvents"}, allEntries = true)
     public void incrementViewCount(String eventId) {
         Optional<Event> eventOpt = eventRepository.findById(eventId);
         if (eventOpt.isPresent()) {
