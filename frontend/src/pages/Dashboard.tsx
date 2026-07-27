@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { Calendar, MoreHorizontal, Bell, Clock, MessageCircle, Heart, Check, HelpCircle, Plus, X, RefreshCw, AlertCircle, Activity, Briefcase, Users, ArrowRight, Megaphone, Trash2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardService, ProfileService } from '@/services/authService';
 import PostModal from '@/components/posts/PostModal';
@@ -90,35 +90,55 @@ export default function Dashboard() {
     fundings: []
   });
 
-  const [adminStats] = useState<AdminStats | null>(null);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
 
   const [dataUpdateKey, setDataUpdateKey] = useState(0); // Force re-render
+  const isFetchingRef = useRef(false);
 
   const fetchDashboardData = async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     console.log('Fetching dashboard data...');
     // Real user - fetch from API using the new services
     try {
       console.log('Fetching dashboard data from services...');
 
       // Fetch all dashboard data in parallel
-      const [stats, announcements, jobApplications, events, fundings, userProfile] = await Promise.all([
+      const [stats, announcements, jobApplications, events, allEvents, fundings, userProfile, fetchedPosts] = await Promise.all([
         DashboardService.getStats().catch(() => null),
         DashboardService.getAnnouncements().catch(() => []),
         DashboardService.getJobApplications().catch(() => []),
         DashboardService.getUpcomingEvents().catch(() => []),
+        apiClient.getAllEvents().catch(() => []),
         DashboardService.getProjectFundings().catch(() => []),
-        ProfileService.getProfile().catch(() => null)
+        ProfileService.getProfile().catch(() => null),
+        apiClient.getAllPosts(0, 5).catch(() => [])
       ]);
 
       console.log('Dashboard stats fetched:', stats);
       console.log('Dashboard announcements fetched:', announcements);
+
+      if (user?.role === 'ADMIN') {
+        const analytics = await apiClient.getAnalytics().catch(() => null);
+        if (analytics) {
+          setAdminStats(analytics);
+        }
+      }
+
+      setPosts(fetchedPosts);
+
+      // Merge RSVP status from user events into all events
+      const mergedEvents = allEvents.map((ae: any) => {
+        const rsvpEvent = events.find((e: any) => e.id === ae.id);
+        return rsvpEvent ? { ...ae, userRsvpStatus: rsvpEvent.userRsvpStatus } : ae;
+      });
 
       setDashboardData(prev => ({
         ...prev,
         stats,
         announcements,
         jobApplications,
-        events,
+        events: mergedEvents,
         fundings
       }));
 
@@ -140,6 +160,7 @@ export default function Dashboard() {
       });
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 

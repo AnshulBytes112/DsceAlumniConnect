@@ -62,9 +62,9 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody java.util.Map<String, String> body) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
-            authService.resetPassword(body.get("token"), body.get("newPassword"));
+            authService.resetPassword(request.getToken(), request.getNewPassword());
             return ResponseEntity.ok(java.util.Map.of("message", "Password reset successfully."));
         } catch (Exception e) {
             log.error("Reset password failed: {}", e.getMessage());

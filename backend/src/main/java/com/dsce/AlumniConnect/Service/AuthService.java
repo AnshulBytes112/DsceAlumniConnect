@@ -19,6 +19,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -38,6 +39,7 @@ public class AuthService {
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
 
+    @Transactional
     public void forgotPassword(String email) {
         // ponytail: silent success — don't reveal whether email exists
         userRepository.findByEmail(email).ifPresent(user -> {
@@ -48,7 +50,9 @@ public class AuthService {
 
             String resetUrl = frontendUrl + "/reset-password?token=" + token;
             // ponytail: always log reset URL — lets you test without SMTP configured
-            log.info("=== PASSWORD RESET LINK (dev) === {}", resetUrl);
+            log.info("[PASSWORD RESET] Token generated for {}: {}", email, token);
+            log.info("[PASSWORD RESET] Frontend URL configured as: {}", frontendUrl);
+            log.info("[PASSWORD RESET] Reset link: {}", resetUrl);
 
             try {
                 SimpleMailMessage msg = new SimpleMailMessage();
@@ -58,25 +62,56 @@ public class AuthService {
                         + resetUrl
                         + "\n\nIf you did not request this, ignore this email.");
                 mailSender.send(msg);
-                log.info("Password reset email sent to {}", email);
+                log.info("[PASSWORD RESET] Email sent successfully to {}", email);
             } catch (Exception mailEx) {
                 // ponytail: mail failure must not bubble up as 500 — link is logged above for dev
-                log.warn("Could not send reset email to {} — configure SMTP credentials. Error: {}", email, mailEx.getMessage());
+                log.warn("[PASSWORD RESET] Could not send reset email to {} — configure SMTP credentials. Error: {}", email, mailEx.getMessage());
             }
         });
     }
 
+    @Transactional
     public void resetPassword(String token, String newPassword) {
+        log.info("[PASSWORD RESET] Starting password reset process with token: {}", token);
+        
         User user = userRepository.findByPasswordResetToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
+                .orElseThrow(() -> {
+                    log.warn("[PASSWORD RESET] Invalid or expired reset token: {}", token);
+                    return new RuntimeException("Invalid or expired reset token");
+                });
+        
+        log.info("[PASSWORD RESET] User found: {}", user.getEmail());
+        
         if (user.getPasswordResetExpiry() == null || LocalDateTime.now().isAfter(user.getPasswordResetExpiry())) {
+            log.warn("[PASSWORD RESET] Token expired for user: {}", user.getEmail());
             throw new RuntimeException("Reset token has expired. Please request a new link.");
         }
-        user.setPassword(passwordEncoder.encode(newPassword));
+        
+        // Encode the new password
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        log.info("[PASSWORD RESET] New password encoded for user: {}", user.getEmail());
+        log.debug("[PASSWORD RESET] New password hash (first 20 chars): {}...", encodedPassword.substring(0, Math.min(20, encodedPassword.length())));
+        
+        // Update password and clear reset tokens
+        user.setPassword(encodedPassword);
         user.setPasswordResetToken(null);
         user.setPasswordResetExpiry(null);
-        userRepository.save(user);
-        log.info("Password reset successfully for {}", user.getEmail());
+        
+        // Save user - CRITICAL: ensure this commits
+        User savedUser = userRepository.save(user);
+        log.info("[PASSWORD RESET] User saved successfully: {}", savedUser.getEmail());
+        log.debug("[PASSWORD RESET] Saved password hash (first 20 chars): {}...", savedUser.getPassword().substring(0, Math.min(20, savedUser.getPassword().length())));
+        
+        // VERIFICATION: Verify password matches before returning success
+        boolean passwordMatches = passwordEncoder.matches(newPassword, savedUser.getPassword());
+        if (!passwordMatches) {
+            log.error("[PASSWORD RESET] CRITICAL: Password verification FAILED after save for user: {}", user.getEmail());
+            log.error("[PASSWORD RESET] This indicates the saved hash cannot verify the plaintext password.");
+            throw new RuntimeException("Password reset failed: verification error");
+        }
+        
+        log.info("[PASSWORD RESET] Password verification successful for user: {}", user.getEmail());
+        log.info("[PASSWORD RESET] Password reset completed successfully for {}", user.getEmail());
     }
 
 
