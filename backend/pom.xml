@@ -61,6 +61,16 @@
 			<artifactId>spring-session-data-mongodb</artifactId>
 		</dependency>
 
+		<!-- Profiling & Monitoring (Actuator & AOP) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+
 		<!-- JWT -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

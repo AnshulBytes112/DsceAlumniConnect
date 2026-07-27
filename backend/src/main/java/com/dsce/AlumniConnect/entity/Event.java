@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -33,6 +34,7 @@ public class Event {
     private String location;
     private String createDate;
     private String updateDate;
+    @Indexed(direction = IndexDirection.DESCENDING)
     private LocalDateTime eventDate;
     @Indexed
     private boolean featured = false; // Admin can feature events

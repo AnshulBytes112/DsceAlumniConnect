@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Document(collection = "event_rsvps")
 @CompoundIndexes({
     @CompoundIndex(name = "userId_status_idx", def = "{'userId': 1, 'status': 1}"),
-    @CompoundIndex(name = "eventId_status_idx", def = "{'eventId': 1, 'status': 1}")
+    @CompoundIndex(name = "eventId_status_idx", def = "{'eventId': 1, 'status': 1}"),
+    @CompoundIndex(name = "userId_eventId_idx", def = "{'userId': 1, 'eventId': 1}", unique = true)
 })
 @Data
 @NoArgsConstructor

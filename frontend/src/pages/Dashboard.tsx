@@ -104,11 +104,10 @@ export default function Dashboard() {
       console.log('Fetching dashboard data from services...');
 
       // Fetch all dashboard data in parallel
-      const [stats, announcements, jobApplications, events, allEvents, fundings, userProfile, fetchedPosts] = await Promise.all([
+      const [stats, announcements, jobApplications, allEvents, fundings, userProfile, fetchedPosts] = await Promise.all([
         DashboardService.getStats().catch(() => null),
         DashboardService.getAnnouncements().catch(() => []),
         DashboardService.getJobApplications().catch(() => []),
-        DashboardService.getUpcomingEvents().catch(() => []),
         apiClient.getAllEvents().catch(() => []),
         DashboardService.getProjectFundings().catch(() => []),
         ProfileService.getProfile().catch(() => null),
@@ -127,18 +126,12 @@ export default function Dashboard() {
 
       setPosts(fetchedPosts);
 
-      // Merge RSVP status from user events into all events
-      const mergedEvents = allEvents.map((ae: any) => {
-        const rsvpEvent = events.find((e: any) => e.id === ae.id);
-        return rsvpEvent ? { ...ae, userRsvpStatus: rsvpEvent.userRsvpStatus } : ae;
-      });
-
       setDashboardData(prev => ({
         ...prev,
         stats,
         announcements,
         jobApplications,
-        events: mergedEvents,
+        events: allEvents,
         fundings
       }));
 
@@ -174,17 +167,9 @@ export default function Dashboard() {
     console.log('dashboardData.events:', dashboardData.events);
   }, [dashboardData]);
 
-  // Refresh data when page becomes visible (navigation back from other pages)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchDashboardData();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  // Data is fetched once on mount (when user object is populated).
+  // Removed visibilitychange auto-refresh to prevent massive API spam when switching tabs.
+  // The user can manually click the Refresh button if they need fresh data.
 
   const handleCommentClick = async (postId: string) => {
     setCommentingPostId(commentingPostId === postId ? null : postId);
@@ -299,19 +284,8 @@ export default function Dashboard() {
     }
   };
 
-  // Also refresh when window gains focus
-  useEffect(() => {
-    const handleFocus = () => {
-      console.log('Window gained focus, refreshing dashboard data...');
-      fetchDashboardData();
-      if (user) {
-        fetchDashboardData();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [user]);
+  // Removed window focus auto-refresh to prevent network spam.
+  // The user can manually refresh.
 
   const handleRsvp = async (eventId: string, status: string) => {
     try {
