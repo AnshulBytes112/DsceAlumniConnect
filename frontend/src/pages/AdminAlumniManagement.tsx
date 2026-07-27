@@ -174,8 +174,8 @@ export default function AdminAlumniManagement() {
         // Experience filter
         if (selectedExperience !== 'all') {
             filtered = filtered.filter(alum => {
-                if (!alum.workExperiences?.[0]?.date) return false;
-                const years = new Date().getFullYear() - parseInt(alum.workExperiences[0].date.split('-')[0]);
+                if (!alum.workExperiences?.[0]?.year) return false;
+                const years = new Date().getFullYear() - alum.workExperiences[0].year;
                 switch (selectedExperience) {
                     case '0-2': return years >= 0 && years <= 2;
                     case '3-5': return years >= 3 && years <= 5;

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface UseAsyncState<T> {
   data: T | null;
@@ -36,11 +36,17 @@ export function useAsync<T>(
     error: null,
   });
 
+  const asyncFnRef = useRef(asyncFn);
+  
+  useEffect(() => {
+    asyncFnRef.current = asyncFn;
+  }, [asyncFn]);
+
   const execute = useCallback(async () => {
     setState({ data: null, loading: true, error: null });
 
     try {
-      const result = await asyncFn();
+      const result = await asyncFnRef.current();
       setState({ data: result, loading: false, error: null });
     } catch (err) {
       const anyErr = err as any;
@@ -48,7 +54,7 @@ export function useAsync<T>(
 
       setState({ data: null, loading: false, error: errorMessage });
     }
-  }, [asyncFn]);
+  }, []);
 
   const retry = useCallback(async () => {
     await execute();
