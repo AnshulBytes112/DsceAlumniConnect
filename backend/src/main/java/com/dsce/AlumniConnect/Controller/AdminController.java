@@ -2,10 +2,11 @@ package com.dsce.AlumniConnect.Controller;
 
 import com.dsce.AlumniConnect.Repository.UserRepository;
 import com.dsce.AlumniConnect.Repository.EventRepository;
-import com.dsce.AlumniConnect.entity.User;
 import com.dsce.AlumniConnect.entity.Event;
+import com.dsce.AlumniConnect.entity.User;
 import com.dsce.AlumniConnect.DTO.EventDTO;
 import com.dsce.AlumniConnect.DTO.ErrorResponse;
+import com.dsce.AlumniConnect.Service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class AdminController {
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
+    private final EventService eventService;
 
    @GetMapping("/analytics")
 public ResponseEntity<?> getAnalytics() {
@@ -321,10 +323,7 @@ private LocalDate parseDateFromMonthYear(User.WorkExperience experience) {
     @GetMapping("/events")
     public ResponseEntity<List<EventDTO>> getAllEventsForAdmin() {
         try {
-            List<Event> events = eventRepository.findAll();
-            List<EventDTO> eventDTOs = events.stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
+            List<EventDTO> eventDTOs = eventService.getAllEventDTOs();
             return ResponseEntity.ok(eventDTOs);
         } catch (Exception e) {
             log.error("Error fetching events for admin: {}", e.getMessage());

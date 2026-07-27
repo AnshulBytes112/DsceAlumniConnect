@@ -35,7 +35,7 @@ public class DashboardService {
     /**
      * Get dashboard statistics for current user
      */
-    @Cacheable(value = "dashboardStats", key = "@profileService.getCurrentUserProfile().getId()")
+    @Cacheable(value = "dashboardStats", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public DashboardStatsDTO getDashboardStats() {
         try {
             User currentUser = profileService.getCurrentUserProfile();
@@ -69,7 +69,7 @@ public class DashboardService {
     /**
      * Get job applications for current user
      */
-    @Cacheable(value = "userJobApps", key = "@profileService.getCurrentUserProfile().getId()")
+    @Cacheable(value = "userJobApps", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public List<JobApplicationDTO> getCurrentUserJobApplications() {
         try {
             User currentUser = profileService.getCurrentUserProfile();
