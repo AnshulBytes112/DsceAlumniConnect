@@ -184,6 +184,7 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose, onJobC
                             <input
                                 type="email"
                                 name="contactEmail"
+                                required
                                 value={formData.contactEmail}
                                 onChange={handleChange}
                                 placeholder="recruiter@example.com"

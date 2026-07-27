@@ -32,9 +32,7 @@ public class EventDTO {
     private Integer registeredCount;
     private String registrationDeadline;
     private String virtualLink;
-    @NotBlank(message = "Organizer name is required")
     private String organizerName;
-    @NotBlank(message = "Organizer contact is required")
     private String organizerContact;
     @NotBlank(message = "Event location is required")
     private String location;

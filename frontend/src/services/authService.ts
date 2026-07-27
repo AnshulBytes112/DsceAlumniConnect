@@ -265,7 +265,7 @@ export class JobsService {
    */
   static async getAllJobs(): Promise<JobPostDTO[]> {
     try {
-      const response = await apiClient.get<JobPostDTO[]>('/jobs');
+      const response = await apiClient.get<JobPostDTO[]>('/api/jobs');
       return response.data;
     } catch (error) {
       const errorMessage = handleApiError(error as AxiosError);
@@ -279,7 +279,7 @@ export class JobsService {
    */
   static async getMyJobs(): Promise<JobPostDTO[]> {
     try {
-      const response = await apiClient.get<JobPostDTO[]>('/jobs/my-jobs');
+      const response = await apiClient.get<JobPostDTO[]>('/api/jobs/my-jobs');
       return response.data;
     } catch (error) {
       const errorMessage = handleApiError(error as AxiosError);
@@ -293,7 +293,7 @@ export class JobsService {
    */
   static async createJob(job: Omit<JobPostDTO, 'id' | 'postedById' | 'createdAt'>): Promise<JobPostDTO> {
     try {
-      const response = await apiClient.post<JobPostDTO>('/jobs', job);
+      const response = await apiClient.post<JobPostDTO>('/api/jobs', job);
       return response.data;
     } catch (error) {
       const errorMessage = handleApiError(error as AxiosError);
@@ -306,7 +306,7 @@ export class JobsService {
    */
   static async getJobById(jobId: string): Promise<JobPostDTO> {
     try {
-      const response = await apiClient.get<JobPostDTO>(`/jobs/${jobId}`);
+      const response = await apiClient.get<JobPostDTO>(`/api/jobs/${jobId}`);
       return response.data;
     } catch (error) {
       const errorMessage = handleApiError(error as AxiosError);
@@ -319,7 +319,7 @@ export class JobsService {
    */
   static async updateJob(jobId: string, job: Partial<JobPostDTO>): Promise<JobPostDTO> {
     try {
-      const response = await apiClient.put<JobPostDTO>(`/jobs/${jobId}`, job);
+      const response = await apiClient.put<JobPostDTO>(`/api/jobs/${jobId}`, job);
       return response.data;
     } catch (error) {
       const errorMessage = handleApiError(error as AxiosError);
@@ -332,7 +332,7 @@ export class JobsService {
    */
   static async deleteJob(jobId: string): Promise<void> {
     try {
-      await apiClient.delete(`/jobs/${jobId}`);
+      await apiClient.delete(`/api/jobs/${jobId}`);
     } catch (error) {
       const errorMessage = handleApiError(error as AxiosError);
       throw new Error(`Failed to delete job: ${errorMessage}`);
