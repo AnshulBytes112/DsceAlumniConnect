@@ -11,6 +11,31 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventDTO {
+    public EventDTO(EventDTO other) {
+        this.id = other.id;
+        this.day = other.day;
+        this.month = other.month;
+        this.title = other.title;
+        this.starttime = other.starttime;
+        this.endtime = other.endtime;
+        this.time = other.time;
+        this.description = other.description;
+        this.category = other.category;
+        this.maxParticipants = other.maxParticipants;
+        this.registeredCount = other.registeredCount;
+        this.registrationDeadline = other.registrationDeadline;
+        this.virtualLink = other.virtualLink;
+        this.organizerName = other.organizerName;
+        this.organizerContact = other.organizerContact;
+        this.location = other.location;
+        this.userRsvpStatus = other.userRsvpStatus;
+        this.featured = other.featured;
+        this.imageUrl = other.imageUrl;
+        this.likes = other.likes;
+        this.views = other.views;
+        this.comments = other.comments;
+    }
+    
     private String id;
     private String day;
     private String month;

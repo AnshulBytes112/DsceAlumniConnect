@@ -7,6 +7,8 @@ import com.dsce.AlumniConnect.entity.JobPost;
 import com.dsce.AlumniConnect.entity.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class JobPostService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @CacheEvict(value = {"activeJobs", "jobs"}, allEntries = true)
     public JobPostDTO createJobPost(JobPostDTO jobPostDTO) {
         String email = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .getUsername();
@@ -42,6 +45,7 @@ public class JobPostService {
         return convertToDTO(savedJob);
     }
 
+    @Cacheable(value = "activeJobs")
     public List<JobPostDTO> getAllActiveJobs() {
         return jobPostRepository.findByActiveTrueOrderByCreatedAtDesc().stream()
                 .map(this::convertToDTO)
@@ -58,12 +62,14 @@ public class JobPostService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "jobs", key = "#id")
     public JobPostDTO getJobById(String id) {
         JobPost jobPost = jobPostRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
         return convertToDTO(jobPost);
     }
 
+    @CacheEvict(value = {"activeJobs", "jobs"}, allEntries = true)
     public void deleteJobPost(String id) {
         String email = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .getUsername();
