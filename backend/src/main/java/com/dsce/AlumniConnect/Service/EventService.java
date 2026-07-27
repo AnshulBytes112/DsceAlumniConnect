@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,11 +39,17 @@ public class EventService {
         User currentUser = profileService.getCurrentUserProfile();
         List<EventDTO> cachedEvents = getAllEventDTOs();
 
+        // Bulk fetch RSVPs to avoid N+1 queries
+        List<EventRSVP> userRsvps = eventRSVPRepository.findByUserId(currentUser.getId());
+        Map<String, String> rsvpMap = userRsvps.stream()
+                .collect(Collectors.toMap(EventRSVP::getEventId, r -> r.getStatus().name(), (v1, v2) -> v1)); // merge function in case of dupes
+
         return cachedEvents.stream().map(cachedDto -> {
             EventDTO dto = new EventDTO(cachedDto);
-            // Check user status
-            Optional<EventRSVP> rsvp = eventRSVPRepository.findByUserIdAndEventId(currentUser.getId(), dto.getId());
-            rsvp.ifPresent(r -> dto.setUserRsvpStatus(r.getStatus().name()));
+            String status = rsvpMap.get(dto.getId());
+            if (status != null) {
+                dto.setUserRsvpStatus(status);
+            }
             return dto;
         }).collect(Collectors.toList());
     }
@@ -58,17 +65,13 @@ public class EventService {
 
         List<EventDTO> events = rsvps.stream()
                 .map(rsvp -> {
-                    log.info("Processing RSVP for event: {} with status: {}", rsvp.getEventId(), rsvp.getStatus());
-                    Optional<Event> eventOpt = eventRepository.findById(rsvp.getEventId());
-                    if (eventOpt.isPresent()) {
-                        Event event = eventOpt.get();
-                        EventDTO dto = mapToDTO(event);
-                        // Set RSVP status directly from the RSVP we already have
+                    try {
+                        EventDTO cachedDto = getEventDTOById(rsvp.getEventId());
+                        EventDTO dto = new EventDTO(cachedDto);
                         dto.setUserRsvpStatus(rsvp.getStatus().name());
-                        log.info("Set RSVP status {} for event {}", rsvp.getStatus().name(), event.getId());
                         return dto;
-                    } else {
-                        log.warn("Event not found for RSVP event ID: {}", rsvp.getEventId());
+                    } catch (Exception e) {
+                        log.warn("Event not found or cache error for RSVP event ID: {}", rsvp.getEventId());
                         return null;
                     }
                 })

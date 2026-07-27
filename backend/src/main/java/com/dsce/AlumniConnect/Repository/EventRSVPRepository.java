@@ -10,6 +10,8 @@ import java.util.Optional;
 @Repository
 public interface EventRSVPRepository extends MongoRepository<EventRSVP, String> {
     List<EventRSVP> findByUserIdAndStatus(String userId, EventRSVP.RsvpStatus status);
+    
+    List<EventRSVP> findByUserId(String userId);
 
     Optional<EventRSVP> findByUserIdAndEventId(String userId, String eventId);
     

@@ -33,17 +33,19 @@ public class PostService {
     public List<PostResponse> getAllPosts(String userEmail, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         List<Post> posts = postRepository.findAll(pageable).getContent();
+        User currentUser = getUserByEmail(userEmail);
 
         return posts.stream()
-                .map(post -> convertToPostResponse(post, userEmail))
+                .map(post -> convertToPostResponse(post, currentUser))
                 .collect(Collectors.toList());
     }
 
     public PostResponse getPostById(String postId, String userEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
+        User currentUser = getUserByEmail(userEmail);
 
-        return convertToPostResponse(post, userEmail);
+        return convertToPostResponse(post, currentUser);
     }
 
     public PostResponse createPost(CreatePostRequest request, String userEmail) {
@@ -86,7 +88,7 @@ public class PostService {
         Post savedPost = postRepository.save(post);
         log.info("Created new post by user: {} with {} images", userEmail, mediaUrls.size());
 
-        return convertToPostResponse(savedPost, userEmail);
+        return convertToPostResponse(savedPost, user);
     }
 
     public PostResponse updatePost(String postId, UpdatePostRequest request, String userEmail) {
@@ -114,7 +116,7 @@ public class PostService {
         Post updatedPost = postRepository.save(post);
         log.info("Updated post {} by user: {}", postId, userEmail);
 
-        return convertToPostResponse(updatedPost, userEmail);
+        return convertToPostResponse(updatedPost, user);
     }
 
     public void deletePost(String postId, String userEmail) {
@@ -149,7 +151,7 @@ public class PostService {
         post.setLikedBy(likedBy);
         Post updatedPost = postRepository.save(post);
 
-        return convertToPostResponse(updatedPost, userEmail);
+        return convertToPostResponse(updatedPost, user);
     }
 
     public PostResponse sharePost(String postId, String userEmail) {
@@ -160,8 +162,9 @@ public class PostService {
         post.setShares(currentShares + 1);
         Post updatedPost = postRepository.save(post);
 
+        User currentUser = getUserByEmail(userEmail);
         log.info("Shared post {} by user: {}", postId, userEmail);
-        return convertToPostResponse(updatedPost, userEmail);
+        return convertToPostResponse(updatedPost, currentUser);
     }
 
     public PostResponse toggleBookmark(String postId, String userEmail) {
@@ -180,7 +183,7 @@ public class PostService {
         post.setBookmarkedBy(bookmarkedBy);
         Post updatedPost = postRepository.save(post);
 
-        return convertToPostResponse(updatedPost, userEmail);
+        return convertToPostResponse(updatedPost, user);
     }
 
     public void reportPost(String postId, String userEmail) {
@@ -206,11 +209,11 @@ public class PostService {
         List<Post> posts = postRepository.findByAuthorIdOrderByCreatedAtDesc(user.getId());
 
         return posts.stream()
-                .map(post -> convertToPostResponse(post, userEmail))
+                .map(post -> convertToPostResponse(post, user))
                 .collect(Collectors.toList());
     }
 
-    private PostResponse convertToPostResponse(Post post, String currentUserEmail) {
+    private PostResponse convertToPostResponse(Post post, User currentUser) {
         PostResponse response = new PostResponse();
         response.setId(post.getId());
         response.setAuthorId(post.getAuthorId());
@@ -233,7 +236,6 @@ public class PostService {
         response.setMentions(post.getMentions());
 
         // Check if current user liked this post
-        User currentUser = getUserByEmail(currentUserEmail);
         boolean isLiked = post.getLikedBy() != null && post.getLikedBy().contains(currentUser.getId());
         response.setIsLiked(isLiked);
 
