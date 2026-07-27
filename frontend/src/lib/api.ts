@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+export const API_BASE_URL = ''; // ponytail: proxy handles routing to :8081
 
 /**
  * Resolves an image path to a full URL.

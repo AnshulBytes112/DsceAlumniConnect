@@ -57,6 +57,9 @@ public class User {
     private List<FeaturedSkill> featuredSkills;
     private List<Achievement> achievements;
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;
+    // ponytail: store reset token on user — no separate collection needed
+    private String passwordResetToken;
+    private LocalDateTime passwordResetExpiry;
 
     // Parent relationships - track orphan cleanup
     private List<String> postIds; // References to User's posts for cascade delete

@@ -16,11 +16,15 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5173,
+    strictPort: true, // ponytail: error loudly instead of silently drifting ports
     proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8080',
+      // ponytail: one regex rule proxies ALL backend paths (/api/*, /auth/*, /events/*, etc.)
+      '^/(api|auth|profile|alumni|events|dashboard|comments|posts|discussions|jobs|admin|uploads|profiles|resumes|ws-forum)': {
+        target: 'http://127.0.0.1:8081',
         changeOrigin: true,
         secure: false,
+        ws: true,
       },
     },
   },

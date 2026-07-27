@@ -46,6 +46,7 @@ public class SpringSecurity {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/resume/parse").permitAll()
                         .requestMatchers("/api/profile/resume").permitAll()

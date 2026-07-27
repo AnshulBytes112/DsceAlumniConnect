@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useForm } from 'react-hook-form';
@@ -6,8 +7,10 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { GraduationCap, ArrowRight, ArrowLeft } from 'lucide-react';
+import { GraduationCap, ArrowRight, ArrowLeft, Loader2, MailCheck } from 'lucide-react';
 import MotionWrapper from '@/components/ui/MotionWrapper';
+import { useToast } from '@/components/ui/use-toast';
+import axios from 'axios';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -16,17 +19,29 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPassword() {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const { formState } = form;
-  const { isSubmitting } = formState;
-
   const onSubmit = async (data: ForgotPasswordFormValues) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Forgot password submitted:', data);
-    alert('Password reset link sent to your email');
+    setIsLoading(true);
+    try {
+      // ponytail: goes via Vite proxy → localhost:8081; always 200 so UI just shows success
+      await axios.post('/api/auth/forgot-password', { email: data.email });
+      setEmailSent(true);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to send reset email. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -48,36 +63,49 @@ export default function ForgotPassword() {
         </div>
 
         <div className="rounded-xl border border-[#003366]/10 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[#333333]">Email Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="john@example.com"
-                        className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {emailSent ? (
+            <div className="text-center space-y-4">
+              <MailCheck className="mx-auto h-12 w-12 text-green-500" />
+              <h3 className="text-lg font-semibold text-[#003366]">Check your inbox</h3>
+              <p className="text-sm text-[#333333]">
+                If an account exists for that email, a password reset link has been sent. Check your spam folder too.
+              </p>
+            </div>
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333]">Email Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="john@example.com"
+                          className="border-[#003366]/10 bg-[#F8F8F8] text-[#333333] placeholder:text-gray-500 focus-visible:ring-[#003366]/50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <Button
-              type="submit"
-              className="w-full bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] font-semibold"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Sending Link...' : 'Send Reset Link'}
-              {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
-            </Button>
-            </form>
-          </Form>
+                <Button
+                  type="submit"
+                  className="w-full bg-[#FFD700] text-[#003366] hover:bg-[#FFC700] font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending...</>
+                  ) : (
+                    <>Send Reset Link <ArrowRight className="ml-2 h-4 w-4" /></>
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
 
           <div className="mt-6 text-center text-sm">
             <Link
