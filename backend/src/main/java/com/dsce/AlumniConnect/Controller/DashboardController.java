@@ -165,6 +165,7 @@ public class DashboardController {
 
     @PostMapping("/announcements/{id}/feature")
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "announcements", allEntries = true)
     public ResponseEntity<AnnouncementDTO> featureAnnouncement(@PathVariable String id) {
         try {
             Announcement existingAnnouncement = announcementRepository.findById(id).orElse(null);
@@ -189,6 +190,7 @@ public class DashboardController {
 
     @PostMapping("/announcements/{id}/unfeature")
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "announcements", allEntries = true)
     public ResponseEntity<AnnouncementDTO> unfeatureAnnouncement(@PathVariable String id) {
         try {
             Announcement existingAnnouncement = announcementRepository.findById(id).orElse(null);
