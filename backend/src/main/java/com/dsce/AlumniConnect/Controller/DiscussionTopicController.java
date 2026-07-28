@@ -144,8 +144,8 @@ public class DiscussionTopicController {
         User currentUser = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        // Check if user is author
-        if (!topic.getAuthorId().equals(currentUser.getId())) {
+        // Check if user is author or ADMIN
+        if (!topic.getAuthorId().equals(currentUser.getId()) && currentUser.getRole() != User.Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "You can only edit your own topics"));
         }

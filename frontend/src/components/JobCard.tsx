@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient, type JobPostDTO } from '../lib/api';
-import { Calendar, MapPin, Building, Trash2, Mail, ExternalLink, Briefcase, Eye } from 'lucide-react';
+import { Calendar, MapPin, Building, Trash2, Mail, ExternalLink, Briefcase, Eye, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDate } from '../lib/utils';
 import { motion } from 'framer-motion';
@@ -121,6 +121,18 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
                                 Email Recruiter
                             </Button>
                         )}
+
+                        <Button
+                            variant="outline"
+                            className="flex-1 border-dsce-gold/50 text-yellow-600 hover:bg-dsce-gold/10 h-11 text-sm font-semibold rounded-xl transition-all shadow-sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/alumni/${job.postedById}`);
+                            }}
+                        >
+                            <UserPlus size={18} className="mr-2" />
+                            Connect to Alumni
+                        </Button>
 
                         {isOwner && (
                             <button
