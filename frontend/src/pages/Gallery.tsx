@@ -6,7 +6,8 @@ import { apiClient, type Achiever, type GalleryImage } from '@/lib/api';
 import { SkeletonGrid } from '@/components/ui/Skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { Trash2, Plus, Edit } from 'lucide-react';
+import { Trash2, Plus, Edit, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
     { label: 'Achievers', value: 'achievers' },
@@ -23,6 +24,17 @@ export default function Gallery() {
     const [achievers, setAchievers] = useState<Achiever[]>([]);
     const [campusImages, setCampusImages] = useState<GalleryImage[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [isAchieverModalOpen, setIsAchieverModalOpen] = useState(false);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [newAchiever, setNewAchiever] = useState<Partial<Achiever>>({
+        name: '',
+        graduationYear: new Date().getFullYear(),
+        headline: '',
+        location: '',
+        imageUrl: ''
+    });
+    const [newImageUrl, setNewImageUrl] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -79,6 +91,39 @@ export default function Gallery() {
         }
     };
 
+    const handleAddImageSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newImageUrl) return;
+        try {
+            const newImg = await apiClient.addGalleryImage({ url: newImageUrl, category: 'campus', caption: 'Campus Image' });
+            setCampusImages([newImg, ...campusImages]);
+            toast({ title: 'Image added' });
+            setIsImageModalOpen(false);
+            setNewImageUrl('');
+        } catch (error) {
+            toast({ title: 'Failed to add image', variant: 'destructive' });
+        }
+    };
+
+    const handleAddAchieverSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const added = await apiClient.addAchiever(newAchiever);
+            setAchievers([added, ...achievers]);
+            toast({ title: 'Achiever added successfully!' });
+            setIsAchieverModalOpen(false);
+            setNewAchiever({
+                name: '',
+                graduationYear: new Date().getFullYear(),
+                headline: '',
+                location: '',
+                imageUrl: ''
+            });
+        } catch (error) {
+            toast({ title: 'Failed to add achiever', variant: 'destructive' });
+        }
+    };
+
     return (
         <>
             <div className="min-h-screen bg-gradient-to-br from-dsce-bg-light via-dsce-bg-cream to-dsce-bg-light py-16 px-6">
@@ -99,7 +144,11 @@ export default function Gallery() {
                     <div>
                         <div className="flex justify-between items-center mb-6 max-w-6xl mx-auto px-4">
                             <h2 className="text-2xl font-bold text-center flex-1">Notable Achievers</h2>
-                            {/* In a real app, clicking Add would open a modal form. Here we keep it simple or redirect to an admin panel */}
+                            {isAdmin && (
+                                <Button onClick={() => setIsAchieverModalOpen(true)} className="bg-dsce-blue text-white flex items-center gap-2">
+                                    <Plus className="h-4 w-4" /> Add Achiever
+                                </Button>
+                            )}
                         </div>
                         {loading ? (
                             <SkeletonGrid count={8} />
@@ -139,7 +188,7 @@ export default function Gallery() {
                         <div className="flex justify-between items-center mb-6 max-w-6xl mx-auto px-4">
                             <h2 className="text-2xl font-bold text-center flex-1">Campus Life</h2>
                             {isAdmin && (
-                                <Button onClick={handleAddImage} className="bg-dsce-blue text-white flex items-center gap-2">
+                                <Button onClick={() => setIsImageModalOpen(true)} className="bg-dsce-blue text-white flex items-center gap-2">
                                     <Plus className="h-4 w-4" /> Add Image
                                 </Button>
                             )}
@@ -184,6 +233,135 @@ export default function Gallery() {
                 onClose={() => setSelectedImage(null)}
                 alt="DSCE Campus Memory"
             />
+
+            {/* Add Achiever Modal */}
+            <AnimatePresence>
+                {isAchieverModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden my-8"
+                        >
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <h3 className="text-xl font-bold text-dsce-blue">Add Notable Achiever</h3>
+                                <button
+                                    onClick={() => setIsAchieverModalOpen(false)}
+                                    className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <form onSubmit={handleAddAchieverSubmit} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        value={newAchiever.name} 
+                                        onChange={e => setNewAchiever({...newAchiever, name: e.target.value})} 
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                        placeholder="e.g. Jane Doe"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1">Graduation Year</label>
+                                        <input 
+                                            type="number" 
+                                            required 
+                                            value={newAchiever.graduationYear} 
+                                            onChange={e => setNewAchiever({...newAchiever, graduationYear: parseInt(e.target.value)})} 
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1">Location</label>
+                                        <input 
+                                            type="text" 
+                                            required 
+                                            value={newAchiever.location} 
+                                            onChange={e => setNewAchiever({...newAchiever, location: e.target.value})} 
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                            placeholder="e.g. San Francisco, CA"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Headline/Position</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        value={newAchiever.headline} 
+                                        onChange={e => setNewAchiever({...newAchiever, headline: e.target.value})} 
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                        placeholder="e.g. Software Engineer at Google"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL (Cloudinary)</label>
+                                    <input 
+                                        type="url" 
+                                        value={newAchiever.imageUrl} 
+                                        onChange={e => setNewAchiever({...newAchiever, imageUrl: e.target.value})} 
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                        placeholder="https://res.cloudinary.com/..."
+                                    />
+                                </div>
+                                
+                                <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+                                    <Button type="button" variant="outline" onClick={() => setIsAchieverModalOpen(false)}>Cancel</Button>
+                                    <Button type="submit" className="bg-dsce-blue text-white hover:bg-dsce-blue/90">Add Achiever</Button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Add Image Modal */}
+            <AnimatePresence>
+                {isImageModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <h3 className="text-xl font-bold text-dsce-blue">Add Campus Image</h3>
+                                <button
+                                    onClick={() => setIsImageModalOpen(false)}
+                                    className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <form onSubmit={handleAddImageSubmit} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL (Cloudinary)</label>
+                                    <input 
+                                        type="url" 
+                                        required 
+                                        value={newImageUrl} 
+                                        onChange={e => setNewImageUrl(e.target.value)} 
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
+                                        placeholder="https://res.cloudinary.com/..."
+                                    />
+                                </div>
+                                <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+                                    <Button type="button" variant="outline" onClick={() => setIsImageModalOpen(false)}>Cancel</Button>
+                                    <Button type="submit" className="bg-dsce-blue text-white hover:bg-dsce-blue/90">Add Image</Button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </>
     );
 }
