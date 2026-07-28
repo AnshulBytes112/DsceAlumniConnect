@@ -1,293 +1,166 @@
-# Alumni Connect
+# DSCE Alumni Connect 🎓
 
-A full-stack alumni networking platform that connects students and alumni through profiles, events, jobs, social posts, and discussion forums.
-
-This README is written for both development onboarding and project report preparation.
-
-## 1. Executive Summary
-
-Alumni Connect is built as a modern web platform with:
-- Frontend: React + TypeScript + Vite
-- Backend: Spring Boot + Java 17 + MongoDB
-- Authentication: JWT + Google OAuth
-- Collaboration features: posts, comments, events, jobs, and forums
-- Resume intelligence: PDF resume upload and parsing integration
-- Admin workflows: verification, analytics, and moderation features
-
-The repository includes product planning documents, cost analysis, and production roadmap artifacts for stakeholder review.
-
-## 2. Problem Statement
-
-Educational institutions need a unified alumni platform where:
-- Students can discover alumni and opportunities
-- Alumni can share jobs, events, and mentorship opportunities
-- Administrators can verify user credibility and monitor engagement
-
-Alumni Connect solves this through a role-aware platform with authenticated user journeys, admin control panels, and integrated profile enrichment from resumes.
-
-## 3. Key Objectives
-
-- Build a centralized alumni-student networking system
-- Provide verified identity and profile management
-- Enable event discovery and RSVP workflows
-- Support job posting and application discovery
-- Offer community interactions via feeds and discussion forums
-- Maintain scalability readiness for multi-thousand active users
-
-## 4. High-Level Architecture
-
-## System Components
-- Web Client: React SPA with route-level lazy loading
-- API Server: Spring Boot REST APIs and WebSocket endpoints
-- Database: MongoDB for users, events, posts, jobs, and forums
-- Cache/Session Support: Redis and Mongo-backed session support in dependencies
-- File Handling: profile images, post images, and resume uploads
-- Parsing Submodule: TypeScript-based resume parser integrated with backend flows
-
-## Request Flow
-1. User accesses frontend on local dev server.
-2. Frontend calls backend APIs (default base URL: http://localhost:8080).
-3. Backend validates JWT, executes business logic, and persists to MongoDB.
-4. File uploads are stored under backend-managed directories in local development.
-5. Resume parse endpoints invoke parser services for profile auto-fill scenarios.
-
-## 5. Technology Stack
-
-## Frontend
-- React 19
-- TypeScript 5
-- Vite 7
-- React Router
-- React Query
-- TailwindCSS
-- Radix UI primitives
-- Leaflet (maps)
-- Recharts (analytics charts)
-- STOMP + SockJS (real-time messaging integration)
-
-## Backend
-- Java 17
-- Spring Boot 3.5.x
-- Spring Security
-- Spring Data MongoDB
-- Spring WebSocket
-- JWT (jjwt)
-- Maven build system
-- Lombok
-
-## Data and Services
-- MongoDB
-- Redis dependency included for caching/session use cases
-- Google OAuth client integration
-- AI provider configuration points for resume processing (Groq/Gemini settings present)
-
-## Utility/Support Modules
-- backend/open_resume: TypeScript resume parser module adapted from OpenResume
-- backend/scripts: MongoDB seeding utilities (faker + mongodb)
-
-## 6. Functional Modules
-
-## Authentication and Access
-- Email/password sign up and login
-- Google login support
-- JWT-based authorization
-- Protected user routes and admin-only routes
-
-## User Profile and Identity
-- Profile setup and edit
-- Profile picture upload
-- Resume upload and parse/update parse workflows
-- Alumni listing and alumni detail pages
-
-## Dashboard
-- User-level summary metrics
-- Announcements and events widgets
-- Funding and activity-related endpoints
-
-## Social and Community
-- Post creation and feed interactions
-- Like/share/bookmark/report actions
-- Comment threads
-- Discussion groups, topics, and posts
-
-## Events
-- Event listing and featured events
-- Event creation
-- RSVP updates
-- Event detail views
-
-## Jobs
-- Job listing and detail views
-- User-owned job listings
-- Job creation and deletion
-
-## Admin Panel
-- Verification queue and decisions
-- Analytics endpoints
-- Event feature/unfeature/delete controls
-- Admin account management endpoint(s)
-
-## 7. API Surface (Representative)
-
-Base URL (local):
-- http://localhost:8080
-
-Representative endpoint groups:
-- /auth/* and /api/auth/*
-- /profile/* and /api/profile/*
-- /dashboard/* and /api/dashboard/*
-- /events/* and /api/events/*
-- /api/jobs/*
-- /posts/* and /api/posts/*
-- /comments/* and /api/comments/*
-- /discussions/* and /api/discussions/*
-- /api/admin/*
-
-Note: Multiple controllers expose dual patterns (with and without /api), which supports compatibility but should be standardized in future hardening.
-
-## 8. Repository Structure
-
-Primary working directories:
-- frontend/: main React application
-- backend/: main Spring Boot service
-- backend/open_resume/: resume parsing module
-- backend/scripts/: seeding scripts
-
-Planning and report documents:
-- PRODUCTION_ROADMAP.md
-- PRODUCTION_COST_ANALYSIS.md
-- COST_ANALYSIS.md
-- TEAM_ASSIGNMENTS.md
-
-Legacy/parallel directories also exist in workspace and should be treated carefully:
-- Alumni-Conncet-Frontend/
-- Alumni-Connect-backend/
-
-## 9. Local Development Setup
-
-## Prerequisites
-- Node.js 20+ and npm
-- Java 17
-- Maven 3.9+
-- MongoDB (local or cloud URI)
-
-## Backend Setup
-1. Open terminal in backend/
-2. Configure src/main/resources/application.properties
-3. Start backend:
-
-```bash
-mvn spring-boot:run
-```
-
-Backend default port: 8080
-
-## Frontend Setup
-1. Open terminal in frontend/
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Start dev server:
-
-```bash
-npm run dev
-```
-
-Frontend default port is provided by Vite (typically 5173).
-
-## Resume Parser Setup (Optional but Recommended)
-1. Open terminal in backend/open_resume/
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Run parser tests if needed:
-
-```bash
-npm test
-```
-
-## Data Seeding (Optional)
-1. Open terminal in backend/scripts/
-2. Install dependencies and run seed script:
-
-```bash
-npm install
-npm start
-```
-
-## 10. Build and Quality Commands
-
-Frontend:
-```bash
-npm run build
-npm run lint
-npm run preview
-```
-
-Backend:
-```bash
-mvn clean install
-mvn test
-```
-
-Note: Current Maven configuration includes skipTests=true in surefire plugin, so test execution behavior should be verified and adjusted for CI quality gates.
-
-## 11. Security and Production Notes
-
-Current codebase indicates production hardening tasks still in progress. For deployment readiness:
-- Move secrets/API keys out of property files into environment variables or secret managers
-- Restrict CORS from wildcard to explicit allowed origins
-- Move file uploads from local disk paths to object storage in production
-- Apply API rate limiting and request validation hardening
-- Ensure logs do not expose tokens or sensitive user data
-
-## 12. Scalability and Cost Perspective
-
-Based on included cost and roadmap documents:
-- The architecture is suitable for phased rollout
-- Cost envelope is documented for 5k, 20k, and 50k MAU scenarios
-- AI resume parsing cost is identified as a variable driver
-- Production rollout plan is organized into readiness, deployment, and optimization phases
-
-## 13. Known Gaps and Improvement Opportunities
-
-- Frontend README is still template-level and should be replaced with project-specific docs
-- Backend setup docs mention files that may not currently exist (example config parity check needed)
-- API naming is not fully normalized between /api and non-/api paths
-- Workspace contains similarly named legacy folders that can confuse onboarding
-
-## 14. Suggested Report Sections (Copy-Ready)
-
-For academic or stakeholder report submission, use this structure:
-1. Abstract
-2. Problem Statement
-3. Proposed Solution
-4. Architecture and Tech Stack
-5. Module Breakdown
-6. API Design and Security
-7. Deployment and Cost Plan
-8. Team Plan and Timeline
-9. Risks and Mitigation
-10. Future Scope
-
-## 15. Future Scope
-
-- Notification engine and real-time messaging expansion
-- Better analytics and alumni engagement insights
-- Advanced recommendation systems for jobs/events/mentorship
-- Full CI/CD with staged quality gates and automated security scans
-- Multi-region deployment and observability dashboards
-
-## 16. Credits
-
-- Resume parsing module includes work adapted from OpenResume in backend/open_resume
+An enterprise-grade, full-stack platform designed to bridge the gap between current students, alumni, and faculty of DSCE. The platform provides a dynamic environment for networking, mentorship, event management, real-time forums, and AI-driven professional growth.
 
 ---
 
-If needed, this README can be further converted into a formal report document format (IEEE/college template) using the same section mapping.
+## 🏗️ Technology Stack
+
+### **Frontend Architecture (React + Vite)**
+- **Framework:** React 18 with TypeScript for strict type-safety.
+- **Styling & UI:** Tailwind CSS combined with custom components (`@/components/ui`) and PostCSS.
+- **Animations:** Framer Motion for highly fluid, interactive page transitions and modals.
+- **State Management:** React Context API (`AuthContext`) and modular React Hooks.
+- **Routing:** React Router DOM (v6) with Protected Routes and Role-Based Redirects.
+- **Network Client:** Centralized Axios instance (`apiClient.ts`) with automatic JWT injection, 401 interceptors, and Idempotency key generation.
+
+### **Backend Architecture (Spring Boot 3)**
+- **Framework:** Spring Boot (Java 17+)
+- **Database:** MongoDB (via Spring Data MongoDB) for flexible document storage.
+- **Distributed Caching & Locking:** Redis (Handles distributed locks, Idempotency caching, and API rate limiting).
+- **Security:** Spring Security with stateless JWT (JSON Web Tokens) authentication and OTP email verification.
+- **Real-Time Communication:** Spring WebSockets/STOMP (for real-time forum updates, likes, and comments).
+- **AI Integrations:** Google Gemini & Groq APIs for intelligent PDF Resume parsing.
+- **Cloud Storage:** Cloudinary integration for scalable media uploads (Profile pictures, Resumes, Forum images).
+
+---
+
+## ✨ Comprehensive Feature Matrix
+
+### 1. **Authentication & Access Control**
+- **Email & OTP Verification:** Secure registration flow that requires OTP verification before account activation.
+- **JWT Sessions:** Stateless authentication with access tokens stored securely on the client.
+- **Role-Based Access Control (RBAC):** Strict boundaries between `USER` and `ADMIN` roles. Admins have access to exclusive dashboards and global moderation tools.
+
+### 2. **AI-Powered Profile Management**
+- **Gemini AI Resume Parsing:** Users can upload their PDF resumes (`ResumeService.java` & `GeminiResumeService.java`). The backend securely streams the PDF, extracts text using PDFBox, and leverages the **Google Gemini (or Groq)** LLMs to intelligently parse work experience, education, projects, and skills directly into their digital profile!
+- **Dynamic Portfolios:** Users can edit their headlines, current companies, social links, and locations via the `EditProfile.tsx` interface.
+
+### 3. **Alumni Directory & Networking**
+- **Smart Directory:** A highly optimized `Alumni.tsx` directory featuring batch/year accordion layouts to ensure fast rendering of large alumni lists.
+- **Advanced Filtering:** Filter peers by Graduation Year, Department, Current Company, and specific Skills.
+- **Connection Engine:** Send, accept, or reject peer connection requests (`ConnectionController.java`). The UI optimistic-updates to reflect pending states instantly.
+
+### 4. **Real-Time Discussion Forums**
+- **Topics & Groups:** Structured discussion spaces (`DiscussionTopic` & `DiscussionGroup`) for specific topics or departments.
+- **Live Feeds via WebSockets:** `ForumWebSocketController` pushes live updates for new posts, comments, and likes directly to the client without page reloads.
+- **Media Attachments:** Users can attach multiple images to their posts (auto-uploaded to Cloudinary).
+- **Global Moderation:** Users with `ROLE_ADMIN` bypass ownership checks and can edit or delete any inappropriate content across the platform.
+
+### 5. **Career & Job Board**
+- **Post Opportunities:** Alumni and recruiters can post job openings and internships (`JobPostController`).
+- **Direct Networking:** Job cards feature a "Connect to Alumni" button, seamlessly routing candidates to the job poster's profile to facilitate direct networking.
+
+### 6. **Event & Announcement Management**
+- **Ticketing & RSVP:** Browse upcoming campus events, submit RSVPs, and automatically generate secure QR Code tickets (`EventRSVPRepository.java`).
+- **Featuring:** Admins can pin important Announcements and Events to the top of the homepage feed.
+
+### 7. **Gallery & Achievers (Admin Managed)**
+- **Campus Life:** A visual grid (`GalleryImage`) showcasing campus events.
+- **Notable Achievers:** A dedicated module (`Achiever`) highlighting highly successful alumni.
+- **Integrated Admin UI:** `Gallery.tsx` detects Admin users and renders inline File Upload Modals. Admins can upload images directly from their PC, which are streamed to Cloudinary and saved to MongoDB seamlessly.
+
+### 8. **Admin Dashboards & Analytics**
+- **Live Analytics:** `AdminAnalytics.tsx` provides high-level metrics on user registrations, job postings, and platform engagement.
+- **User Management:** Complete control to verify pending users, export alumni data to Excel spreadsheets, and manage platform roles.
+
+---
+
+## 🛡️ Enterprise Infrastructure & Security
+
+- **Global Idempotency Engine:** To prevent double-taps, network lag duplicates, or malicious replay attacks, the platform utilizes an `IdempotencyInterceptor`. The frontend automatically generates an `X-Idempotency-Key` (UUID) for every mutating request (`POST`, `PUT`, `DELETE`). The backend checks Redis to ensure the key hasn't been processed in the last 24 hours.
+- **Distributed Locks:** Critical concurrent operations use Redis-based distributed locking (`DistributedLockService.java`) to prevent race conditions during high-traffic events (e.g., event RSVP limits).
+- **Method-Level Security:** Backend endpoints are strictly gated using Spring's `@PreAuthorize("hasRole('ADMIN')")`.
+
+---
+
+## 🚀 Local Development Setup
+
+### **1. Prerequisites**
+- Node.js (v18+)
+- Java 17+
+- Maven
+- Redis (Running locally or via Docker on port 6379)
+- MongoDB (Running locally or Atlas cluster)
+- Cloudinary Account (API Key, Secret, and Cloud Name)
+- Google Gemini API Key (For AI Resume Parsing)
+
+### **2. Environment Variables**
+
+**Backend (`backend/src/main/resources/application.properties` or `application-prod.yaml`)**
+```properties
+# Database & Cache
+spring.data.mongodb.uri=mongodb://localhost:27017/alumni_connect
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+
+# Security
+jwt.secret=YOUR_SECURE_JWT_SECRET_KEY
+
+# Cloudinary Storage
+cloudinary.url=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+
+# AI Resume Parsing
+gemini.api.key=YOUR_GEMINI_KEY
+groq.api.key=YOUR_GROQ_KEY_FALLBACK
+```
+
+**Frontend (`frontend/.env`)**
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+### **3. Running the Application**
+
+**Start the Backend Server:**
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+**Start the Frontend Client:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The frontend will be available at `http://localhost:5173`.
+
+---
+
+## ☁️ Deployment Notes (Production)
+
+When deploying to platforms like Render, AWS, or Heroku:
+1. Ensure the backend is running with the active `prod` profile (`SPRING_PROFILES_ACTIVE=prod`). 
+2. Ensure your Cloud Redis instance is properly linked to the backend via `REDIS_URL`.
+3. Configure `CORS_ALLOWED_ORIGINS` to point exactly to your frontend's production domain.
+4. For the frontend, build the production bundle utilizing:
+```bash
+npm run build
+```
+
+---
+
+## 💰 Paid Services & Production Costs
+
+When scaling this platform for production, be aware of the following third-party services that may incur costs or require premium tiers depending on your user volume:
+
+1. **Google Gemini API (or Groq)**
+   - **Usage:** Core driver of the AI Resume Parsing engine.
+   - **Cost Factor:** Billed per token (input characters/PDF text + output JSON). The platform employs fallback mechanisms and rate-limit handling, but heavy resume parsing traffic will require a paid/Pro tier to avoid `429 Too Many Requests` errors.
+
+2. **Cloudinary (Media Storage & CDN)**
+   - **Usage:** Hosts all user avatars, PDF resumes, forum post images, and gallery images.
+   - **Cost Factor:** While the free tier provides generous bandwidth and storage, storing thousands of high-res images and PDFs will quickly consume the free storage quota. A premium plan is necessary for long-term data retention and global CDN delivery speed.
+
+3. **Redis (Upstash / Render Redis)**
+   - **Usage:** Essential for the `IdempotencyInterceptor` (duplicate request prevention), API Rate Limiting, and Distributed Locks (preventing RSVP race conditions).
+   - **Cost Factor:** Needs a robust, low-latency persistent plan in production. Free instances usually drop connections or evict keys too quickly, which would break the Idempotency locks.
+
+4. **MongoDB Atlas**
+   - **Usage:** Primary database for the entire platform.
+   - **Cost Factor:** The free cluster (M0) limits connections and storage (512MB). You will need a dedicated cluster (e.g., M10 or above) to handle the connection pooling from Spring Boot and the sheer volume of Forum Posts, Users, and Events.
+
+5. **Application Hosting (Render, AWS, GCP)**
+   - **Usage:** Running the Spring Boot backend and serving the React frontend.
+   - **Cost Factor:** The Spring Boot application requires a minimum of 1GB RAM (preferably 2GB+) to handle Java's garbage collection and concurrent WebSockets efficiently. Free-tier servers will likely crash due to Out-Of-Memory (OOM) errors.
