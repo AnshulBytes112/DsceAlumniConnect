@@ -6,7 +6,7 @@ import { apiClient, type Achiever, type GalleryImage } from '@/lib/api';
 import { SkeletonGrid } from '@/components/ui/Skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { Trash2, Plus, Edit, X } from 'lucide-react';
+import { Trash2, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
@@ -76,18 +76,6 @@ export default function Gallery() {
             toast({ title: 'Image deleted' });
         } catch (error) {
             toast({ title: 'Failed to delete', variant: 'destructive' });
-        }
-    };
-
-    const handleAddImage = async () => {
-        const url = prompt("Enter image URL (Cloudinary):");
-        if (!url) return;
-        try {
-            const newImg = await apiClient.addGalleryImage({ url, category: 'campus', caption: 'Campus Image' });
-            setCampusImages([newImg, ...campusImages]);
-            toast({ title: 'Image added' });
-        } catch (error) {
-            toast({ title: 'Failed to add image', variant: 'destructive' });
         }
     };
 
