@@ -10,6 +10,31 @@ export const getImageUrl = (path: string | null | undefined): string | null => {
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   return `${API_BASE_URL}/${path.replace(/^\//, '')}`;
 };
+
+// Simple cache for idempotency keys to prevent double-clicks
+const idempotencyCache = new Map<string, { key: string, timestamp: number }>();
+
+function getIdempotencyKey(method: string, endpoint: string, body?: any): string {
+    const cacheKey = `${method}:${endpoint}:${body ? JSON.stringify(body) : ''}`;
+    const now = Date.now();
+    
+    // Clean up old entries
+    for (const [k, v] of idempotencyCache.entries()) {
+        if (now - v.timestamp > 2000) {
+            idempotencyCache.delete(k);
+        }
+    }
+    
+    const existing = idempotencyCache.get(cacheKey);
+    if (existing) {
+        return existing.key;
+    }
+    
+    const newKey = crypto.randomUUID();
+    idempotencyCache.set(cacheKey, { key: newKey, timestamp: now });
+    return newKey;
+}
+
 import {
     upcomingEvents,
     mockCredentials
@@ -302,9 +327,14 @@ class ApiClient {
     }
 
     private async post<T>(endpoint: string, body: any): Promise<T> {
+        const headers = this.getHeaders(true) as Record<string, string>;
+        if (!headers['X-Idempotency-Key']) {
+            headers['X-Idempotency-Key'] = getIdempotencyKey('POST', endpoint, body);
+        }
+        
         const response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'POST',
-            headers: this.getHeaders(true),
+            headers,
             body: JSON.stringify(body),
         });
 
@@ -336,9 +366,14 @@ class ApiClient {
     }
 
     private async put<T>(endpoint: string, body: any): Promise<T> {
+        const headers = this.getHeaders(true) as Record<string, string>;
+        if (!headers['X-Idempotency-Key']) {
+            headers['X-Idempotency-Key'] = getIdempotencyKey('PUT', endpoint, body);
+        }
+
         const response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'PUT',
-            headers: this.getHeaders(true),
+            headers,
             body: JSON.stringify(body),
         });
 
@@ -370,9 +405,14 @@ class ApiClient {
     }
 
     private async delete(endpoint: string): Promise<void> {
+        const headers = this.getHeaders(true) as Record<string, string>;
+        if (!headers['X-Idempotency-Key']) {
+            headers['X-Idempotency-Key'] = getIdempotencyKey('DELETE', endpoint);
+        }
+
         const response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'DELETE',
-            headers: this.getHeaders(true),
+            headers,
         });
 
         if (!response.ok) {
@@ -713,6 +753,10 @@ class ApiClient {
         if (!response.ok) return null;
 
         return response.json();
+    }
+
+    async sendConnectionRequest(receiverId: string): Promise<any> {
+        return this.post(`/api/connections/request/${receiverId}`, {});
     }
 
     async uploadResume(resume: File, replaceExisting: boolean = false) {

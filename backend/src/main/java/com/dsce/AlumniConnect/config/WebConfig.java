@@ -14,9 +14,13 @@ public class WebConfig implements WebMvcConfigurer {
         @Autowired
         private RateLimitingInterceptor rateLimitingInterceptor;
 
+        @Autowired
+        private IdempotencyInterceptor idempotencyInterceptor;
+
         @Override
         public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(rateLimitingInterceptor).addPathPatterns("/api/**");
+                registry.addInterceptor(idempotencyInterceptor).addPathPatterns("/api/**");
         }
 
         @Override

@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import MotionWrapper from '@/components/ui/MotionWrapper';
-import { Search, Users, Calendar, MapPin, Award, GraduationCap, Filter, X, Linkedin, Mail, Briefcase, Building2, Map as MapIcon } from 'lucide-react';
+import { Search, Users, Calendar, MapPin, Award, GraduationCap, Filter, X, Linkedin, Mail, Briefcase, Building2, Map as MapIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { type UserProfile, getImageUrl } from '@/lib/api';
+import { type UserProfile, getImageUrl, apiClient } from '@/lib/api';
+import { useToast } from '@/components/ui/use-toast';
 import { ProfileService } from '@/services/authService';
 import { useAsync } from '@/hooks/useAsync';
 import AlumniMap from '@/components/AlumniMap';
@@ -18,6 +19,10 @@ export default function Alumni() {
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
+    const [expandedYear, setExpandedYear] = useState<string | null>(null);
+    const [connectingId, setConnectingId] = useState<string | null>(null);
+    const [connectedIds, setConnectedIds] = useState<Set<string>>(new Set());
+    const { toast } = useToast();
     const { data: realAlumni, loading, error, retry } = useAsync<UserProfile[]>(
         () => ProfileService.getAllAlumni(),
         false
@@ -117,6 +122,27 @@ export default function Alumni() {
         setSelectedDepartment('all');
         setSelectedCompany('all');
         setSelectedSkills([]);
+    };
+
+    const handleConnect = async (alumId: string) => {
+        if (connectingId || connectedIds.has(alumId)) return;
+        setConnectingId(alumId);
+        try {
+            await apiClient.sendConnectionRequest(alumId);
+            setConnectedIds(prev => new Set(prev).add(alumId));
+            toast({
+                title: "Request Sent",
+                description: "Connection request sent successfully!"
+            });
+        } catch (error: any) {
+            toast({
+                title: "Connection Failed",
+                description: error.message || "Could not send request.",
+                variant: "destructive"
+            });
+        } finally {
+            setConnectingId(null);
+        }
     };
 
     const hasActiveFilters = searchTerm !== '' || selectedYear !== 'all' || selectedDepartment !== 'all' || selectedCompany !== 'all' || selectedSkills.length > 0;
@@ -275,16 +301,28 @@ export default function Alumni() {
                             .sort(([yearA], [yearB]) => parseInt(yearB) - parseInt(yearA))
                             .map(([year, yearAlumni]) => (
                                 <motion.div key={year} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-                                    <div className="flex items-center gap-4 mb-6">
+                                    <div 
+                                        className="flex items-center gap-4 mb-6 cursor-pointer group"
+                                        onClick={() => setExpandedYear(expandedYear === year ? null : year)}
+                                    >
                                         <div className="h-px flex-1 bg-gradient-to-r from-dsce-blue/20 to-transparent"></div>
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-dsce-blue/10 shadow-sm">
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-dsce-blue/10 shadow-sm group-hover:bg-dsce-blue/5 transition-colors">
                                             <Calendar className="h-4 w-4 text-dsce-gold" />
                                             <span className="font-bold text-dsce-blue">Class of {year}</span>
+                                            {expandedYear === year ? <ChevronUp className="h-4 w-4 text-dsce-blue" /> : <ChevronDown className="h-4 w-4 text-dsce-blue" />}
                                         </div>
                                         <div className="h-px flex-1 bg-gradient-to-l from-dsce-blue/20 to-transparent"></div>
                                     </div>
 
-                                    <div className={viewMode === 'grid' ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
+                                    <AnimatePresence>
+                                        {(expandedYear === year || (searchTerm !== '' || selectedYear !== 'all')) && (
+                                            <motion.div 
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className={viewMode === 'grid' ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3 pb-8" : "space-y-4 pb-8"}>
                                         {yearAlumni.map((alum) => (
                                             <motion.div key={alum.id} whileHover={{ y: -5 }} className={`group bg-white rounded-2xl border border-dsce-blue/5 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden ${viewMode === 'list' ? 'flex items-center p-4 gap-6' : 'p-6'}`}>
                                                 {viewMode === 'grid' ? (
@@ -322,7 +360,14 @@ export default function Alumni() {
                                                         </div>
                                                         <div className="pt-4 border-t border-gray-100 mt-4">
                                                             <div className="flex flex-wrap gap-2 mb-4">{alum.achievements.slice(0, 2).map((achievement, i) => <span key={i} className="inline-flex items-center px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"><Award className="h-3 w-3 mr-1" />{achievement}</span>)}</div>
-                                                            <div className="grid grid-cols-2 gap-3"><Link to={`/alumni/${alum.id}`}><Button variant="outline" className="w-full border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue/5">Profile</Button></Link><Button className="w-full bg-dsce-blue text-white hover:bg-dsce-blue/90">Connect</Button></div>
+                                                            <div className="grid grid-cols-2 gap-3"><Link to={`/alumni/${alum.id}`}><Button variant="outline" className="w-full border-dsce-blue/20 text-dsce-blue hover:bg-dsce-blue/5">Profile</Button></Link>
+                                                            <Button 
+                                                                className="w-full bg-dsce-blue text-white hover:bg-dsce-blue/90"
+                                                                disabled={connectingId === alum.id || connectedIds.has(alum.id)}
+                                                                onClick={() => handleConnect(alum.id)}
+                                                            >
+                                                                {connectingId === alum.id ? 'Connecting...' : connectedIds.has(alum.id) ? 'Pending' : 'Connect'}
+                                                            </Button></div>
                                                         </div>
                                                     </>
                                                 ) : (
@@ -333,12 +378,23 @@ export default function Alumni() {
                                                             <p className="text-sm text-gray-600 flex items-center gap-2"><span className="font-medium">{alum.position}</span><span className="text-gray-300">•</span><span>{alum.company}</span></p>
                                                             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500"><span className="flex items-center"><MapPin className="h-3 w-3 mr-1" /> {alum.location}</span><span className="flex items-center"><Award className="h-3 w-3 mr-1 text-dsce-gold" /> {alum.achievements.length} Achievements</span></div>
                                                         </div>
-                                                        <div className="flex items-center gap-3"><Button variant="ghost" size="sm" className="text-gray-500 hover:text-dsce-blue"><Mail className="h-4 w-4" /></Button><Link to={`/alumni/${alum.id}`}><Button variant="outline" size="sm" className="hidden md:flex">View Profile</Button></Link><Button size="sm" className="bg-dsce-blue text-white hover:bg-dsce-blue/90">Connect</Button></div>
+                                                        <div className="flex items-center gap-3"><Button variant="ghost" size="sm" className="text-gray-500 hover:text-dsce-blue"><Mail className="h-4 w-4" /></Button><Link to={`/alumni/${alum.id}`}><Button variant="outline" size="sm" className="hidden md:flex">View Profile</Button></Link>
+                                                        <Button 
+                                                            size="sm" 
+                                                            className="bg-dsce-blue text-white hover:bg-dsce-blue/90"
+                                                            disabled={connectingId === alum.id || connectedIds.has(alum.id)}
+                                                            onClick={() => handleConnect(alum.id)}
+                                                        >
+                                                            {connectingId === alum.id ? 'Connecting...' : connectedIds.has(alum.id) ? 'Pending' : 'Connect'}
+                                                        </Button></div>
                                                     </>
                                                 )}
                                             </motion.div>
                                         ))}
-                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </motion.div>
                             ))}
                     </div>
