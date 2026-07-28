@@ -125,6 +125,24 @@ export interface AuthResponse extends UserProfile {
     jwtToken: string;
 }
 
+export interface GalleryImage {
+    id: string;
+    url: string;
+    caption: string;
+    category: string;
+    createdAt?: string;
+}
+
+export interface Achiever {
+    id: string;
+    name: string;
+    graduationYear: number;
+    headline: string;
+    location: string;
+    imageUrl: string;
+    createdAt?: string;
+}
+
 export interface ErrorResponse {
     message: string;
     status: number;
@@ -757,6 +775,37 @@ class ApiClient {
 
     async sendConnectionRequest(receiverId: string): Promise<any> {
         return this.post(`/api/connections/request/${receiverId}`, {});
+    }
+
+    async getGalleryImages(category?: string): Promise<GalleryImage[]> {
+        if (category) {
+            return this.get<GalleryImage[]>(`/api/gallery/category/${category}`);
+        }
+        return this.get<GalleryImage[]>('/api/gallery');
+    }
+
+    async addGalleryImage(image: Partial<GalleryImage>): Promise<GalleryImage> {
+        return this.post<GalleryImage>('/api/gallery', image);
+    }
+
+    async deleteGalleryImage(id: string): Promise<void> {
+        return this.delete(`/api/gallery/${id}`);
+    }
+
+    async getAchievers(): Promise<Achiever[]> {
+        return this.get<Achiever[]>('/api/achievers');
+    }
+
+    async addAchiever(achiever: Partial<Achiever>): Promise<Achiever> {
+        return this.post<Achiever>('/api/achievers', achiever);
+    }
+
+    async updateAchiever(id: string, achiever: Partial<Achiever>): Promise<Achiever> {
+        return this.put<Achiever>(`/api/achievers/${id}`, achiever);
+    }
+
+    async deleteAchiever(id: string): Promise<void> {
+        return this.delete(`/api/achievers/${id}`);
     }
 
     async uploadResume(resume: File, replaceExisting: boolean = false) {
