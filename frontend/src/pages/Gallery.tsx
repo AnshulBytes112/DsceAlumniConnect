@@ -34,7 +34,8 @@ export default function Gallery() {
         location: '',
         imageUrl: ''
     });
-    const [newImageUrl, setNewImageUrl] = useState('');
+    const [achieverImageFile, setAchieverImageFile] = useState<File | null>(null);
+    const [campusImageFile, setCampusImageFile] = useState<File | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -81,13 +82,16 @@ export default function Gallery() {
 
     const handleAddImageSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newImageUrl) return;
+        if (!campusImageFile) return;
         try {
-            const newImg = await apiClient.addGalleryImage({ url: newImageUrl, category: 'campus', caption: 'Campus Image' });
+            const urls = await apiClient.uploadPostImages([campusImageFile]);
+            if (!urls || urls.length === 0) throw new Error("Upload failed");
+
+            const newImg = await apiClient.addGalleryImage({ url: urls[0], category: 'campus', caption: 'Campus Image' });
             setCampusImages([newImg, ...campusImages]);
             toast({ title: 'Image added' });
             setIsImageModalOpen(false);
-            setNewImageUrl('');
+            setCampusImageFile(null);
         } catch (error) {
             toast({ title: 'Failed to add image', variant: 'destructive' });
         }
@@ -96,7 +100,16 @@ export default function Gallery() {
     const handleAddAchieverSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const added = await apiClient.addAchiever(newAchiever);
+            let finalImageUrl = newAchiever.imageUrl;
+            if (achieverImageFile) {
+                const urls = await apiClient.uploadPostImages([achieverImageFile]);
+                if (urls && urls.length > 0) {
+                    finalImageUrl = urls[0];
+                }
+            }
+
+            const payload = { ...newAchiever, imageUrl: finalImageUrl };
+            const added = await apiClient.addAchiever(payload);
             setAchievers([added, ...achievers]);
             toast({ title: 'Achiever added successfully!' });
             setIsAchieverModalOpen(false);
@@ -107,6 +120,7 @@ export default function Gallery() {
                 location: '',
                 imageUrl: ''
             });
+            setAchieverImageFile(null);
         } catch (error) {
             toast({ title: 'Failed to add achiever', variant: 'destructive' });
         }
@@ -289,13 +303,16 @@ export default function Gallery() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL (Cloudinary)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Image Upload (Auto sends to Cloudinary)</label>
                                     <input 
-                                        type="url" 
-                                        value={newAchiever.imageUrl} 
-                                        onChange={e => setNewAchiever({...newAchiever, imageUrl: e.target.value})} 
+                                        type="file" 
+                                        accept="image/*"
+                                        onChange={e => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                setAchieverImageFile(e.target.files[0]);
+                                            }
+                                        }} 
                                         className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
-                                        placeholder="https://res.cloudinary.com/..."
                                     />
                                 </div>
                                 
@@ -331,14 +348,17 @@ export default function Gallery() {
                             
                             <form onSubmit={handleAddImageSubmit} className="p-6 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL (Cloudinary)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Upload Campus Image</label>
                                     <input 
-                                        type="url" 
+                                        type="file" 
+                                        accept="image/*"
                                         required 
-                                        value={newImageUrl} 
-                                        onChange={e => setNewImageUrl(e.target.value)} 
+                                        onChange={e => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                setCampusImageFile(e.target.files[0]);
+                                            }
+                                        }} 
                                         className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dsce-blue/20"
-                                        placeholder="https://res.cloudinary.com/..."
                                     />
                                 </div>
                                 <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
